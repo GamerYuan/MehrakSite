@@ -39,19 +39,19 @@ const allSelected = computed(
   <div class="flex flex-col gap-4">
     <div class="relative w-full">
       <i
-        class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 z-10 pointer-events-none"
+        class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 z-10 pointer-events-none"
       ></i>
       <InputText
         :modelValue="searchQuery"
         @update:modelValue="handleSearchUpdate"
         placeholder="Search commands..."
-        class="w-full py-3 bg-white/5 border-white/10 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-zinc-200 placeholder:text-zinc-500"
+        class="w-full py-3 bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
         pt:root="pl-11"
       />
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-      <span class="text-sm text-zinc-400">Filter by game:</span>
+      <span class="text-sm text-zinc-500 dark:text-zinc-400">Filter by game:</span>
       <div class="flex flex-wrap gap-2">
         <button
           v-for="game in gameFilters"
@@ -59,8 +59,8 @@ const allSelected = computed(
           :class="[
             'inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs cursor-pointer transition-all',
             isGameSelected(game.key)
-              ? 'border-white/25 bg-white/10 text-white'
-              : 'border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:bg-white/10',
+              ? 'border-zinc-300 dark:border-white/25 bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white'
+              : 'border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-100 dark:hover:bg-white/10',
           ]"
           @click="emit('toggleGame', game.key)"
         >

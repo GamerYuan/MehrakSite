@@ -169,7 +169,7 @@ const showcases = [
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(to bottom, #08080c, #0e0e14);
+  background: var(--page-gradient);
   overflow-x: hidden;
 }
 
@@ -272,7 +272,7 @@ const showcases = [
   line-height: 1.05;
   font-size: clamp(2.8rem, 5vw, 4.2rem);
   font-weight: 800;
-  color: #f0f0f5;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -286,7 +286,7 @@ const showcases = [
 
 .hero-description {
   font-size: 1.05rem;
-  color: #888;
+  color: var(--text-muted);
   max-width: 480px;
   margin: 0;
   line-height: 1.7;
@@ -303,7 +303,7 @@ const showcases = [
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -316,7 +316,7 @@ const showcases = [
 }
 
 .tag-separator {
-  color: #444;
+  color: var(--text-muted);
   font-size: 0.7rem;
 }
 
@@ -341,12 +341,12 @@ const showcases = [
 }
 
 :deep(.p-button.discord-btn .p-button-icon) {
-  color: #000;
+  color: inherit;
 }
 
 :deep(.p-button.docs-btn) {
   border-color: rgba(255, 255, 255, 0.15);
-  color: #e0e0e0;
+  color: var(--text-secondary);
   font-weight: 500;
   padding: 0.9rem 2rem;
 }
@@ -382,13 +382,13 @@ const showcases = [
 .section-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #f0f0f5;
+  color: var(--text-primary);
   margin: 0 0 0.5rem;
   letter-spacing: -0.01em;
 }
 
 .section-subtitle {
-  color: #666;
+  color: var(--text-muted);
   font-size: 1.05rem;
   margin: 0;
 }
@@ -415,12 +415,12 @@ const showcases = [
 .cta-title {
   font-size: 1.9rem;
   font-weight: 700;
-  color: #f0f0f5;
+  color: var(--text-primary);
   margin: 0 0 0.5rem;
 }
 
 .cta-subtitle {
-  color: #888;
+  color: var(--text-muted);
   margin: 0 0 2rem;
   font-size: 1rem;
 }
@@ -439,7 +439,7 @@ const showcases = [
 }
 
 :deep(.p-button.cta-btn .p-button-icon) {
-  color: #000;
+  color: inherit;
 }
 
 /* ── Showcases ── */

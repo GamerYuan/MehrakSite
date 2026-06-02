@@ -41,8 +41,8 @@ const router = useRouter();
 <style scoped>
 .footer {
   padding: 2.5rem 2.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--border-primary);
+  background: var(--footer-bg);
 }
 
 .footer-content {
@@ -82,7 +82,7 @@ const router = useRouter();
 }
 
 .footer-disclaimer {
-  color: #555;
+  color: var(--text-muted);
   font-size: 0.8rem;
   margin: 0;
 }
@@ -95,7 +95,7 @@ const router = useRouter();
 }
 
 .footer-right a {
-  color: #888;
+  color: var(--text-muted);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
@@ -105,7 +105,7 @@ const router = useRouter();
 }
 
 .footer-right a:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 @media (max-width: 640px) {

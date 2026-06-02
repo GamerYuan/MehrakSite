@@ -214,7 +214,7 @@ onMounted(() => {
       </Column>
       <Column field="description" header="Description">
         <template #body="slotProps">
-          <span class="text-gray-400">{{ slotProps.data.description }}</span>
+          <span class="text-gray-600 dark:text-gray-400">{{ slotProps.data.description }}</span>
         </template>
       </Column>
       <Column field="game" header="Game">
@@ -224,7 +224,7 @@ onMounted(() => {
       </Column>
       <Column field="updatedAt" header="Last Updated">
         <template #body="slotProps">
-          <span class="text-gray-400">{{
+          <span class="text-gray-600 dark:text-gray-400">{{
             formatDate(slotProps.data.updatedAt)
           }}</span>
         </template>

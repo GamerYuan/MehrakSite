@@ -27,7 +27,7 @@ const handleClose = () => {
   >
     <template v-if="loading">
       <div
-        class="flex flex-col items-center justify-center gap-4 py-12 text-zinc-400"
+        class="flex flex-col items-center justify-center gap-4 py-12 text-zinc-500 dark:text-zinc-400"
       >
         <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
         <span>Loading details...</span>
@@ -45,7 +45,7 @@ const handleClose = () => {
           >
             Description
           </h4>
-          <p class="m-0 text-zinc-300 leading-relaxed">{{ doc.description }}</p>
+          <p class="m-0 text-zinc-700 dark:text-zinc-300 leading-relaxed">{{ doc.description }}</p>
         </div>
 
         <div v-if="doc.name" class="flex flex-col gap-2">
@@ -55,7 +55,7 @@ const handleClose = () => {
             Usage
           </h4>
           <code
-            class="block p-4 bg-black/40 rounded-lg font-mono text-sm text-emerald-300/80 break-all leading-relaxed"
+            class="block p-4 bg-zinc-100 dark:bg-black/40 rounded-lg font-mono text-sm text-emerald-300/80 break-all leading-relaxed"
             >/{{ doc.name
             }}<template v-if="doc.parameters?.length"
               ><template v-for="param in doc.parameters" :key="param.name"
@@ -77,10 +77,10 @@ const handleClose = () => {
             <div
               v-for="param in doc.parameters"
               :key="param.name"
-              class="p-4 bg-white/5 rounded-lg border border-white/10"
+              class="p-4 bg-white dark:bg-white/5 rounded-lg border border-zinc-200 dark:border-white/10"
             >
               <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="font-semibold text-white font-mono">{{
+                <span class="font-semibold text-zinc-900 dark:text-white font-mono">{{
                   param.name
                 }}</span>
                 <span
@@ -93,7 +93,7 @@ const handleClose = () => {
                   >Required</span
                 >
               </div>
-              <p v-if="param.description" class="m-0 text-sm text-zinc-400">
+              <p v-if="param.description" class="m-0 text-sm text-zinc-500 dark:text-zinc-400">
                 {{ param.description }}
               </p>
             </div>
@@ -107,7 +107,7 @@ const handleClose = () => {
             Examples
           </h4>
           <code
-            class="block p-4 bg-black/40 rounded-lg font-mono text-sm text-emerald-300/80 break-all leading-[1.8]"
+            class="block p-4 bg-zinc-100 dark:bg-black/40 rounded-lg font-mono text-sm text-emerald-300/80 break-all leading-[1.8]"
             ><template v-for="(example, index) in doc.examples" :key="index"
               >{{ example
               }}<br v-if="index < doc.examples.length - 1" /></template

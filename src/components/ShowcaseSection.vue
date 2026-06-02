@@ -105,7 +105,7 @@ onUnmounted(() => {
 .showcase-title {
   font-size: clamp(1.8rem, 3.5vw, 2.6rem);
   font-weight: 700;
-  color: #f0f0f5;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.01em;
   line-height: 1.15;
@@ -113,7 +113,7 @@ onUnmounted(() => {
 
 .showcase-desc {
   font-size: 1rem;
-  color: #888;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.7;
   max-width: 440px;

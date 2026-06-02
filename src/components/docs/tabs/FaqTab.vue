@@ -60,20 +60,20 @@ const faqItems = [
 
 <template>
   <div class="flex flex-col gap-6">
-    <Card class="bg-white/5 border border-white/10 rounded-2xl">
+    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
       <template #content>
         <div class="flex flex-col gap-4">
-          <h2 class="text-3xl font-bold tracking-tight text-zinc-100 mb-2">
+          <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
             FAQ
           </h2>
-          <p class="text-zinc-300 leading-relaxed m-0">
+          <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed m-0">
             Frequently asked questions about Mehrak
           </p>
         </div>
       </template>
     </Card>
 
-    <Card class="bg-white/5 border border-white/10 rounded-2xl">
+    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
       <template #content>
         <Accordion
           value=""
@@ -88,7 +88,7 @@ const faqItems = [
           >
             <AccordionHeader>{{ item.question }}</AccordionHeader>
             <AccordionContent>
-              <p class="text-zinc-300 leading-relaxed m-0">
+              <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed m-0">
                 {{ item.answer
                 }}<RouterLink
                   v-if="item.link?.route"

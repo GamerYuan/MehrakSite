@@ -179,14 +179,14 @@ onMounted(loadReleases);
 
 <template>
   <div class="flex flex-col gap-6 p-6">
-    <Card class="bg-white/5 border border-white/10 rounded-2xl">
+    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
       <template #content>
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-3xl font-bold tracking-tight text-zinc-100 mb-2">
+            <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
               Release Notes Management
             </h2>
-            <p class="text-zinc-300 leading-relaxed">
+            <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed">
               Add, edit, or remove release versions and their notes
             </p>
           </div>
@@ -208,16 +208,16 @@ onMounted(loadReleases);
       {{ error }}
     </div>
 
-    <div v-else-if="!sortedReleases.length" class="text-center py-12 text-zinc-400">
+    <div v-else-if="!sortedReleases.length" class="text-center py-12 text-zinc-500 dark:text-zinc-400">
       No release versions found. Click "Add Version" to create one.
     </div>
 
     <div v-else class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
       <aside class="h-fit">
-        <Card class="bg-white/5 border border-white/10 rounded-2xl">
+        <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
           <template #content>
             <h4
-              class="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3"
+              class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3"
             >
               Versions
             </h4>
@@ -226,11 +226,11 @@ onMounted(loadReleases);
                 v-for="release in sortedReleases"
                 :key="release.id"
                 type="button"
-                class="text-left px-3 py-2 rounded-lg text-sm transition-all text-zinc-300 hover:text-zinc-100 hover:bg-white/5 border border-transparent hover:border-white/10"
+                class="text-left px-3 py-2 rounded-lg text-sm transition-all text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/5 border border-transparent hover:border-white/10"
                 @click="openEditModal(release)"
               >
                 <span class="font-mono text-xs">{{ release.version }}</span>
-                <span v-if="release.date" class="text-zinc-500 ml-2">{{ release.date }}</span>
+                <span v-if="release.date" class="text-zinc-400 dark:text-zinc-500 ml-2">{{ release.date }}</span>
               </button>
             </nav>
           </template>
@@ -241,22 +241,22 @@ onMounted(loadReleases);
         <Card
           v-for="release in sortedReleases"
           :key="release.id"
-          class="bg-white/5 border border-white/10 rounded-2xl"
+          class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl"
         >
           <template #content>
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-xl font-bold text-zinc-100 font-mono">
+                <h3 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">
                   {{ release.version }}
                 </h3>
-                <span v-if="release.date" class="text-sm text-zinc-500">{{ release.date }}</span>
+                <span v-if="release.date" class="text-sm text-zinc-400 dark:text-zinc-500">{{ release.date }}</span>
               </div>
               <div class="flex gap-2">
                 <Button
                   icon="pi pi-pencil"
                   severity="secondary"
                   text
-                  class="text-zinc-400 hover:text-zinc-200"
+                  class="text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
                   @click="openEditModal(release)"
                 />
                 <Button
@@ -274,7 +274,7 @@ onMounted(loadReleases);
               :key="section.name"
               class="flex flex-col gap-2 mb-4"
             >
-              <h4 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider border-b border-white/10 pb-2">
+              <h4 class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-b border-zinc-200 dark:border-white/10 pb-2">
                 {{ section.name }}
               </h4>
               <ul class="flex flex-col gap-1.5">
@@ -295,7 +295,7 @@ onMounted(loadReleases);
                   >
                     {{ note.type }}
                   </span>
-                  <span class="text-zinc-300 text-sm whitespace-pre-wrap">{{ note.text }}</span>
+                  <span class="text-zinc-700 dark:text-zinc-300 text-sm whitespace-pre-wrap">{{ note.text }}</span>
                 </li>
               </ul>
             </div>
@@ -309,12 +309,12 @@ onMounted(loadReleases);
       :header="isEditing ? 'Edit Release Version' : 'Add Release Version'"
       modal
       :style="{ width: '700px' }"
-      class="bg-zinc-900 border border-white/10"
+      class="bg-zinc-900 border border-zinc-200 dark:border-white/10"
     >
       <div class="flex flex-col gap-4">
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
-            <label class="text-sm text-zinc-400">Version</label>
+            <label class="text-sm text-zinc-500 dark:text-zinc-400">Version</label>
             <InputText
               v-model="form.version"
               placeholder="e.g. v1.2.0"
@@ -322,7 +322,7 @@ onMounted(loadReleases);
             />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm text-zinc-400">Date</label>
+            <label class="text-sm text-zinc-500 dark:text-zinc-400">Date</label>
             <InputText
               v-model="form.date"
               placeholder="e.g. 2024-01-15"
@@ -332,7 +332,7 @@ onMounted(loadReleases);
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-sm text-zinc-400">Display Order</label>
+          <label class="text-sm text-zinc-500 dark:text-zinc-400">Display Order</label>
           <InputNumber v-model="form.displayOrder" class="w-full" />
         </div>
 
@@ -340,7 +340,7 @@ onMounted(loadReleases);
           <div
             v-for="(section, sIndex) in form.sections"
             :key="sIndex"
-            class="flex flex-col gap-3 p-4 rounded-xl bg-white/5 border border-white/10"
+            class="flex flex-col gap-3 p-4 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10"
           >
             <div class="flex items-center justify-between gap-2">
               <InputText
@@ -357,7 +357,7 @@ onMounted(loadReleases);
               />
             </div>
 
-            <div class="flex flex-col gap-2 pl-4 border-l-2 border-white/10">
+            <div class="flex flex-col gap-2 pl-4 border-l-2 border-zinc-200 dark:border-white/10">
               <div
                 v-for="(note, nIndex) in section.notes"
                 :key="nIndex"
@@ -406,7 +406,7 @@ onMounted(loadReleases);
           @click="addSection"
         />
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+        <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-white/10">
           <Button
             label="Cancel"
             severity="secondary"

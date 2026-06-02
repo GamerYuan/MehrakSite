@@ -118,15 +118,15 @@ const handleTabChange = (tab) => {
     <main class="docs-content">
       <div class="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-8 items-start">
         <aside class="lg:sticky lg:top-28 h-fit">
-          <Card class="bg-white/5 border border-white/10 rounded-2xl">
+          <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
             <template #content>
               <div class="mb-5">
                 <h1
-                  class="text-3xl font-bold tracking-tight text-zinc-100 mb-2"
+                  class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2"
                 >
                   Documentation
                 </h1>
-                <p class="text-zinc-400 text-sm leading-relaxed m-0">
+                <p class="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed m-0">
                   Explore all available commands and features
                 </p>
               </div>
@@ -141,8 +141,8 @@ const handleTabChange = (tab) => {
                   :class="[
                     'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-all whitespace-nowrap md:whitespace-normal',
                     activeTab === tab.key
-                      ? 'text-white border border-emerald-500/50 bg-emerald-500/20'
-                      : 'text-zinc-400 border border-white/10 bg-white/5 hover:text-zinc-200 hover:border-white/20 hover:bg-white/10',
+                      ? 'text-zinc-900 dark:text-white border border-emerald-500/50 bg-emerald-500/20'
+                      : 'text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:text-zinc-800 dark:hover:text-zinc-200 hover:border-white/20 hover:bg-white/10',
                   ]"
                   @click="handleTabChange(tab.key)"
                 >
@@ -159,15 +159,15 @@ const handleTabChange = (tab) => {
           </div>
 
           <div v-else-if="activeTab === 'commands'" class="flex flex-col gap-6">
-            <Card class="bg-white/5 border border-white/10 rounded-2xl">
+            <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
               <template #content>
                 <div class="flex flex-col gap-4">
                   <h2
-                    class="text-3xl font-bold tracking-tight text-zinc-100 mb-2"
+                    class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2"
                   >
                     Commands
                   </h2>
-                  <p class="text-zinc-300 leading-relaxed m-0">
+                  <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed m-0">
                     Search and view details about available commands
                   </p>
                 </div>
@@ -184,7 +184,7 @@ const handleTabChange = (tab) => {
 
             <div
               v-if="loading"
-              class="flex flex-col items-center justify-center gap-4 py-16 text-zinc-400"
+              class="flex flex-col items-center justify-center gap-4 py-16 text-zinc-500 dark:text-zinc-400"
             >
               <ProgressSpinner
                 style="width: 50px; height: 50px"
@@ -206,7 +206,7 @@ const handleTabChange = (tab) => {
                 class="flex flex-col gap-4"
               >
                 <h2
-                  class="text-xl font-semibold text-zinc-300 m-0 pb-2 border-b border-white/10"
+                  class="text-xl font-semibold text-zinc-700 dark:text-zinc-300 m-0 pb-2 border-b border-zinc-200 dark:border-white/10"
                 >
                   {{ gameLabels[game] }}
                 </h2>
@@ -242,15 +242,15 @@ const handleTabChange = (tab) => {
           </div>
 
           <div v-else>
-            <Card class="bg-white/5 border border-white/10 rounded-2xl mb-6">
+            <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl mb-6">
               <template #content>
                 <div class="flex flex-col gap-4">
                   <h2
-                    class="text-3xl font-bold tracking-tight text-zinc-100 mb-2"
+                    class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2"
                   >
                     Appendix
                   </h2>
-                  <p class="text-zinc-300 leading-relaxed m-0">
+                  <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed m-0">
                     Additional information and resources
                   </p>
                 </div>
@@ -302,7 +302,7 @@ const handleTabChange = (tab) => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(to bottom, #0a0a0f, #111118);
+  background: var(--page-gradient);
 }
 
 .docs-content {
