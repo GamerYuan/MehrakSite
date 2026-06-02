@@ -2,6 +2,7 @@
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import Button from "primevue/button";
+import ThemeToggle from "./ThemeToggle.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -131,6 +132,7 @@ function handleNavClick(link) {
     </div>
 
     <div class="nav-right">
+      <ThemeToggle />
       <Button
         as="a"
         label="Invite Bot"
@@ -154,9 +156,9 @@ function handleNavClick(link) {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2.5rem;
-  background: rgba(8, 8, 12, 0.85);
+  background: var(--navbar-bg);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-primary);
   z-index: 100;
 }
 
@@ -191,7 +193,7 @@ function handleNavClick(link) {
 }
 
 .nav-link {
-  color: #a0a0a0;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -201,7 +203,7 @@ function handleNavClick(link) {
 }
 
 .nav-link:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .nav-link.active {
@@ -222,6 +224,7 @@ function handleNavClick(link) {
 .nav-right {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .invite-btn :deep(.p-button) {
@@ -239,7 +242,7 @@ function handleNavClick(link) {
 }
 
 .invite-btn :deep(.p-button-icon) {
-  color: #000;
+  color: inherit;
 }
 
 @media (max-width: 768px) {
@@ -265,7 +268,7 @@ function handleNavClick(link) {
     display: block;
     width: 22px;
     height: 2px;
-    background: #fff;
+    background: var(--text-primary);
     border-radius: 2px;
     transition:
       transform 0.2s,
@@ -289,9 +292,9 @@ function handleNavClick(link) {
     top: 100%;
     left: 0;
     right: 0;
-    background: rgba(8, 8, 12, 0.95);
+    background: var(--bg-overlay);
     backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-primary);
     display: flex;
     flex-direction: column;
     padding: 1rem;

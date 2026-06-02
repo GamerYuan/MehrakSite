@@ -139,7 +139,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   padding: 0.8rem 0;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .info-row:last-child {
@@ -147,7 +147,7 @@ onMounted(async () => {
 }
 
 .label {
-  color: #aaa;
+  color: var(--text-secondary);
   font-weight: bold;
 }
 
@@ -157,7 +157,7 @@ onMounted(async () => {
 }
 
 .no-perms {
-  color: #888;
+  color: var(--text-muted);
   font-style: italic;
 }
 </style>

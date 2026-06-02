@@ -284,7 +284,7 @@ import AppFooter from "../components/AppFooter.vue";
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(to bottom, #0a0a0f, #111118);
+  background: var(--page-gradient);
 }
 
 .terms-content {
@@ -300,46 +300,46 @@ import AppFooter from "../components/AppFooter.vue";
 h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   margin: 2rem 0 1rem;
 }
 
 h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--text-primary);
   margin: 2rem 0 1rem;
 }
 
 h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #c0c0c0;
+  color: var(--text-secondary);
   margin: 1.5rem 0 0.75rem;
 }
 
 p {
-  color: #a0a0a0;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
 
 .last-updated {
-  color: #808080;
+  color: var(--text-muted);
   margin-bottom: 2rem;
 }
 
 ul {
-  color: #a0a0a0;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
   padding-left: 1.5rem;

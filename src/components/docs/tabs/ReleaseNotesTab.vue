@@ -18,7 +18,7 @@ const getTypeOrder = (type) => {
 
 const getFirstCommand = (text) => {
   const match = text.match(/\[([^\]]+)\]/);
-  return match ? match[1] : "\uFFFF";
+  return match ? match[1] : "￿";
 };
 
 const sortedReleases = computed(() => {
@@ -114,12 +114,12 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col gap-6">
-    <Card class="bg-white/5 border border-white/10 rounded-2xl">
+    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
       <template #content>
-        <h2 class="text-3xl font-bold tracking-tight text-zinc-100 mb-2">
+        <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
           Release Notes
         </h2>
-        <p class="text-zinc-300 leading-relaxed">
+        <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed">
           Track important documentation updates and behavior changes between bot
           releases
         </p>
@@ -130,11 +130,11 @@ onMounted(async () => {
       <ProgressSpinner />
     </div>
 
-    <div v-else-if="error" class="text-center py-12 text-zinc-400">
+    <div v-else-if="error" class="text-center py-12 text-zinc-500 dark:text-zinc-400">
       {{ error }}
     </div>
 
-    <div v-else-if="!sortedReleases.length" class="text-center py-12 text-zinc-400">
+    <div v-else-if="!sortedReleases.length" class="text-center py-12 text-zinc-500 dark:text-zinc-400">
       No release notes available.
     </div>
 
@@ -144,15 +144,15 @@ onMounted(async () => {
           v-for="release in sortedReleases"
           :key="release.version"
           :id="`release-${release.version}`"
-          class="bg-white/5 border border-white/10 rounded-2xl"
+          class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl"
         >
           <template #content>
             <div class="flex flex-col gap-4">
               <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-zinc-100 font-mono">
+                <h3 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">
                   {{ release.version }}
                 </h3>
-                <span v-if="release.date" class="text-sm text-zinc-500">{{
+                <span v-if="release.date" class="text-sm text-zinc-400 dark:text-zinc-500">{{
                   release.date
                 }}</span>
               </div>
@@ -163,7 +163,7 @@ onMounted(async () => {
                 class="flex flex-col gap-3"
               >
                 <h4
-                  class="text-sm font-semibold text-zinc-400 uppercase tracking-wider border-b border-white/10 pb-2"
+                  class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-b border-zinc-200 dark:border-white/10 pb-2"
                 >
                   {{ section.name }}
                 </h4>
@@ -194,7 +194,7 @@ onMounted(async () => {
                         </span>
                       </template>
                     </div>
-                    <span class="text-zinc-300 leading-relaxed flex-1 min-w-0 whitespace-pre-wrap">
+                    <span class="text-zinc-700 dark:text-zinc-300 leading-relaxed flex-1 min-w-0 whitespace-pre-wrap">
                       <template
                         v-for="(part, pIndex) in note.parsedText"
                         :key="pIndex"
@@ -211,10 +211,10 @@ onMounted(async () => {
       </div>
 
       <aside class="lg:sticky lg:top-28 h-fit">
-        <Card class="bg-white/5 border border-white/10 rounded-2xl">
+        <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
           <template #content>
             <h4
-              class="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3"
+              class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3"
             >
               Versions
             </h4>
@@ -228,8 +228,8 @@ onMounted(async () => {
                 :class="[
                   'text-left px-2 py-1.5 rounded-lg text-sm transition-all',
                   selectedVersion === release.version
-                    ? 'text-white bg-emerald-500/20 border border-emerald-500/50'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5',
+                    ? 'text-zinc-900 dark:text-white bg-emerald-500/20 border border-emerald-500/50'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-white/5',
                 ]"
                 @click="scrollToVersion(release.version)"
               >

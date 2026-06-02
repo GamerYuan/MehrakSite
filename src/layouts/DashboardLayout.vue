@@ -43,7 +43,7 @@ onMounted(() => {
   flex: 1;
   margin-left: 250px; /* Width of sidebar */
   padding: 2rem;
-  background-color: var(--bg-color);
+  background-color: var(--bg-page);
   overflow-y: auto;
 }
 </style>

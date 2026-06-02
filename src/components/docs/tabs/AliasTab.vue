@@ -39,13 +39,13 @@ const filteredAliases = computed(() => {
 
 <template>
   <div class="flex flex-col gap-6">
-    <Card class="bg-white/5 border border-white/10 rounded-2xl">
+    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
       <template #content>
         <div class="flex flex-col gap-4">
-          <h2 class="text-3xl font-bold tracking-tight text-zinc-100 mb-2">
+          <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
             Character Aliases
           </h2>
-          <p class="text-zinc-300 leading-relaxed m-0">
+          <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed m-0">
             View supported aliases for characters across different games.
           </p>
         </div>
@@ -54,18 +54,18 @@ const filteredAliases = computed(() => {
 
     <div class="relative w-full">
       <i
-        class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 z-10 pointer-events-none"
+        class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 z-10 pointer-events-none"
       ></i>
       <InputText
         v-model="searchQuery"
         placeholder="Search character or alias..."
-        class="w-full py-3 bg-white/5 border-white/10 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-zinc-200 placeholder:text-zinc-500"
+        class="w-full py-3 bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
       />
     </div>
 
     <div
       v-if="loading"
-      class="flex flex-col items-center justify-center gap-4 py-16 text-zinc-400"
+      class="flex flex-col items-center justify-center gap-4 py-16 text-zinc-500 dark:text-zinc-400"
     >
       <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
       <span>Loading aliases...</span>
@@ -86,7 +86,7 @@ const filteredAliases = computed(() => {
           <TabPanel v-for="game in games" :key="game.id" :value="game.id">
             <div
               v-if="!aliases[game.id] || aliases[game.id].length === 0"
-              class="py-16 text-center text-zinc-400"
+              class="py-16 text-center text-zinc-500 dark:text-zinc-400"
             >
               <i class="pi pi-inbox text-4xl mb-4 opacity-50"></i>
               <p>No aliases for this game yet.</p>
@@ -94,7 +94,7 @@ const filteredAliases = computed(() => {
 
             <div
               v-else-if="filteredAliases.length === 0"
-              class="py-16 text-center text-zinc-400"
+              class="py-16 text-center text-zinc-500 dark:text-zinc-400"
             >
               <Message severity="warn" :closable="false" icon="pi pi-search">
                 No results found for '{{ searchQuery }}'.
@@ -112,12 +112,12 @@ const filteredAliases = computed(() => {
               :pt="{
                 root: {
                   class:
-                    'bg-white/5 rounded-xl overflow-hidden border border-white/10',
+                    'bg-white dark:bg-white/5 rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10',
                 },
-                headerRow: { class: 'bg-white/5 px-4' },
+                headerRow: { class: 'bg-white dark:bg-white/5 px-4' },
                 row: {
                   class:
-                    'hover:bg-white/5 transition-colors text-zinc-300 px-4',
+                    'hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors text-zinc-700 dark:text-zinc-300 px-4',
                 },
               }"
             >
@@ -139,7 +139,7 @@ const filteredAliases = computed(() => {
                       :key="alias"
                       :value="alias"
                       severity="secondary"
-                      class="bg-white/10 text-zinc-300 border border-white/10 font-normal px-3 py-1"
+                      class="bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/10 font-normal px-3 py-1"
                     />
                   </div>
                 </template>
@@ -158,7 +158,7 @@ const filteredAliases = computed(() => {
 }
 :deep(.p-datatable .p-datatable-thead > tr > th) {
   background: rgba(255, 255, 255, 0.05);
-  color: #a1a1aa;
+  color: var(--text-secondary);
   font-weight: 600;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

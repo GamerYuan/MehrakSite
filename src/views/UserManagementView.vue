@@ -612,8 +612,8 @@ const permissionOptions = computed(() => {
 }
 
 .code-block {
-  background: #1a1a2e;
-  border: 1px solid #333;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   padding: 1rem;
   font-family: monospace;

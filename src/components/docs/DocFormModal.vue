@@ -126,12 +126,12 @@ const canEditGame = computed(() => {
     <form @submit.prevent="handleSubmit" class="flex flex-col">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-200">Command Name</label>
+          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Command Name</label>
           <InputText v-model="form.name" placeholder="e.g., build" required />
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-200">Description</label>
+          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Description</label>
           <Textarea
             v-model="form.description"
             placeholder="Brief description of what this command does"
@@ -141,7 +141,7 @@ const canEditGame = computed(() => {
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-200">Game</label>
+          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Game</label>
           <Select
             v-model="form.game"
             :options="gameOptions"
@@ -154,9 +154,9 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-200">Parameters</label>
+          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Parameters</label>
           <div
-            class="flex gap-2 items-start flex-wrap p-3 bg-white/5 rounded-md border border-white/10"
+            class="flex gap-2 items-start flex-wrap p-3 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
           >
             <div class="flex flex-col gap-2 flex-1 min-w-0">
               <div class="flex gap-2 items-center flex-wrap w-full">
@@ -177,7 +177,7 @@ const canEditGame = computed(() => {
                     binary
                     inputId="param-required"
                   />
-                  <label for="param-required" class="text-sm text-zinc-300"
+                  <label for="param-required" class="text-sm text-zinc-700 dark:text-zinc-300"
                     >Required</label
                   >
                 </div>
@@ -201,9 +201,9 @@ const canEditGame = computed(() => {
             <div
               v-for="(param, index) in form.parameters"
               :key="index"
-              class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-md border border-white/10"
+              class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
             >
-              <span class="font-semibold font-mono text-white">{{
+              <span class="font-semibold font-mono text-zinc-900 dark:text-white">{{
                 param.name
               }}</span>
               <span
@@ -217,7 +217,7 @@ const canEditGame = computed(() => {
               >
               <span
                 v-if="param.description"
-                class="flex-1 text-zinc-400 text-sm"
+                class="flex-1 text-zinc-500 dark:text-zinc-400 text-sm"
                 >{{ param.description }}</span
               >
               <Button
@@ -235,7 +235,7 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-200">Examples</label>
+          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Examples</label>
           <div class="flex gap-2 items-center">
             <InputText
               v-model="newExample"
@@ -255,7 +255,7 @@ const canEditGame = computed(() => {
             <div
               v-for="(example, index) in form.examples"
               :key="index"
-              class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-md border border-white/10"
+              class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
             >
               <code class="flex-1 font-mono text-sm text-emerald-300/80">{{
                 example

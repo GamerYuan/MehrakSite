@@ -67,13 +67,13 @@ const openFiler = () => {
 }
 
 .seaweed-subtitle {
-  color: #b7b7b7;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
 }
 
 .seaweed-card {
-  background: #2b2b2b;
-  border: 1px solid #3d3d3d;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 1.25rem;
   display: flex;
