@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { gameMeta } from "../../configs/gameMeta";
+import { useTheme } from "../../composables/useTheme";
 
 const props = defineProps({
   game: {
@@ -14,10 +15,20 @@ const props = defineProps({
   },
 });
 
+const { theme } = useTheme();
+
 const colors = computed(() => {
   const meta = gameMeta[props.game] || gameMeta.Unsupported;
+  if (theme.value === "light") {
+    return {
+      bg: meta.lightBgColor || meta.bgColor,
+      border: meta.lightBorderColor || meta.borderColor,
+      text: meta.lightColor || meta.color,
+    };
+  }
   return { bg: meta.bgColor, border: meta.borderColor, text: meta.color };
 });
+
 const label = computed(
   () =>
     gameMeta[props.game]?.shortLabel ||

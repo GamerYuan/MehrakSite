@@ -41,7 +41,7 @@ const handleClose = () => {
 
         <div class="flex flex-col gap-2">
           <h4
-            class="m-0 text-sm font-semibold text-emerald-400/80 uppercase tracking-widest"
+            class="m-0 text-sm font-semibold text-emerald-700 dark:text-emerald-400/80 uppercase tracking-widest"
           >
             Description
           </h4>
@@ -50,12 +50,12 @@ const handleClose = () => {
 
         <div v-if="doc.name" class="flex flex-col gap-2">
           <h4
-            class="m-0 text-sm font-semibold text-emerald-400/80 uppercase tracking-widest"
+            class="m-0 text-sm font-semibold text-emerald-700 dark:text-emerald-400/80 uppercase tracking-widest"
           >
             Usage
           </h4>
           <code
-            class="block p-4 bg-zinc-100 dark:bg-black/40 rounded-lg font-mono text-sm text-emerald-300/80 break-all leading-relaxed"
+            class="block p-4 bg-zinc-100 dark:bg-black/40 rounded-lg font-mono text-sm text-emerald-700 dark:text-emerald-300/80 break-all leading-relaxed"
             >/{{ doc.name
             }}<template v-if="doc.parameters?.length"
               ><template v-for="param in doc.parameters" :key="param.name"
@@ -69,7 +69,7 @@ const handleClose = () => {
 
         <div v-if="doc.parameters?.length" class="flex flex-col gap-2">
           <h4
-            class="m-0 text-sm font-semibold text-emerald-400/80 uppercase tracking-widest"
+            class="m-0 text-sm font-semibold text-emerald-700 dark:text-emerald-400/80 uppercase tracking-widest"
           >
             Parameters
           </h4>
@@ -84,12 +84,12 @@ const handleClose = () => {
                   param.name
                 }}</span>
                 <span
-                  class="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-200 rounded font-mono"
+                  class="text-xs px-2 py-0.5 bg-emerald-500/30 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-200 rounded font-mono"
                   >{{ param.type }}</span
                 >
                 <span
                   v-if="param.required"
-                  class="text-[0.65rem] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded uppercase font-semibold"
+                  class="text-[0.65rem] px-1.5 py-0.5 bg-orange-500/30 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded uppercase font-semibold"
                   >Required</span
                 >
               </div>
@@ -102,7 +102,7 @@ const handleClose = () => {
 
         <div v-if="doc.examples?.length" class="flex flex-col gap-2">
           <h4
-            class="m-0 text-sm font-semibold text-emerald-400/80 uppercase tracking-widest"
+            class="m-0 text-sm font-semibold text-emerald-700 dark:text-emerald-400/80 uppercase tracking-widest"
           >
             Examples
           </h4>
