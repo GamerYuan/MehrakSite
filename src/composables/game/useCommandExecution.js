@@ -4,8 +4,8 @@ import { useApi } from "../useApi";
 export function useCommandExecution(config, activeTab) {
   const { showErrorToast, buildError, apiFetch } = useApi();
 
-  const loading = ref(false);
-  const error = ref("");
+  const loading = ref({});
+  const error = ref({});
   const resultImages = ref({});
 
   const showAuthModal = ref(false);
@@ -20,19 +20,20 @@ export function useCommandExecution(config, activeTab) {
   const floor = ref(config.tabs.find((t) => t.hasFloorInput)?.floorMin || 12);
 
   const executeCommand = async () => {
-    loading.value = true;
-    error.value = "";
-    resultImages.value[activeTab.value] = "";
+    const currentTab = activeTab.value;
+    loading.value[currentTab] = true;
+    error.value[currentTab] = "";
+    resultImages.value[currentTab] = "";
 
     try {
-      let endpoint = `${config.endpoint}/${activeTab.value}`;
+      let endpoint = `${config.endpoint}/${currentTab}`;
       let payload = {
         profileId: Number(profileId.value),
         server: server.value,
       };
 
       const currentTabConfig = config.tabs.find(
-        (t) => t.id === activeTab.value,
+        (t) => t.id === currentTab,
       );
       if (currentTabConfig?.hasCharacterInput) {
         if (config.id === "HonkaiImpact3") {
@@ -56,6 +57,7 @@ export function useCommandExecution(config, activeTab) {
       if (response.status === 403 && data.code === "AUTH_REQUIRED") {
         authProfileId.value = profileId.value;
         showAuthModal.value = true;
+        loading.value[currentTab] = false;
         return;
       }
 
@@ -65,15 +67,15 @@ export function useCommandExecution(config, activeTab) {
 
       if (data.storageFileName) {
         const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
-        resultImages.value[activeTab.value] =
+        resultImages.value[currentTab] =
           `${backendUrl}/attachments/${data.storageFileName}`;
       }
     } catch (err) {
       if (err._redirected) return;
-      error.value = err.message;
+      error.value[currentTab] = err.message;
       showErrorToast(err.message, err.status);
     } finally {
-      loading.value = false;
+      loading.value[currentTab] = false;
     }
   };
 

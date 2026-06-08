@@ -78,14 +78,14 @@ const gv = useGameViewInject();
 
           <Button
             type="submit"
-            :label="gv.loading ? 'Executing...' : 'Execute'"
-            :loading="gv.loading"
+            :label="gv.loading[tabConfig?.id] ? 'Executing...' : 'Execute'"
+            :loading="gv.loading[tabConfig?.id]"
             fluid
           />
         </div>
       </form>
-      <Message v-if="gv.error" severity="error" class="mt-2">
-        {{ gv.error }}
+      <Message v-if="gv.error[tabConfig?.id]" severity="error" class="mt-2">
+        {{ gv.error[tabConfig?.id] }}
       </Message>
     </template>
   </Card>
