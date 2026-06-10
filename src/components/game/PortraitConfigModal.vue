@@ -126,7 +126,7 @@ const renderPreview = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bg, 0, 0);
 
-  const scale = gv.portraitConfigTargetScale ?? 1;
+  const scale = gv.portraitConfigTargetScale ?? (gv.config.portraitDefaultWidth ? gv.config.portraitDefaultWidth / portrait.naturalWidth : 1);
   const portraitW = Math.round(portrait.naturalWidth * scale);
   const portraitH = Math.round(portrait.naturalHeight * scale);
 
