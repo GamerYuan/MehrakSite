@@ -14,10 +14,14 @@ const router = useRouter();
 
 <template>
   <div class="flex flex-col gap-6">
-    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
+    <Card
+      class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl"
+    >
       <template #content>
         <div class="flex flex-col gap-4">
-          <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
+          <h2
+            class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2"
+          >
             Getting Started
           </h2>
           <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed">
@@ -27,7 +31,9 @@ const router = useRouter();
         </div>
 
         <div class="mt-8 pt-6 border-t border-zinc-200 dark:border-white/10">
-          <h3 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-6">
+          <h3
+            class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-6"
+          >
             Inviting to Discord Server
           </h3>
 
@@ -49,7 +55,9 @@ const router = useRouter();
             <StepItem value="1">
               <Step value="1">Install Page</Step>
               <StepPanel v-slot="{ activateCallback }" value="1">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     Click this link to open the
                     <a
@@ -60,7 +68,9 @@ const router = useRouter();
                       >Mehrak install page</a
                     >
                     and select
-                    <strong class="text-zinc-800 dark:text-zinc-200">Add to Server</strong>.
+                    <strong class="text-zinc-800 dark:text-zinc-200"
+                      >Add to Server</strong
+                    >.
                   </p>
                   <div class="flex gap-2">
                     <Button
@@ -76,7 +86,9 @@ const router = useRouter();
             <StepItem value="2">
               <Step value="2">Select Server</Step>
               <StepPanel v-slot="{ activateCallback }" value="2">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     Select the server where you want Mehrak to be installed.
                   </p>
@@ -100,7 +112,9 @@ const router = useRouter();
             <StepItem value="3">
               <Step value="3">Done</Step>
               <StepPanel v-slot="{ activateCallback }" value="3">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>You have successfully installed Mehrak to that server.</p>
                   <div class="flex gap-2">
                     <Button
@@ -117,7 +131,9 @@ const router = useRouter();
         </div>
 
         <div class="mt-8 pt-6 border-t border-zinc-200 dark:border-white/10">
-          <h3 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-6">
+          <h3
+            class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-6"
+          >
             Installing to Discord User Profile
           </h3>
 
@@ -125,7 +141,9 @@ const router = useRouter();
             <StepItem value="1">
               <Step value="1">Install Page</Step>
               <StepPanel v-slot="{ activateCallback }" value="1">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     Click this link to open the
                     <a
@@ -136,7 +154,9 @@ const router = useRouter();
                       >Mehrak install page</a
                     >
                     and select
-                    <strong class="text-zinc-800 dark:text-zinc-200">Install to account</strong>.
+                    <strong class="text-zinc-800 dark:text-zinc-200"
+                      >Install to account</strong
+                    >.
                   </p>
                   <div class="flex gap-2">
                     <Button
@@ -152,7 +172,9 @@ const router = useRouter();
             <StepItem value="2">
               <Step value="2">Done</Step>
               <StepPanel v-slot="{ activateCallback }" value="2">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     You have successfully installed Mehrak to your user account.
                     You can now use Mehrak in any Discord server with External
@@ -174,9 +196,13 @@ const router = useRouter();
       </template>
     </Card>
 
-    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
+    <Card
+      class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl"
+    >
       <template #title>
-        <h3 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 m-0">
+        <h3
+          class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 m-0"
+        >
           Using Commands
         </h3>
       </template>
@@ -198,7 +224,9 @@ const router = useRouter();
       class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl"
     >
       <template #title>
-        <h3 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 m-0">
+        <h3
+          class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 m-0"
+        >
           Adding a Profile
         </h3>
       </template>
@@ -217,7 +245,9 @@ const router = useRouter();
             After running Profile Add, you will be prompted with an
             authentication modal with the following inputs:
           </p>
-          <ul class="list-disc list-inside text-zinc-700 dark:text-zinc-300 space-y-1">
+          <ul
+            class="list-disc list-inside text-zinc-700 dark:text-zinc-300 space-y-1"
+          >
             <li>HoYoLAB UID</li>
             <li>HoYoLAB Cookies</li>
             <li>Passphrase</li>
@@ -234,13 +264,17 @@ const router = useRouter();
         </div>
 
         <div class="mt-8 pt-6 border-t border-zinc-200 dark:border-white/10">
-          <h4 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">HoYoLAB UID</h4>
+          <h4 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            HoYoLAB UID
+          </h4>
 
           <Stepper value="1">
             <StepItem value="1">
               <Step value="1">Login</Step>
               <StepPanel v-slot="{ activateCallback }" value="1">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     Go to
                     <a
@@ -266,11 +300,15 @@ const router = useRouter();
             <StepItem value="2">
               <Step value="2">Profile Page</Step>
               <StepPanel v-slot="{ activateCallback }" value="2">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     Click your profile picture in the top-right corner and
                     select
-                    <strong class="text-zinc-800 dark:text-zinc-200">Personal Homepage</strong>.
+                    <strong class="text-zinc-800 dark:text-zinc-200"
+                      >Personal Homepage</strong
+                    >.
                   </p>
                   <div class="flex gap-2">
                     <Button
@@ -292,7 +330,9 @@ const router = useRouter();
             <StepItem value="3">
               <Step value="3">Copy UID</Step>
               <StepPanel v-slot="{ activateCallback }" value="3">
-                <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                <div
+                  class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                >
                   <p>
                     Your UID is the numeric value after
                     <code
@@ -303,7 +343,7 @@ const router = useRouter();
                   </p>
                   <figure>
                     <Image
-                      src="/docs/getting-started/hoyolab-uid-url-example.png"
+                      src="/docs/getting-started/hoyolab-uid-url-example.webp"
                       alt="HoYoLAB UID in browser URL"
                       preview
                       class="rounded-lg border border-zinc-200 dark:border-white/10 overflow-hidden block bg-zinc-50 dark:bg-black/20 w-full"
@@ -334,7 +374,9 @@ const router = useRouter();
         </div>
 
         <div class="mt-8 pt-6 border-t border-zinc-200 dark:border-white/10">
-          <h4 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">HoYoLAB Cookies</h4>
+          <h4 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            HoYoLAB Cookies
+          </h4>
 
           <div class="flex flex-col gap-4">
             <p class="text-zinc-700 dark:text-zinc-300">
@@ -356,7 +398,9 @@ const router = useRouter();
               <StepItem value="1">
                 <Step value="1">Login</Step>
                 <StepPanel v-slot="{ activateCallback }" value="1">
-                  <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                  <div
+                    class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                  >
                     <p>
                       Sign in to HoYoLAB with the same account used to retrieve
                       your HoYoLAB UID.
@@ -375,7 +419,9 @@ const router = useRouter();
               <StepItem value="2">
                 <Step value="2">Open DevTools</Step>
                 <StepPanel v-slot="{ activateCallback }" value="2">
-                  <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                  <div
+                    class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                  >
                     <p>
                       Press
                       <code
@@ -413,7 +459,9 @@ const router = useRouter();
               <StepItem value="3">
                 <Step value="3">Copy Cookies</Step>
                 <StepPanel v-slot="{ activateCallback }" value="3">
-                  <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                  <div
+                    class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                  >
                     <p>
                       Browser menus may differ, but use these general steps and
                       copy the value for
@@ -424,12 +472,16 @@ const router = useRouter();
                     </p>
 
                     <div>
-                      <p class="text-zinc-800 dark:text-zinc-200 font-semibold mb-2">
+                      <p
+                        class="text-zinc-800 dark:text-zinc-200 font-semibold mb-2"
+                      >
                         Chromium-based browsers (Chrome, Edge, Opera, Brave):
                       </p>
                       <p class="pl-4">
                         Open
-                        <strong class="text-zinc-800 dark:text-zinc-200">Application</strong>
+                        <strong class="text-zinc-800 dark:text-zinc-200"
+                          >Application</strong
+                        >
                         tab, select
                         <strong class="text-zinc-800 dark:text-zinc-200"
                           >Storage &gt; Cookies</strong
@@ -443,7 +495,7 @@ const router = useRouter();
 
                     <figure>
                       <Image
-                        src="/docs/getting-started/cookies-chromium-devtools.png"
+                        src="/docs/getting-started/cookies-chromium-devtools.webp"
                         alt="Chromium developer tools cookies panel"
                         preview
                         class="rounded-lg border border-zinc-200 dark:border-white/10 overflow-hidden block bg-zinc-50 dark:bg-black/20 w-full"
@@ -452,20 +504,28 @@ const router = useRouter();
                         <template #previewicon>
                           <i class="pi pi-search"></i> </template
                       ></Image>
-                      <figcaption class="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
+                      <figcaption
+                        class="mt-2 text-sm text-zinc-400 dark:text-zinc-500"
+                      >
                         Developer console for Chromium-based browser.
                       </figcaption>
                     </figure>
 
                     <div>
-                      <p class="text-zinc-800 dark:text-zinc-200 font-semibold mb-2">
+                      <p
+                        class="text-zinc-800 dark:text-zinc-200 font-semibold mb-2"
+                      >
                         Firefox-based browsers (Firefox, LibreWolf):
                       </p>
                       <p class="pl-4">
                         Open
-                        <strong class="text-zinc-800 dark:text-zinc-200">Storage</strong> tab,
-                        select <strong class="text-zinc-800 dark:text-zinc-200">Cookies</strong>,
-                        choose the site, then copy
+                        <strong class="text-zinc-800 dark:text-zinc-200"
+                          >Storage</strong
+                        >
+                        tab, select
+                        <strong class="text-zinc-800 dark:text-zinc-200"
+                          >Cookies</strong
+                        >, choose the site, then copy
                         <code
                           class="bg-zinc-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm text-zinc-800 dark:text-zinc-200"
                           >ltoken_v2</code
@@ -475,7 +535,7 @@ const router = useRouter();
 
                     <figure>
                       <Image
-                        src="/docs/getting-started/cookies-firefox-devtools.png"
+                        src="/docs/getting-started/cookies-firefox-devtools.webp"
                         alt="Firefox developer tools cookies panel"
                         preview
                         class="rounded-lg border border-zinc-200 dark:border-white/10 overflow-hidden block bg-zinc-50 dark:bg-black/20 w-full"
@@ -484,7 +544,9 @@ const router = useRouter();
                         <template #previewicon>
                           <i class="pi pi-search"></i> </template
                       ></Image>
-                      <figcaption class="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
+                      <figcaption
+                        class="mt-2 text-sm text-zinc-400 dark:text-zinc-500"
+                      >
                         Developer console for Firefox-based browser.
                       </figcaption>
                     </figure>
@@ -509,7 +571,9 @@ const router = useRouter();
               <StepItem value="4">
                 <Step value="4">Provide Cookie</Step>
                 <StepPanel v-slot="{ activateCallback }" value="4">
-                  <div class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300">
+                  <div
+                    class="flex flex-col gap-4 py-4 text-zinc-700 dark:text-zinc-300"
+                  >
                     <p>
                       Paste the copied value into the cookie input. Your cookie
                       should begin with
@@ -534,7 +598,9 @@ const router = useRouter();
         </div>
 
         <div class="mt-8 pt-6 border-t border-zinc-200 dark:border-white/10">
-          <h4 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Passphrase</h4>
+          <h4 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            Passphrase
+          </h4>
 
           <div class="flex flex-col gap-4 text-zinc-700 dark:text-zinc-300">
             <p>

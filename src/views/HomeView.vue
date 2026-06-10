@@ -31,7 +31,11 @@ const showcases = [
     title: "Character List Summary",
     description:
       "Get a comprehensive overview of your entire roster. View character levels, constellations, and key equipment at a glance.",
-    images: ["/showcase/list-1.webp", "/showcase/list-2.webp"],
+    images: [
+      "/showcase/list-1.webp",
+      "/showcase/list-2.webp",
+      "/showcase/list-3.webp",
+    ],
     reversed: true,
   },
   {
@@ -43,6 +47,7 @@ const showcases = [
       "/showcase/endgame-2.webp",
       "/showcase/endgame-3.webp",
       "/showcase/endgame-4.webp",
+      "/showcase/endgame-5.webp",
     ],
     reversed: false,
   },
