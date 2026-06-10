@@ -38,7 +38,7 @@ export function usePortraitConfig(config) {
       if (ok) {
         portraitConfigOffsetX.value = data.offsetX ?? 0;
         portraitConfigOffsetY.value = data.offsetY ?? 0;
-        portraitConfigTargetScale.value = data.targetScale ?? 1;
+        portraitConfigTargetScale.value = data.targetScale ?? null;
         portraitConfigEnableFade.value = data.enableGradientFade ?? false;
         portraitConfigFadeStart.value = data.gradientFadeStart ?? 0.75;
       }
@@ -56,7 +56,7 @@ export function usePortraitConfig(config) {
     portraitConfigServerId.value = null;
     portraitConfigOffsetX.value = 0;
     portraitConfigOffsetY.value = 0;
-    portraitConfigTargetScale.value = 1;
+    portraitConfigTargetScale.value = null;
     portraitConfigEnableFade.value = false;
     portraitConfigFadeStart.value = 0.75;
     showPortraitConfigModal.value = true;

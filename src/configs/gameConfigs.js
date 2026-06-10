@@ -81,6 +81,7 @@ export const gameConfigs = {
     portraitAlignY: 650,
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.25,
+    portraitDefaultWidth: 2000,
   },
 
   hi3: {
