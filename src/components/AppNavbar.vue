@@ -16,6 +16,10 @@ const navLinks = [
 const activeSection = ref("home");
 const mobileMenuOpen = ref(false);
 
+const handleLogin = () => {
+  window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+};
+
 function onScroll() {
   const featuresEl = document.getElementById("features");
   if (!featuresEl) {
@@ -129,6 +133,12 @@ function handleNavClick(link) {
       >
         GitHub
       </a>
+      <Button
+        label="Login with Discord"
+        icon="pi pi-user"
+        class="mobile-login-btn"
+        @click="handleLogin"
+      />
     </div>
 
     <div class="nav-right">
@@ -141,6 +151,12 @@ function handleNavClick(link) {
         target="_blank"
         rel="noopener noreferrer"
         class="invite-btn"
+      />
+      <Button
+        label="Login with Discord"
+        icon="pi pi-user"
+        class="login-btn"
+        @click="handleLogin"
       />
     </div>
   </nav>
@@ -245,6 +261,20 @@ function handleNavClick(link) {
   color: inherit;
 }
 
+.login-btn :deep(.p-button) {
+  background: #5865f2;
+  border-color: #5865f2;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.55rem 1.25rem;
+  border-radius: 6px;
+}
+
+.login-btn :deep(.p-button:hover) {
+  background: #4752c4;
+  border-color: #4752c4;
+}
+
 @media (max-width: 768px) {
   .nav {
     padding: 1rem;
@@ -305,6 +335,15 @@ function handleNavClick(link) {
   .mobile-menu .nav-link {
     font-size: 1rem;
     padding: 0.5rem 0;
+  }
+
+  .mobile-login-btn :deep(.p-button) {
+    width: 100%;
+    background: #5865f2;
+    border-color: #5865f2;
+    color: #fff;
+    font-weight: 600;
+    margin-top: 0.5rem;
   }
 
   .invite-btn :deep(.p-button-label) {

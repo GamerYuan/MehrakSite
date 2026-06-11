@@ -1,11 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
-import LoginView from "../views/LoginView.vue";
-import ResetPasswordView from "../views/ResetPasswordView.vue";
 import DocsView from "../views/DocsView.vue";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import DashboardHomeView from "../views/DashboardHomeView.vue";
-import ChangePasswordView from "../views/ChangePasswordView.vue";
 import UserManagementView from "../views/UserManagementView.vue";
 import DocsManagementView from "../views/DocsManagementView.vue";
 import GameView from "../views/GameView.vue";
@@ -31,16 +28,6 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
-    },
-    {
-      path: "/login",
-      name: "login",
-      component: LoginView,
-    },
-    {
-      path: "/reset-password",
-      name: "reset-password",
-      component: ResetPasswordView,
     },
     {
       path: "/docs",
@@ -70,17 +57,20 @@ const router = createRouter({
           path: "users",
           name: "user-management",
           component: UserManagementView,
+          meta: { requireSuperAdmin: true },
         },
-      {
-        path: "docs",
-        name: "docs-management",
-        component: DocsManagementView,
-      },
-      {
-        path: "release-notes",
-        name: "release-notes-management",
-        component: ReleaseNotesManagementView,
-      },
+        {
+          path: "docs",
+          name: "docs-management",
+          component: DocsManagementView,
+          meta: { requireAnyPermission: true },
+        },
+        {
+          path: "release-notes",
+          name: "release-notes-management",
+          component: ReleaseNotesManagementView,
+          meta: { requireSuperAdmin: true },
+        },
         {
           path: ":game",
           name: "game",
@@ -93,29 +83,67 @@ const router = createRouter({
               return { name: "dashboard-home" };
             }
           },
+          meta: { requireGamePermission: true },
         },
         {
           path: "seaweed-filer",
           name: "seaweed-filer",
           component: SeaweedFilerView,
-        },
-        {
-          path: "change-password",
-          name: "change-password",
-          component: ChangePasswordView,
+          meta: { requireSuperAdmin: true },
         },
       ],
     },
   ],
 });
 
-router.beforeEach((to) => {
-  if (to.path.startsWith("/dashboard")) {
-    const storedUser = localStorage.getItem("mehrak_user");
-    if (!storedUser) {
-      return { name: "login" };
+let cachedUser = null;
+
+const setUserCache = (u) => {
+  cachedUser = u;
+};
+
+const getUser = () => cachedUser;
+
+router.beforeEach(async (to) => {
+  if (!to.path.startsWith("/dashboard")) return;
+
+  const meta = to.meta;
+  if (!meta.requireSuperAdmin && !meta.requireGamePermission && !meta.requireAnyPermission) {
+    return;
+  }
+
+  if (!cachedUser) {
+    try {
+      const { default: { apiFetchJson } } = await import("../composables/useApi");
+      const { ok, data } = await apiFetchJson("/auth/me", { skipAuthRedirect: true });
+      if (!ok) {
+        window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+        return false;
+      }
+      cachedUser = data;
+    } catch {
+      window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+      return false;
     }
+  }
+
+  const user = cachedUser;
+
+  if (meta.requireSuperAdmin && !user.isSuperAdmin) {
+    return { name: "dashboard-home" };
+  }
+
+  if (meta.requireGamePermission) {
+    const game = to.params.game;
+    if (!user.isSuperAdmin && !user.gameWritePermissions?.includes(game)) {
+      return { name: "dashboard-home" };
+    }
+  }
+
+  if (meta.requireAnyPermission && !user.isSuperAdmin && !user.gameWritePermissions?.length) {
+    return { name: "dashboard-home" };
   }
 });
 
+export { getUser, setUserCache };
 export default router;

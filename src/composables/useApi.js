@@ -61,8 +61,7 @@ export function useApi() {
     });
 
     if (response.status === 401 && !skipAuthRedirect) {
-      localStorage.removeItem("mehrak_user");
-      router.push("/login");
+      window.location.href = `${backendUrl}/auth/discord`;
       const err = buildError("Unauthorized", 401);
       err._redirected = true;
       throw err;

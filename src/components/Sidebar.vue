@@ -1,11 +1,10 @@
 <script setup>
 import { useRouter, useRoute } from "vue-router";
-import { computed } from "vue";
-import { useApi } from "../composables/useApi";
+import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
-const { apiFetch } = useApi();
+const { logout, isSuperAdmin, hasGamePermission } = useAuth();
 
 const props = defineProps({
   userInfo: {
@@ -16,20 +15,8 @@ const props = defineProps({
 
 const isActive = (path) => route.path === path;
 
-const hasPermission = (perm) => {
-  if (props.userInfo.isSuperAdmin) return true;
-  return props.userInfo.gameWritePermissions?.includes(perm);
-};
-
-const handleLogout = async () => {
-  try {
-    await apiFetch("/auth/logout", { method: "POST", skipAuthRedirect: true });
-  } catch (e) {
-    console.error("Logout error", e);
-  } finally {
-    localStorage.removeItem("mehrak_user");
-    router.push("/login");
-  }
+const handleLogout = () => {
+  logout();
 };
 </script>
 
@@ -49,7 +36,7 @@ const handleLogout = async () => {
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin"
+        v-if="isSuperAdmin"
         to="/dashboard/users"
         class="nav-item"
         :class="{ active: isActive('/dashboard/users') }"
@@ -58,7 +45,7 @@ const handleLogout = async () => {
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin"
+        v-if="isSuperAdmin"
         to="/dashboard/seaweed-filer"
         class="nav-item"
         :class="{ active: isActive('/dashboard/seaweed-filer') }"
@@ -67,7 +54,7 @@ const handleLogout = async () => {
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin || userInfo.gameWritePermissions?.length"
+        v-if="isSuperAdmin || userInfo.gameWritePermissions?.length"
         to="/dashboard/docs"
         class="nav-item"
         :class="{ active: isActive('/dashboard/docs') }"
@@ -76,7 +63,7 @@ const handleLogout = async () => {
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin"
+        v-if="isSuperAdmin"
         to="/dashboard/release-notes"
         class="nav-item"
         :class="{ active: isActive('/dashboard/release-notes') }"
@@ -119,6 +106,12 @@ const handleLogout = async () => {
 
     <div class="sidebar-footer">
       <div class="user-mini-profile">
+        <img
+          v-if="userInfo.avatarUrl"
+          :src="userInfo.avatarUrl"
+          :alt="userInfo.username"
+          class="user-avatar"
+        />
         <span class="username">{{ userInfo.username }}</span>
       </div>
       <button @click="handleLogout" class="btn logout-btn">Logout</button>
@@ -184,7 +177,20 @@ const handleLogout = async () => {
 }
 
 .user-mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.username {
   font-weight: bold;
   color: var(--text-primary);
 }

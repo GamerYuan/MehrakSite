@@ -1,35 +1,29 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useAuth } from "../composables/useAuth";
 import Sidebar from "../components/Sidebar.vue";
 
 const router = useRouter();
-const userInfo = ref(null);
-const loading = ref(true);
+const { user, loading, fetchUser } = useAuth();
 
-onMounted(() => {
-  const storedUser = localStorage.getItem("mehrak_user");
-  if (!storedUser) {
-    router.push("/login");
-    return;
+onMounted(async () => {
+  const u = await fetchUser();
+  if (!u) {
+    window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
   }
-  try {
-    userInfo.value = JSON.parse(storedUser);
-  } catch {
-    localStorage.removeItem("mehrak_user");
-    router.push("/login");
-    return;
-  }
-  loading.value = false;
 });
 </script>
 
 <template>
-  <div class="dashboard-layout" v-if="!loading && userInfo">
-    <Sidebar :userInfo="userInfo" />
+  <div class="dashboard-layout" v-if="!loading && user">
+    <Sidebar :userInfo="user" />
     <main class="dashboard-content">
-      <router-view :userInfo="userInfo" :key="$route.path" />
+      <router-view :userInfo="user" :key="$route.path" />
     </main>
+  </div>
+  <div v-else-if="!loading && !user" class="dashboard-loading">
+    <span>Redirecting to login...</span>
   </div>
 </template>
 
@@ -41,9 +35,17 @@ onMounted(() => {
 
 .dashboard-content {
   flex: 1;
-  margin-left: 250px; /* Width of sidebar */
+  margin-left: 250px;
   padding: 2rem;
   background-color: var(--bg-page);
   overflow-y: auto;
+}
+
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--text-muted);
 }
 </style>
