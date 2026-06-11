@@ -18,7 +18,13 @@ const toTitleCase = (str) => {
 <template>
   <div class="dashboard-container">
     <div v-if="loading" class="state-box">Loading user data...</div>
-    <Message v-else-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+    <Message
+      v-else-if="error"
+      severity="error"
+      :closable="false"
+      class="mb-4"
+      >{{ error }}</Message
+    >
     <div v-else-if="user">
       <header class="dashboard-header">
         <h1 class="page-title">Dashboard</h1>
@@ -36,7 +42,9 @@ const toTitleCase = (str) => {
               />
               <div>
                 <div class="profile-name">{{ user.username }}</div>
-                <div class="profile-id">Discord ID: {{ user.discordId }}</div>
+                <div class="profile-id">
+                  Discord ID: {{ user.discordUserId }}
+                </div>
               </div>
             </div>
           </div>
@@ -44,11 +52,17 @@ const toTitleCase = (str) => {
           <div class="profile-fields">
             <div class="field-row">
               <span class="field-label">Root User</span>
-              <Tag :severity="user.isRootUser ? 'warn' : 'secondary'" :value="user.isRootUser ? 'Yes' : 'No'" />
+              <Tag
+                :severity="user.isRootUser ? 'warn' : 'secondary'"
+                :value="user.isRootUser ? 'Yes' : 'No'"
+              />
             </div>
             <div class="field-row">
               <span class="field-label">Super Admin</span>
-              <Tag :severity="user.isSuperAdmin ? 'success' : 'secondary'" :value="user.isSuperAdmin ? 'Yes' : 'No'" />
+              <Tag
+                :severity="user.isSuperAdmin ? 'success' : 'secondary'"
+                :value="user.isSuperAdmin ? 'Yes' : 'No'"
+              />
             </div>
           </div>
         </template>
@@ -58,9 +72,16 @@ const toTitleCase = (str) => {
         <template #content>
           <h3 class="card-title">Game Permissions</h3>
           <div v-if="user.gameWritePermissions?.length" class="perm-tags">
-            <Tag v-for="perm in user.gameWritePermissions" :key="perm" :value="toTitleCase(perm)" severity="info" />
+            <Tag
+              v-for="perm in user.gameWritePermissions"
+              :key="perm"
+              :value="toTitleCase(perm)"
+              severity="info"
+            />
           </div>
-          <p v-else class="no-perms">No specific game write permissions assigned.</p>
+          <p v-else class="no-perms">
+            No specific game write permissions assigned.
+          </p>
         </template>
       </Card>
     </div>

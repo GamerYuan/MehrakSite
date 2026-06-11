@@ -22,8 +22,9 @@ const handleLogout = () => {
 
 <template>
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>MehrakBot</h2>
+    <div class="sidebar-header" @click="router.push('/')" role="button" tabindex="0">
+      <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
+      <span class="sidebar-logo-text">MehrakBot</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -133,14 +134,26 @@ const handleLogout = () => {
 }
 
 .sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-primary);
+  cursor: pointer;
 }
 
-.sidebar-header h2 {
-  margin: 0;
-  color: var(--primary-color);
-  font-size: 1.5rem;
+.sidebar-logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.sidebar-logo-text {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
 }
 
 .sidebar-nav {

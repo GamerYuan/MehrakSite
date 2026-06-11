@@ -20,10 +20,15 @@ export function useAuth() {
     loading.value = true;
     error.value = "";
     try {
-      const { ok, data } = await apiFetchJson("/auth/me", {
+      const { ok, data } = await apiFetchJson("/users/me", {
         skipAuthRedirect: true,
       });
       if (ok) {
+        const avatarUrl =
+          data.avatarUrl || data.avatar || data.AvatarUrl || data.Avatar;
+        data.avatarUrl =
+          avatarUrl ||
+          `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`;
         user.value = data;
         setUserCache(data);
         fetched = true;
@@ -41,7 +46,7 @@ export function useAuth() {
   };
 
   const login = () => {
-    window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+    globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
   };
 
   const logout = async () => {
@@ -56,7 +61,7 @@ export function useAuth() {
       user.value = null;
       fetched = false;
       setUserCache(null);
-      window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+      globalThis.location.href = "/";
     }
   };
 

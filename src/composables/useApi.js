@@ -61,7 +61,7 @@ export function useApi() {
     });
 
     if (response.status === 401 && !skipAuthRedirect) {
-      window.location.href = `${backendUrl}/auth/discord`;
+      window.location.href = "/";
       const err = buildError("Unauthorized", 401);
       err._redirected = true;
       throw err;

@@ -3,9 +3,11 @@ import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import Button from "primevue/button";
 import ThemeToggle from "./ThemeToggle.vue";
+import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
+const { user, fetchUser, logout } = useAuth();
 
 const navLinks = [
   { label: "Home", path: "/", section: "home" },
@@ -15,6 +17,18 @@ const navLinks = [
 
 const activeSection = ref("home");
 const mobileMenuOpen = ref(false);
+const dropdownOpen = ref(false);
+const dropdownRef = ref(null);
+
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value;
+};
+
+const closeDropdown = (e) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+    dropdownOpen.value = false;
+  }
+};
 
 const handleLogin = () => {
   window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
@@ -36,11 +50,14 @@ function onScroll() {
 
 onMounted(() => {
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("click", closeDropdown);
   onScroll();
+  fetchUser();
 });
 
 onUnmounted(() => {
   window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("click", closeDropdown);
 });
 
 function isActive(link) {
@@ -133,7 +150,29 @@ function handleNavClick(link) {
       >
         GitHub
       </a>
+      <template v-if="user">
+        <Button
+          label="Dashboard"
+          icon="pi pi-th-large"
+          class="mobile-login-btn"
+          @click="
+            mobileMenuOpen = false;
+            router.push('/dashboard');
+          "
+        />
+        <Button
+          label="Logout"
+          icon="pi pi-sign-out"
+          severity="secondary"
+          class="mobile-login-btn"
+          @click="
+            mobileMenuOpen = false;
+            logout();
+          "
+        />
+      </template>
       <Button
+        v-else
         label="Login with Discord"
         icon="pi pi-user"
         class="mobile-login-btn"
@@ -152,7 +191,60 @@ function handleNavClick(link) {
         rel="noopener noreferrer"
         class="invite-btn"
       />
+      <template v-if="user">
+        <div class="user-dropdown" ref="dropdownRef">
+          <button class="user-trigger" @click.stop="toggleDropdown">
+            <img
+              v-if="user.avatarUrl"
+              :src="user.avatarUrl"
+              :alt="user.username"
+              class="trigger-avatar"
+            />
+            <span class="trigger-name">{{ user.username }}</span>
+            <i class="pi pi-chevron-down trigger-chevron"></i>
+          </button>
+          <div v-if="dropdownOpen" class="dropdown-panel">
+            <div class="dropdown-header">
+              <img
+                v-if="user.avatarUrl"
+                :src="user.avatarUrl"
+                :alt="user.username"
+                class="dropdown-avatar"
+              />
+              <div class="dropdown-user-info">
+                <span class="dropdown-username">{{ user.username }}</span>
+                <span class="dropdown-discord-id"
+                  >ID: {{ user.discordUserId }}</span
+                >
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button
+              class="dropdown-item"
+              @click="
+                dropdownOpen = false;
+                router.push('/dashboard');
+              "
+            >
+              <i class="pi pi-th-large"></i>
+              <span>Dashboard</span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button
+              class="dropdown-item dropdown-item-danger"
+              @click="
+                dropdownOpen = false;
+                logout();
+              "
+            >
+              <i class="pi pi-sign-out"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </template>
       <Button
+        v-else
         label="Login with Discord"
         icon="pi pi-user"
         class="login-btn"
@@ -275,6 +367,143 @@ function handleNavClick(link) {
   border-color: #4752c4;
 }
 
+/* ── User dropdown ─────────────────────── */
+
+.user-dropdown {
+  position: relative;
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  height: 2.375rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-surface-raised);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.user-trigger:hover {
+  border-color: var(--border-secondary);
+}
+
+.trigger-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.trigger-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trigger-chevron {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 220px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem;
+}
+
+.dropdown-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.dropdown-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dropdown-username {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-discord-id {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-primary);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.1s ease,
+    color 0.1s ease;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.dropdown-item i {
+  font-size: 0.875rem;
+  width: 1rem;
+  text-align: center;
+}
+
+.dropdown-item-danger {
+  color: #ef4444;
+}
+
+.dropdown-item-danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
 @media (max-width: 768px) {
   .nav {
     padding: 1rem;
@@ -352,6 +581,20 @@ function handleNavClick(link) {
 
   .invite-btn :deep(.p-button) {
     padding: 0.55rem;
+  }
+
+  .user-trigger {
+    width: 100%;
+    justify-content: center;
+    height: 2.375rem;
+  }
+
+  .dropdown-panel {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border: 1px solid var(--border-primary);
+    margin-top: 0.25rem;
   }
 }
 

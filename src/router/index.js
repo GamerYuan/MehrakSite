@@ -115,7 +115,7 @@ router.beforeEach(async (to) => {
   if (!cachedUser) {
     try {
       const { default: { apiFetchJson } } = await import("../composables/useApi");
-      const { ok, data } = await apiFetchJson("/auth/me", { skipAuthRedirect: true });
+      const { ok, data } = await apiFetchJson("/users/me", { skipAuthRedirect: true });
       if (!ok) {
         window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
         return false;
