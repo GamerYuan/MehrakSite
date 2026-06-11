@@ -1,54 +1,45 @@
 <script setup>
 import { computed } from "vue";
 import { gameMeta } from "../../configs/gameMeta";
-import { useTheme } from "../../composables/useTheme";
 
 const props = defineProps({
-  game: {
-    type: String,
-    required: true,
-  },
-  size: {
-    type: String,
-    default: "normal",
-    validator: (value) => ["small", "normal"].includes(value),
-  },
+  game: { type: String, required: true },
+  size: { type: String, default: "normal", validator: (v) => ["small", "normal"].includes(v) },
 });
 
-const { theme } = useTheme();
-
-const colors = computed(() => {
-  const meta = gameMeta[props.game] || gameMeta.Unsupported;
-  if (theme.value === "light") {
-    return {
-      bg: meta.lightBgColor || meta.bgColor,
-      border: meta.lightBorderColor || meta.borderColor,
-      text: meta.lightColor || meta.color,
-    };
-  }
-  return { bg: meta.bgColor, border: meta.borderColor, text: meta.color };
-});
-
-const label = computed(
-  () =>
-    gameMeta[props.game]?.shortLabel ||
-    gameMeta[props.game]?.label ||
-    props.game,
-);
+const meta = computed(() => gameMeta[props.game] || gameMeta.Unsupported);
 </script>
 
 <template>
   <span
-    :class="[
-      'inline-flex items-center rounded-full border font-semibold uppercase tracking-wide',
-      size === 'small' ? 'px-2 py-0.5 text-[0.65rem]' : 'px-3 py-1 text-xs',
-    ]"
+    :class="['tag', size === 'small' ? 'tag-sm' : 'tag-md']"
     :style="{
-      backgroundColor: colors.bg,
-      borderColor: colors.border,
-      color: colors.text,
+      color: meta.lightColor || meta.color,
+      background: meta.lightBgColor || meta.bgColor,
+      borderColor: meta.lightBorderColor || meta.borderColor,
     }"
   >
-    {{ label }}
+    {{ meta.shortLabel || meta.label }}
   </span>
 </template>
+
+<style scoped>
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  border-radius: 0.25rem;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tag-sm {
+  font-size: 0.5625rem;
+  padding: 0.0625rem 0.375rem;
+}
+.tag-md {
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.5rem;
+}
+</style>
