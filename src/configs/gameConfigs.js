@@ -30,6 +30,7 @@ export const gameConfigs = {
     portraitAlignY: 640,
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
+    portraitDefaultWidth: 1400,
   },
 
   hsr: {
@@ -57,6 +58,7 @@ export const gameConfigs = {
     portraitAlignY: 700,
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
+    portraitDefaultWidth: 1000,
   },
 
   zzz: {
