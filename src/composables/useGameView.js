@@ -44,7 +44,6 @@ export function useGameView(config) {
   });
 
   watch(activeTab, (newTab) => {
-    command.error.value = "";
     if (newTab === "aliases" && canManage) {
       aliases.fetchAliases();
     } else if (newTab === "codes" && canManage && config.hasCodesManagement) {

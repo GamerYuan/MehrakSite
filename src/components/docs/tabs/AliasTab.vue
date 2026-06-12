@@ -7,100 +7,74 @@ import TabList from "primevue/tablist";
 import Tab from "primevue/tab";
 import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
-import InputText from "primevue/inputtext";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Tag from "primevue/tag";
 import ProgressSpinner from "primevue/progressspinner";
 import Message from "primevue/message";
-import Card from "primevue/card";
 
 const { aliases, loading, error, searchQuery, fetchAllAliases } = useAlias();
 
 const games = Object.values(gameConfigs);
 const activeGame = ref(games[0].id);
 
-onMounted(() => {
-  fetchAllAliases();
-});
+onMounted(() => fetchAllAliases());
 
 const filteredAliases = computed(() => {
-  const currentAliases = aliases.value[activeGame.value] || [];
-  if (!searchQuery.value) return currentAliases;
-
-  const query = searchQuery.value.toLowerCase();
-  return currentAliases.filter(
-    (item) =>
-      item.name.toLowerCase().includes(query) ||
-      item.aliases.some((alias) => alias.toLowerCase().includes(query)),
+  const current = aliases.value[activeGame.value] || [];
+  if (!searchQuery.value) return current;
+  const q = searchQuery.value.toLowerCase();
+  return current.filter(
+    (item) => item.name.toLowerCase().includes(q) || item.aliases.some((a) => a.toLowerCase().includes(q)),
   );
 });
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
-      <template #content>
-        <div class="flex flex-col gap-4">
-          <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
-            Character Aliases
-          </h2>
-          <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed m-0">
-            View supported aliases for characters across different games.
-          </p>
-        </div>
-      </template>
-    </Card>
+  <div class="alias">
+    <div class="alias-hero">
+      <div class="alias-hero-icon">
+        <i class="pi pi-tags"></i>
+      </div>
+      <div>
+        <h1 class="alias-title">Character Aliases</h1>
+        <p class="alias-sub">View supported aliases for characters across different games.</p>
+      </div>
+    </div>
 
-    <div class="relative w-full">
-      <i
-        class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 z-10 pointer-events-none"
-      ></i>
-      <InputText
+    <div class="alias-search-wrap">
+      <i class="pi pi-search alias-search-icon"></i>
+      <input
         v-model="searchQuery"
+        type="text"
         placeholder="Search character or alias..."
-        class="w-full py-3 bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+        class="alias-search"
       />
     </div>
 
-    <div
-      v-if="loading"
-      class="flex flex-col items-center justify-center gap-4 py-16 text-zinc-500 dark:text-zinc-400"
-    >
-      <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
+    <div v-if="loading" class="alias-state">
+      <ProgressSpinner style="width:36px;height:36px" strokeWidth="3" />
       <span>Loading aliases...</span>
     </div>
 
-    <div v-else-if="error" class="py-8">
+    <div v-else-if="error" class="alias-state">
       <Message severity="error" :closable="false">{{ error }}</Message>
     </div>
 
-    <div v-else>
+    <div v-else class="alias-tabs">
       <Tabs v-model:value="activeGame">
         <TabList>
-          <Tab v-for="game in games" :key="game.id" :value="game.id">
-            {{ game.title }}
-          </Tab>
+          <Tab v-for="game in games" :key="game.id" :value="game.id">{{ game.title }}</Tab>
         </TabList>
-        <TabPanels class="bg-transparent px-6 py-6">
+        <TabPanels>
           <TabPanel v-for="game in games" :key="game.id" :value="game.id">
-            <div
-              v-if="!aliases[game.id] || aliases[game.id].length === 0"
-              class="py-16 text-center text-zinc-500 dark:text-zinc-400"
-            >
-              <i class="pi pi-inbox text-4xl mb-4 opacity-50"></i>
+            <div v-if="!aliases[game.id] || aliases[game.id].length === 0" class="alias-empty">
+              <i class="pi pi-inbox" style="font-size:1.5rem;opacity:0.3"></i>
               <p>No aliases for this game yet.</p>
             </div>
-
-            <div
-              v-else-if="filteredAliases.length === 0"
-              class="py-16 text-center text-zinc-500 dark:text-zinc-400"
-            >
-              <Message severity="warn" :closable="false" icon="pi pi-search">
-                No results found for '{{ searchQuery }}'.
-              </Message>
+            <div v-else-if="filteredAliases.length === 0" class="alias-empty">
+              <Message severity="warn" :closable="false" icon="pi pi-search">No results found for '{{ searchQuery }}'.</Message>
             </div>
-
             <DataTable
               v-else
               :value="filteredAliases"
@@ -108,39 +82,22 @@ const filteredAliases = computed(() => {
               :rows="10"
               sortField="name"
               :sortOrder="1"
-              class="p-datatable-sm"
+              class="alias-table"
               :pt="{
-                root: {
-                  class:
-                    'bg-white dark:bg-white/5 rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10',
-                },
-                headerRow: { class: 'bg-white dark:bg-white/5 px-4' },
-                row: {
-                  class:
-                    'hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors text-zinc-700 dark:text-zinc-300 px-4',
-                },
+                root: { class: 'table-root' },
+                headerRow: { class: 'table-header-row' },
+                row: { class: 'table-body-row' },
               }"
             >
-              <Column
-                field="name"
-                header="Character Name"
-                sortable
-                style="width: 30%"
-              >
+              <Column field="name" header="Character Name" sortable style="width:30%">
                 <template #body="{ data }">
-                  <span class="font-medium px-2">{{ data.name }}</span>
+                  <span class="char-name">{{ data.name }}</span>
                 </template>
               </Column>
               <Column header="Aliases">
                 <template #body="{ data }">
-                  <div class="flex flex-wrap gap-2 px-2">
-                    <Tag
-                      v-for="alias in data.aliases"
-                      :key="alias"
-                      :value="alias"
-                      severity="secondary"
-                      class="bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/10 font-normal px-3 py-1"
-                    />
+                  <div class="alias-tags">
+                    <Tag v-for="alias in data.aliases" :key="alias" :value="alias" severity="secondary" class="alias-tag" />
                   </div>
                 </template>
               </Column>
@@ -153,31 +110,172 @@ const filteredAliases = computed(() => {
 </template>
 
 <style scoped>
-:deep(.p-inputtext) {
-  padding-left: 2.75rem;
+.alias {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background: rgba(255, 255, 255, 0.05);
+
+.alias-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.alias-hero-icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #fff;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.alias-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.025em;
+}
+
+.alias-sub {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.alias-search-wrap {
+  position: relative;
+}
+
+.alias-search-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.alias-search {
+  width: 100%;
+  padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  background: var(--card-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+
+.alias-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.08);
+}
+
+.alias-search::placeholder {
+  color: var(--text-muted);
+}
+
+.alias-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+}
+
+.alias-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
+}
+
+.alias-tabs :deep(.p-tabs) {
+  border-radius: 0.75rem;
+}
+
+.alias-tabs :deep(.p-tablist) {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+}
+
+.alias-tabs :deep(.p-tab) {
+  color: var(--text-secondary);
+}
+
+.alias-tabs :deep(.p-tab.p-highlight) {
+  color: var(--accent);
+}
+
+.alias-tabs :deep(.p-tabpanels) {
+  background: transparent;
+  padding: 1rem 0;
+}
+
+.alias-table {
+  background: transparent !important;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.alias-table :deep(.p-datatable-thead > tr > th) {
+  background: var(--bg-surface);
   color: var(--text-secondary);
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--border-primary);
 }
-:deep(.p-datatable .p-datatable-tbody > tr) {
+
+.alias-table :deep(.p-datatable-tbody > tr) {
   background: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.1s ease;
 }
-:deep(.p-datatable .p-datatable-tbody > tr > td) {
-  padding: 1rem 1.5rem;
-  border: none;
+
+.alias-table :deep(.p-datatable-tbody > tr:hover) {
+  background: var(--bg-surface);
 }
-:deep(.p-datatable .p-paginator) {
-  background: rgba(255, 255, 255, 0.02);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+.alias-table :deep(.p-datatable-tbody > tr > td) {
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.alias-table :deep(.p-datatable-tbody > tr:last-child > td) {
   border-bottom: none;
-  border-left: none;
-  border-right: none;
 }
-:deep(.p-datatable-column-title) {
-  padding: 0.5rem 0.5rem;
+
+.char-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.alias-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.alias-tag {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-primary) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 400 !important;
+  font-size: 0.75rem !important;
 }
 </style>
