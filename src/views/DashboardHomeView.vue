@@ -49,7 +49,7 @@ const toTitleCase = (str) => {
             </div>
           </div>
 
-          <div class="profile-fields">
+          <div v-if="user.isRootUser || user.isSuperAdmin" class="profile-fields">
             <div class="field-row">
               <span class="field-label">Root User</span>
               <Tag
@@ -68,10 +68,10 @@ const toTitleCase = (str) => {
         </template>
       </Card>
 
-      <Card class="perms-card">
+      <Card v-if="user.gameWritePermissions?.length" class="perms-card">
         <template #content>
           <h3 class="card-title">Game Permissions</h3>
-          <div v-if="user.gameWritePermissions?.length" class="perm-tags">
+          <div class="perm-tags">
             <Tag
               v-for="perm in user.gameWritePermissions"
               :key="perm"
@@ -79,9 +79,6 @@ const toTitleCase = (str) => {
               severity="info"
             />
           </div>
-          <p v-else class="no-perms">
-            No specific game write permissions assigned.
-          </p>
         </template>
       </Card>
     </div>
