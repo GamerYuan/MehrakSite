@@ -172,23 +172,28 @@ const renderPreview = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bg, 0, 0);
 
-  const cfg = gv.canManage && activeModalTab.value === "user"
-    ? {
-        offsetX: gv.userPortraitConfigOffsetX,
-        offsetY: gv.userPortraitConfigOffsetY,
-        targetScale: gv.userPortraitConfigTargetScale,
-        enableFade: gv.userPortraitConfigEnableFade,
-        fadeStart: gv.userPortraitConfigFadeStart,
-      }
-    : {
-        offsetX: gv.portraitConfigOffsetX,
-        offsetY: gv.portraitConfigOffsetY,
-        targetScale: gv.portraitConfigTargetScale,
-        enableFade: gv.portraitConfigEnableFade,
-        fadeStart: gv.portraitConfigFadeStart,
-      };
+  const cfg =
+    activeModalTab.value === "user"
+      ? {
+          offsetX: gv.userPortraitConfigOffsetX,
+          offsetY: gv.userPortraitConfigOffsetY,
+          targetScale: gv.userPortraitConfigTargetScale,
+          enableFade: gv.userPortraitConfigEnableFade,
+          fadeStart: gv.userPortraitConfigFadeStart,
+        }
+      : {
+          offsetX: gv.portraitConfigOffsetX,
+          offsetY: gv.portraitConfigOffsetY,
+          targetScale: gv.portraitConfigTargetScale,
+          enableFade: gv.portraitConfigEnableFade,
+          fadeStart: gv.portraitConfigFadeStart,
+        };
 
-  const scale = cfg.targetScale ?? (gv.config.portraitDefaultWidth ? gv.config.portraitDefaultWidth / portrait.naturalWidth : 1);
+  const scale =
+    cfg.targetScale ??
+    (gv.config.portraitDefaultWidth
+      ? gv.config.portraitDefaultWidth / portrait.naturalWidth
+      : 1);
   const portraitW = Math.round(portrait.naturalWidth * scale);
   const portraitH = Math.round(portrait.naturalHeight * scale);
 
@@ -289,33 +294,56 @@ watch(
       backgroundImage.value = null;
       loadBackground();
       activeModalTab.value = gv.canManage ? "default" : "user";
+      if (gv.portraitConfigCharacter) {
+        gv.fetchUserPortraits(gv.portraitConfigCharacter);
+      }
     }
   },
 );
 
-const isDefaultTab = computed(
-  () => gv.canManage && activeModalTab.value === "default",
-);
-const isUserTab = computed(
-  () => activeModalTab.value === "user" || !gv.canManage,
-);
-const isFetching = computed(
-  () =>
-    gv.portraitConfigFetching ||
-    gv.userPortraitConfigFetching ||
-    portraitLoading,
-);
+const drawBackgroundOnly = () => {
+  if (!canvasRef.value || !bgLoaded.value || !backgroundImage.value) return;
+  const canvas = canvasRef.value;
+  const bg = backgroundImage.value;
+  canvas.width = bg.naturalWidth;
+  canvas.height = bg.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bg, 0, 0);
+};
+
+watch(activeModalTab, (newTab) => {
+  cleanupPortrait();
+  drawBackgroundOnly();
+  if (newTab === "user") {
+    if (gv.userPortraitId) {
+      loadUserPortraitImage(gv.userPortraitId);
+      gv.fetchUserPortraitConfig(gv.userPortraitId);
+    }
+  } else if (gv.portraitConfigServerId) {
+    loadDefaultPortrait();
+  }
+});
+
+const isDefaultTab = computed(() => activeModalTab.value === "default");
+const isUserTab = computed(() => activeModalTab.value === "user");
+const isFetching = computed(() => {
+  if (activeModalTab.value === "default") {
+    return gv.portraitConfigFetching || portraitLoading.value;
+  }
+  return gv.userPortraitConfigFetching || portraitLoading.value;
+});
 const isSaving = computed(
   () => gv.portraitConfigSaving || gv.userPortraitConfigSaving,
 );
 const isSaveDisabled = computed(() => {
-  if (isDefaultTab.value && portraitError.value) return true;
-  if (isUserTab.value && !gv.userPortraitId.value) return true;
+  if (activeModalTab.value === "default" && portraitError.value) return true;
+  if (activeModalTab.value === "user" && !gv.userPortraitId) return true;
   return false;
 });
 
 const onSave = () => {
-  if (isDefaultTab.value) {
+  if (activeModalTab.value === "default") {
     gv.handlePortraitConfigSubmit();
   } else {
     gv.handleUserPortraitConfigSubmit();
@@ -343,7 +371,10 @@ const onUpload = async (file) => {
         429,
       );
     } else if (err.status === 502) {
-      showErrorToast("Classification service unavailable. Try again later.", 502);
+      showErrorToast(
+        "Classification service unavailable. Try again later.",
+        502,
+      );
     } else {
       showErrorToast(err.message, err.status);
     }
@@ -353,12 +384,12 @@ const onUpload = async (file) => {
 };
 
 const onDeleteUserPortrait = async () => {
-  if (!gv.userPortraitId.value) return;
+  if (!gv.userPortraitId) return;
   if (!confirm("Delete this portrait? This cannot be undone.")) return;
   try {
-    await gv.deleteUserPortrait(gv.userPortraitId.value);
+    await gv.deleteUserPortrait(gv.userPortraitId);
     showSuccessToast("Portrait deleted");
-    gv.userPortraitId.value = null;
+    gv.userPortraitId = null;
     cleanupPortrait();
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
   } catch (err) {
@@ -388,15 +419,6 @@ onUnmounted(() => {
         <i class="pi pi-spin pi-spinner text-xl"></i>
       </div>
 
-      <div v-if="gv.canManage" class="mb-4">
-        <Tabs v-model:value="activeModalTab">
-          <TabList>
-            <Tab value="default">Default Portraits</Tab>
-            <Tab value="user">User Portraits</Tab>
-          </TabList>
-        </Tabs>
-      </div>
-
       <div class="flex gap-6">
         <div class="flex flex-col gap-3 w-64 shrink-0">
           <div class="flex flex-col gap-2">
@@ -409,33 +431,190 @@ onUnmounted(() => {
             />
           </div>
 
-          <template v-if="isDefaultTab">
-            <div
-              v-if="
-                gv.portraitConfigServerIds &&
-                gv.portraitConfigServerIds.length > 1
-              "
-              class="flex flex-col gap-2"
-            >
-              <label for="portrait-server-id">Portrait (Server ID)</label>
-              <Select
-                id="portrait-server-id"
-                v-model="gv.portraitConfigServerId"
-                :options="serverIdOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Select portrait"
-                fluid
-              />
-            </div>
-          </template>
+          <Tabs
+            v-if="gv.canManage"
+            v-model:value="activeModalTab"
+          >
+            <TabList>
+              <Tab value="default">Default Portraits</Tab>
+              <Tab value="user">User Portraits</Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel value="default">
+                <div class="flex flex-col gap-3">
+                  <div
+                    v-if="
+                      gv.portraitConfigServerIds &&
+                      gv.portraitConfigServerIds.length > 1
+                    "
+                    class="flex flex-col gap-2"
+                  >
+                    <label for="portrait-server-id">Portrait (Server ID)</label>
+                    <Select
+                      id="portrait-server-id"
+                      v-model="gv.portraitConfigServerId"
+                      :options="serverIdOptions"
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Select portrait"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="portrait-offset-x">Offset X (px)</label>
+                    <InputNumber
+                      id="portrait-offset-x"
+                      v-model="gv.portraitConfigOffsetX"
+                      :minFractionDigits="0"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="portrait-offset-y">Offset Y (px)</label>
+                    <InputNumber
+                      id="portrait-offset-y"
+                      v-model="gv.portraitConfigOffsetY"
+                      :minFractionDigits="0"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="portrait-scale">Target Scale</label>
+                    <InputNumber
+                      id="portrait-scale"
+                      v-model="gv.portraitConfigTargetScale"
+                      :minFractionDigits="2"
+                      :maxFractionDigits="4"
+                      placeholder="e.g. 1.0"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox
+                      v-model="gv.portraitConfigEnableFade"
+                      binary
+                      inputId="portrait-fade"
+                    />
+                    <label for="portrait-fade">Enable Gradient Fade</label>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="portrait-fade-start">Gradient Fade Start</label>
+                    <InputNumber
+                      id="portrait-fade-start"
+                      v-model="gv.portraitConfigFadeStart"
+                      :minFractionDigits="2"
+                      :maxFractionDigits="2"
+                      :min="0"
+                      :max="1"
+                      fluid
+                    />
+                  </div>
+                </div>
+              </TabPanel>
 
-          <template v-else>
+              <TabPanel value="user">
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-2">
+                    <label for="user-portrait-select">Your Portraits</label>
+                    <div class="flex gap-2">
+                      <Select
+                        id="user-portrait-select"
+                        v-model="gv.userPortraitId"
+                        :options="userPortraitOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Select your portrait"
+                        fluid
+                        :disabled="!userPortraitOptions.length"
+                      />
+                      <Button
+                        type="button"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        outlined
+                        :disabled="!gv.userPortraitId"
+                        @click="onDeleteUserPortrait"
+                      />
+                    </div>
+                    <div
+                      class="flex items-center justify-between text-xs text-gray-500"
+                    >
+                      <span
+                        >{{ gv.userPortraits?.length || 0 }} /
+                        {{ gv.MAX_PER_CHARACTER }} used</span
+                      >
+                      <Button
+                        type="button"
+                        label="Add Image"
+                        icon="pi pi-plus"
+                        size="small"
+                        :disabled="remainingSlots <= 0"
+                        @click="showUploadModal = true"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="user-portrait-offset-x">Offset X (px)</label>
+                    <InputNumber
+                      id="user-portrait-offset-x"
+                      v-model="gv.userPortraitConfigOffsetX"
+                      :minFractionDigits="0"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="user-portrait-offset-y">Offset Y (px)</label>
+                    <InputNumber
+                      id="user-portrait-offset-y"
+                      v-model="gv.userPortraitConfigOffsetY"
+                      :minFractionDigits="0"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="user-portrait-scale">Target Scale</label>
+                    <InputNumber
+                      id="user-portrait-scale"
+                      v-model="gv.userPortraitConfigTargetScale"
+                      :minFractionDigits="2"
+                      :maxFractionDigits="4"
+                      placeholder="e.g. 1.0"
+                      fluid
+                    />
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox
+                      v-model="gv.userPortraitConfigEnableFade"
+                      binary
+                      inputId="user-portrait-fade"
+                    />
+                    <label for="user-portrait-fade">Enable Gradient Fade</label>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="user-portrait-fade-start"
+                      >Gradient Fade Start</label
+                    >
+                    <InputNumber
+                      id="user-portrait-fade-start"
+                      v-model="gv.userPortraitConfigFadeStart"
+                      :minFractionDigits="2"
+                      :maxFractionDigits="2"
+                      :min="0"
+                      :max="1"
+                      fluid
+                    />
+                  </div>
+                </div>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+
+          <template v-if="!gv.canManage">
             <div class="flex flex-col gap-2">
-              <label for="user-portrait-select">Your Portraits</label>
+              <label for="user-portrait-select-um">Your Portraits</label>
               <div class="flex gap-2">
                 <Select
-                  id="user-portrait-select"
+                  id="user-portrait-select-um"
                   v-model="gv.userPortraitId"
                   :options="userPortraitOptions"
                   optionLabel="label"
@@ -451,11 +630,15 @@ onUnmounted(() => {
                   outlined
                   :disabled="!gv.userPortraitId"
                   @click="onDeleteUserPortrait"
-                  v-tooltip.bottom="'Delete selected portrait'"
                 />
               </div>
-              <div class="flex items-center justify-between text-xs text-gray-500">
-                <span>{{ gv.userPortraits?.length || 0 }} / {{ gv.MAX_PER_CHARACTER }} used</span>
+              <div
+                class="flex items-center justify-between text-xs text-gray-500"
+              >
+                <span
+                  >{{ gv.userPortraits?.length || 0 }} /
+                  {{ gv.MAX_PER_CHARACTER }} used</span
+                >
                 <Button
                   type="button"
                   label="Add Image"
@@ -466,62 +649,57 @@ onUnmounted(() => {
                 />
               </div>
             </div>
+            <div class="flex flex-col gap-2">
+              <label for="um-offset-x">Offset X (px)</label>
+              <InputNumber
+                id="um-offset-x"
+                v-model="gv.userPortraitConfigOffsetX"
+                :minFractionDigits="0"
+                fluid
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="um-offset-y">Offset Y (px)</label>
+              <InputNumber
+                id="um-offset-y"
+                v-model="gv.userPortraitConfigOffsetY"
+                :minFractionDigits="0"
+                fluid
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="um-scale">Target Scale</label>
+              <InputNumber
+                id="um-scale"
+                v-model="gv.userPortraitConfigTargetScale"
+                :minFractionDigits="2"
+                :maxFractionDigits="4"
+                placeholder="e.g. 1.0"
+                fluid
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <Checkbox
+                v-model="gv.userPortraitConfigEnableFade"
+                binary
+                inputId="um-fade"
+              />
+              <label for="um-fade">Enable Gradient Fade</label>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="um-fade-start">Gradient Fade Start</label>
+              <InputNumber
+                id="um-fade-start"
+                v-model="gv.userPortraitConfigFadeStart"
+                :minFractionDigits="2"
+                :maxFractionDigits="2"
+                :min="0"
+                :max="1"
+                fluid
+              />
+            </div>
           </template>
 
-          <div class="flex flex-col gap-2">
-            <label for="portrait-offset-x">Offset X (px)</label>
-            <InputNumber
-              id="portrait-offset-x"
-              :modelValue="isDefaultTab ? gv.portraitConfigOffsetX : gv.userPortraitConfigOffsetX"
-              @update:modelValue="isDefaultTab ? (gv.portraitConfigOffsetX = $event) : (gv.userPortraitConfigOffsetX = $event)"
-              :minFractionDigits="0"
-              fluid
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label for="portrait-offset-y">Offset Y (px)</label>
-            <InputNumber
-              id="portrait-offset-y"
-              :modelValue="isDefaultTab ? gv.portraitConfigOffsetY : gv.userPortraitConfigOffsetY"
-              @update:modelValue="isDefaultTab ? (gv.portraitConfigOffsetY = $event) : (gv.userPortraitConfigOffsetY = $event)"
-              :minFractionDigits="0"
-              fluid
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label for="portrait-scale">Target Scale</label>
-            <InputNumber
-              id="portrait-scale"
-              :modelValue="isDefaultTab ? gv.portraitConfigTargetScale : gv.userPortraitConfigTargetScale"
-              @update:modelValue="isDefaultTab ? (gv.portraitConfigTargetScale = $event) : (gv.userPortraitConfigTargetScale = $event)"
-              :minFractionDigits="2"
-              :maxFractionDigits="4"
-              placeholder="e.g. 1.0"
-              fluid
-            />
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox
-              :modelValue="isDefaultTab ? gv.portraitConfigEnableFade : gv.userPortraitConfigEnableFade"
-              @update:modelValue="isDefaultTab ? (gv.portraitConfigEnableFade = $event) : (gv.userPortraitConfigEnableFade = $event)"
-              binary
-              inputId="portrait-fade"
-            />
-            <label for="portrait-fade">Enable Gradient Fade</label>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label for="portrait-fade-start">Gradient Fade Start</label>
-            <InputNumber
-              id="portrait-fade-start"
-              :modelValue="isDefaultTab ? gv.portraitConfigFadeStart : gv.userPortraitConfigFadeStart"
-              @update:modelValue="isDefaultTab ? (gv.portraitConfigFadeStart = $event) : (gv.userPortraitConfigFadeStart = $event)"
-              :minFractionDigits="2"
-              :maxFractionDigits="2"
-              :min="0"
-              :max="1"
-              fluid
-            />
-          </div>
           <div class="flex justify-end gap-2 mt-2">
             <Button
               type="button"
@@ -538,6 +716,7 @@ onUnmounted(() => {
             />
           </div>
         </div>
+
         <div class="flex-1 min-w-0 flex flex-col gap-2">
           <label class="text-sm text-gray-500">Preview</label>
           <div
@@ -556,7 +735,6 @@ onUnmounted(() => {
     </div>
 
     <UserPortraitUploadModal
-      v-if="isUserTab"
       v-model:visible="showUploadModal"
       :character="gv.portraitConfigCharacter"
       :remainingSlots="remainingSlots"
