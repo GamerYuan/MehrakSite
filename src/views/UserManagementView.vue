@@ -121,13 +121,13 @@ const openUpdateModal = (user) => {
     return;
   }
   selectedUser.value = user;
-  const userPerms = (user.gameWritePermissions || []).map((p) =>
-    p.toLowerCase(),
+  const userPerms = new Set(
+    (user.gameWritePermissions || []).map((p) => p.toLowerCase()),
   );
 
   const newPermissions = {};
   availablePermissions.forEach((perm) => {
-    newPermissions[perm] = userPerms.includes(perm);
+    newPermissions[perm] = userPerms.has(perm);
   });
 
   formData.value = {
@@ -159,28 +159,6 @@ const confirmDelete = (user) => {
       severity: "danger",
     },
     accept: () => handleDeleteUser(user),
-  });
-};
-
-const confirmReset = (user) => {
-  if (isRootUser(user)) {
-    blockRootAction();
-    return;
-  }
-  confirm.require({
-    message: `Force password reset for ${user.username}?`,
-    header: "Confirm Password Reset",
-    icon: "pi pi-exclamation-triangle",
-    rejectProps: {
-      label: "Cancel",
-      severity: "secondary",
-      outlined: true,
-    },
-    acceptProps: {
-      label: "Confirm",
-      severity: "primary",
-    },
-    accept: () => handleResetPassword(user),
   });
 };
 
@@ -406,15 +384,6 @@ const permissionOptions = computed(() => {
               aria-label="Edit"
               :disabled="slotProps.data.isRootUser"
               @click="openUpdateModal(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-lock"
-              severity="warn"
-              text
-              rounded
-              aria-label="Reset Password"
-              :disabled="slotProps.data.isRootUser"
-              @click="confirmReset(slotProps.data)"
             />
             <Button
               icon="pi pi-trash"

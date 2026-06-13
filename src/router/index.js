@@ -52,6 +52,7 @@ const router = createRouter({
           path: "",
           name: "dashboard-home",
           component: DashboardHomeView,
+          meta: { requireAuth: true },
         },
         {
           path: "users",
@@ -108,14 +109,14 @@ router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
   const meta = to.meta;
-  if (!meta.requireSuperAdmin && !meta.requireGamePermission && !meta.requireAnyPermission) {
+  if (!meta.requireAuth && !meta.requireSuperAdmin && !meta.requireGamePermission && !meta.requireAnyPermission) {
     return;
   }
 
   if (!cachedUser) {
     try {
-      const { default: { apiFetchJson } } = await import("../composables/useApi");
-      const { ok, data } = await apiFetchJson("/users/me", { skipAuthRedirect: true });
+      const { standaloneApiFetchJson } = await import("../composables/useApi");
+      const { ok, data } = await standaloneApiFetchJson("/users/me", { skipAuthRedirect: true });
       if (!ok) {
         window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
         return false;

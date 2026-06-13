@@ -1,5 +1,5 @@
 import { ref, computed, readonly } from "vue";
-import { useApi } from "./useApi";
+import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
 import { setUserCache } from "../router";
 
 const user = ref(null);
@@ -9,8 +9,6 @@ const error = ref("");
 let fetched = false;
 
 export function useAuth() {
-  const { apiFetchJson, apiFetch } = useApi();
-
   const isAuthenticated = computed(() => !!user.value);
   const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin);
   const isRootUser = computed(() => !!user.value?.isRootUser);
@@ -20,7 +18,7 @@ export function useAuth() {
     loading.value = true;
     error.value = "";
     try {
-      const { ok, data } = await apiFetchJson("/users/me", {
+      const { ok, data } = await standaloneApiFetchJson("/users/me", {
         skipAuthRedirect: true,
       });
       if (ok) {
@@ -51,7 +49,7 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await apiFetch("/auth/logout", {
+      await standaloneApiFetch("/auth/logout", {
         method: "POST",
         skipAuthRedirect: true,
       });

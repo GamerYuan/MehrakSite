@@ -4,7 +4,7 @@ import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
-const { logout, isSuperAdmin, hasGamePermission } = useAuth();
+const { user, logout, isSuperAdmin } = useAuth();
 
 const props = defineProps({
   userInfo: {
@@ -55,7 +55,7 @@ const handleLogout = () => {
       </router-link>
 
       <router-link
-        v-if="isSuperAdmin || userInfo.gameWritePermissions?.length"
+        v-if="isSuperAdmin || user.gameWritePermissions?.length"
         to="/dashboard/docs"
         class="nav-item"
         :class="{ active: isActive('/dashboard/docs') }"
