@@ -66,7 +66,7 @@ const serverIdOptions = computed(() =>
 
 const userPortraitOptions = computed(() =>
   (gv.userPortraits || []).map((p, i) => ({
-    label: `Portrait ${i + 1} (${new Date(p.createdAt).toLocaleDateString()})`,
+    label: `Portrait ${i + 1}${p.isActive ? " (active)" : ""} (${new Date(p.createdAt).toLocaleDateString()})`,
     value: p.id,
   })),
 );
@@ -135,7 +135,7 @@ const loadUserPortraitImage = async (id) => {
   portraitLoaded.value = false;
 
   try {
-    const response = await apiFetch(`/user-portraits/${id}`);
+    const response = await apiFetch(`/user-portraits/${id}/image`);
     if (!response.ok) {
       portraitError.value = true;
       return;
@@ -276,8 +276,11 @@ watch(
 watch(
   () => gv.userPortraitId,
   (newId, oldId) => {
-    if (newId == null) return;
     cleanupPortrait();
+    if (newId == null) {
+      drawBackgroundOnly();
+      return;
+    }
     loadUserPortraitImage(newId);
     if (oldId != null && oldId !== newId) {
       gv.fetchUserPortraitConfig(newId);
@@ -336,6 +339,22 @@ const isFetching = computed(() => {
 const isSaving = computed(
   () => gv.portraitConfigSaving || gv.userPortraitConfigSaving,
 );
+
+const isPortraitActive = computed(() => {
+  if (!gv.userPortraitId || !gv.userPortraits) return false;
+  const portrait = gv.userPortraits.find((p) => p.id === gv.userPortraitId);
+  return portrait?.isActive === true;
+});
+
+const onSetActiveUserPortrait = async () => {
+  if (!gv.userPortraitId) return;
+  try {
+    await gv.setActiveUserPortrait(gv.userPortraitId);
+  } catch (err) {
+    if (err._redirected) return;
+    showErrorToast(err.message, err.status);
+  }
+};
 const isSaveDisabled = computed(() => {
   if (activeModalTab.value === "default" && portraitError.value) return true;
   if (activeModalTab.value === "user" && !gv.userPortraitId) return true;
@@ -409,7 +428,7 @@ onUnmounted(() => {
     v-model:visible="gv.showPortraitConfigModal"
     modal
     header="Edit Portrait Config"
-    :style="{ width: '70rem' }"
+    :style="{ width: '80rem' }"
   >
     <div class="relative">
       <div
@@ -420,7 +439,7 @@ onUnmounted(() => {
       </div>
 
       <div class="flex gap-6">
-        <div class="flex flex-col gap-3 w-64 shrink-0">
+        <div class="flex flex-col gap-3 w-90 shrink-0">
           <div class="flex flex-col gap-2">
             <label for="portrait-char">Character</label>
             <input
@@ -431,10 +450,7 @@ onUnmounted(() => {
             />
           </div>
 
-          <Tabs
-            v-if="gv.canManage"
-            v-model:value="activeModalTab"
-          >
+          <Tabs v-if="gv.canManage" v-model:value="activeModalTab">
             <TabList>
               <Tab value="default">Default Portraits</Tab>
               <Tab value="user">User Portraits</Tab>
@@ -479,7 +495,15 @@ onUnmounted(() => {
                     />
                   </div>
                   <div class="flex flex-col gap-2">
-                    <label for="portrait-scale">Target Scale</label>
+                    <label for="portrait-scale"
+                      >Target Scale<span
+                        v-if="gv.config.portraitDefaultWidth"
+                        class="text-xs text-gray-400"
+                      >
+                        (defaults to {{ gv.config.portraitDefaultWidth }}px
+                        width)</span
+                      ></label
+                    >
                     <InputNumber
                       id="portrait-scale"
                       v-model="gv.portraitConfigTargetScale"
@@ -524,7 +548,7 @@ onUnmounted(() => {
                         optionLabel="label"
                         optionValue="value"
                         placeholder="Select your portrait"
-                        fluid
+                        class="w-55"
                         :disabled="!userPortraitOptions.length"
                       />
                       <Button
@@ -532,8 +556,18 @@ onUnmounted(() => {
                         icon="pi pi-trash"
                         severity="danger"
                         outlined
+                        class="shrink-0"
                         :disabled="!gv.userPortraitId"
                         @click="onDeleteUserPortrait"
+                      />
+                      <Button
+                        type="button"
+                        icon="pi pi-check"
+                        severity="success"
+                        outlined
+                        class="shrink-0"
+                        :disabled="!gv.userPortraitId || isPortraitActive"
+                        @click="onSetActiveUserPortrait"
                       />
                     </div>
                     <div
@@ -572,7 +606,15 @@ onUnmounted(() => {
                     />
                   </div>
                   <div class="flex flex-col gap-2">
-                    <label for="user-portrait-scale">Target Scale</label>
+                    <label for="user-portrait-scale"
+                      >Target Scale<span
+                        v-if="gv.config.portraitDefaultWidth"
+                        class="text-xs text-gray-400"
+                      >
+                        (defaults to {{ gv.config.portraitDefaultWidth }}px
+                        width)</span
+                      ></label
+                    >
                     <InputNumber
                       id="user-portrait-scale"
                       v-model="gv.userPortraitConfigTargetScale"
@@ -628,8 +670,18 @@ onUnmounted(() => {
                   icon="pi pi-trash"
                   severity="danger"
                   outlined
+                  class="shrink-0"
                   :disabled="!gv.userPortraitId"
                   @click="onDeleteUserPortrait"
+                />
+                <Button
+                  type="button"
+                  icon="pi pi-check"
+                  severity="success"
+                  outlined
+                  class="shrink-0"
+                  :disabled="!gv.userPortraitId || isPortraitActive"
+                  @click="onSetActiveUserPortrait"
                 />
               </div>
               <div
@@ -668,7 +720,15 @@ onUnmounted(() => {
               />
             </div>
             <div class="flex flex-col gap-2">
-              <label for="um-scale">Target Scale</label>
+              <label for="um-scale"
+                >Target Scale<span
+                  v-if="gv.config.portraitDefaultWidth"
+                  class="text-xs text-gray-400"
+                >
+                  (defaults to {{ gv.config.portraitDefaultWidth }}px
+                  width)</span
+                ></label
+              >
               <InputNumber
                 id="um-scale"
                 v-model="gv.userPortraitConfigTargetScale"

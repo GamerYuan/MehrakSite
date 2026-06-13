@@ -36,12 +36,20 @@ export function useUserPortraits(config) {
       );
       if (ok && Array.isArray(data)) {
         userPortraits.value = data;
+        const active = data.find((p) => p.isActive);
+        userPortraitId.value = active
+          ? active.id
+          : data.length
+            ? data[0].id
+            : null;
       } else {
         userPortraits.value = [];
+        userPortraitId.value = null;
       }
     } catch (err) {
       if (err._redirected) return;
       userPortraits.value = [];
+      userPortraitId.value = null;
       showErrorToast(err.message, err.status);
     } finally {
       userPortraitsLoading.value = false;
@@ -113,6 +121,28 @@ export function useUserPortraits(config) {
     }
   };
 
+  const setActiveUserPortrait = async (id) => {
+    try {
+      const response = await apiFetch(`/user-portraits/${id}/active`, {
+        method: "PATCH",
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw buildError(
+          data.error || "Failed to set active portrait",
+          response.status,
+        );
+      }
+      showSuccessToast("Active portrait updated");
+      if (userPortraitsCharacter.value) {
+        await fetchUserPortraits(userPortraitsCharacter.value);
+      }
+    } catch (err) {
+      if (err._redirected) return;
+      showErrorToast(err.message, err.status);
+    }
+  };
+
   const handleUserPortraitConfigSubmit = async () => {
     if (!userPortraitId.value) {
       showErrorToast(
@@ -175,6 +205,7 @@ export function useUserPortraits(config) {
     fetchUserPortraitConfig,
     uploadUserPortrait,
     deleteUserPortrait,
+    setActiveUserPortrait,
     handleUserPortraitConfigSubmit,
   };
 }

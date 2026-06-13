@@ -27,7 +27,9 @@ const nsfwError = ref("");
 const modelLoading = ref(false);
 let nsfwModel = null;
 
-const allowedTypesLabel = ALLOWED_TYPES.map((t) => (t === "image/jpeg" ? "JPG" : "PNG")).join(", ");
+const allowedTypesLabel = ALLOWED_TYPES.map((t) =>
+  t === "image/jpeg" ? "JPG" : "PNG",
+).join(", ");
 
 const revokePreview = () => {
   if (previewUrl.value) {
@@ -85,7 +87,8 @@ const classifyImage = async (file) => {
     const img = new Image();
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = () => reject(new Error("Failed to load image for classification"));
+      img.onerror = () =>
+        reject(new Error("Failed to load image for classification"));
       img.src = url;
     });
     const predictions = await model.classify(img);
@@ -180,7 +183,10 @@ onUnmounted(() => {
         <p class="text-sm text-gray-600 dark:text-gray-300">
           Uploading portrait for
           <strong>{{ props.character }}</strong>
-          ({{ props.remainingSlots }} slot{{ props.remainingSlots === 1 ? "" : "s" }} remaining)
+          ({{ props.remainingSlots }} slot{{
+            props.remainingSlots === 1 ? "" : "s"
+          }}
+          remaining)
         </p>
 
         <Message severity="info" :closable="false">
@@ -215,15 +221,17 @@ onUnmounted(() => {
           <img :src="previewUrl" alt="Preview" class="max-h-64" />
         </div>
 
-        <Message v-if="fileError" severity="error" :closable="false">
-          {{ fileError }}
-        </Message>
-        <Message v-else-if="nsfwError" severity="error" :closable="false">
-          {{ nsfwError }}
-        </Message>
-        <Message v-else-if="modelLoading" severity="warn" :closable="false">
-          Loading NSFW classifier model...
-        </Message>
+        <div>
+          <Message v-if="fileError" severity="error" :closable="false">
+            {{ fileError }}
+          </Message>
+          <Message v-else-if="nsfwError" severity="error" :closable="false">
+            {{ nsfwError }}
+          </Message>
+          <Message v-else-if="modelLoading" severity="warn" :closable="false">
+            Loading NSFW classifier model...
+          </Message>
+        </div>
 
         <div class="flex justify-end gap-2 mt-2">
           <Button
@@ -237,7 +245,9 @@ onUnmounted(() => {
             type="button"
             label="Submit"
             :loading="props.loading"
-            :disabled="!selectedFile || !!fileError || !!nsfwError || props.loading"
+            :disabled="
+              !selectedFile || !!fileError || !!nsfwError || props.loading
+            "
             @click="onSubmit"
           />
         </div>
