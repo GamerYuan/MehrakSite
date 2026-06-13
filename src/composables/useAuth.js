@@ -27,6 +27,11 @@ export function useAuth() {
         data.avatarUrl =
           avatarUrl ||
           `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`;
+        data.discordUserId = data.discordUserId || data.DiscordUserId || "";
+        data.isSuperAdmin = data.isSuperAdmin ?? data.IsSuperAdmin ?? false;
+        data.isRootUser = data.isRootUser ?? data.IsRootUser ?? false;
+        data.gameWritePermissions = data.gameWritePermissions || data.GameWritePermissions || [];
+        data.username = data.username || data.Username || "";
         user.value = data;
         setUserCache(data);
         fetched = true;
@@ -65,7 +70,8 @@ export function useAuth() {
 
   const hasGamePermission = (game) => {
     if (isSuperAdmin.value) return true;
-    return user.value?.gameWritePermissions?.includes(game) ?? false;
+    const perms = user.value?.gameWritePermissions || user.value?.GameWritePermissions;
+    return perms?.includes(game) ?? false;
   };
 
   return {

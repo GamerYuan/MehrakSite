@@ -67,7 +67,15 @@ const fetchUsers = async () => {
   try {
     const { ok, data, status } = await apiFetchJson("/users/list");
     if (ok) {
-      users.value = data;
+      users.value = data.map((u) => ({
+        ...u,
+        userId: u.userId || u.UserId || u.id || "",
+        username: u.username || u.Username || "",
+        discordUserId: u.discordUserId || u.DiscordUserId || "",
+        isSuperAdmin: u.isSuperAdmin ?? u.IsSuperAdmin ?? false,
+        isRootUser: u.isRootUser ?? u.IsRootUser ?? false,
+        gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
+      }));
     } else {
       error.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
