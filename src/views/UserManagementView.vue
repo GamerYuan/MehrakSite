@@ -90,7 +90,7 @@ const fetchUsers = async () => {
 
 const filteredUsers = computed(() => {
   return users.value.filter((user) => {
-    const matchesSearch = user.username
+    const matchesSearch = (user.username || "")
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
 
@@ -275,29 +275,6 @@ const handleDeleteUser = async (user) => {
 
     fetchUsers();
     showSuccessToast("User deleted successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
-  }
-};
-
-const handleResetPassword = async (user) => {
-  if (isRootUser(user)) {
-    blockRootAction();
-    return;
-  }
-  try {
-    const response = await apiFetch(
-      `/users/${user.userId}/password/require-reset`,
-      { method: "POST" },
-    );
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || "Failed to reset password");
-    }
-
-    showSuccessToast("Password reset required for user.", "Success");
   } catch (err) {
     if (err._redirected) return;
     showErrorToast(err.message, err.status);

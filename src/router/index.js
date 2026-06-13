@@ -116,12 +116,14 @@ router.beforeEach(async (to) => {
   if (!cachedUser) {
     try {
       const { standaloneApiFetchJson } = await import("../composables/useApi");
+      const { normalizeUser, setAuthState } = await import("../composables/useAuth");
       const { ok, data } = await standaloneApiFetchJson("/users/me", { skipAuthRedirect: true });
       if (!ok) {
         window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
         return false;
       }
-      cachedUser = data;
+      cachedUser = normalizeUser(data);
+      setAuthState(cachedUser);
     } catch {
       window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
       return false;

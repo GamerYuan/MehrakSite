@@ -2,11 +2,34 @@ import { ref, computed, readonly } from "vue";
 import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
 import { setUserCache } from "../router";
 
+const normalizeUser = (data) => {
+  const avatarUrl =
+    data.avatarUrl || data.avatar || data.AvatarUrl || data.Avatar;
+  data.avatarUrl =
+    avatarUrl ||
+    `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`;
+  data.discordUserId = data.discordUserId || data.DiscordUserId || "";
+  data.isSuperAdmin = data.isSuperAdmin ?? data.IsSuperAdmin ?? false;
+  data.isRootUser = data.isRootUser ?? data.IsRootUser ?? false;
+  data.gameWritePermissions =
+    data.gameWritePermissions || data.GameWritePermissions || [];
+  data.username = data.username || data.Username || "";
+  return data;
+};
+
 const user = ref(null);
 const loading = ref(true);
 const error = ref("");
 
 let fetched = false;
+let inflight = null;
+
+const setAuthState = (userData) => {
+  user.value = userData;
+  setUserCache(userData);
+  fetched = true;
+  loading.value = false;
+};
 
 export function useAuth() {
   const isAuthenticated = computed(() => !!user.value);
@@ -15,37 +38,34 @@ export function useAuth() {
 
   const fetchUser = async () => {
     if (fetched) return user.value;
+    if (inflight) return inflight;
     loading.value = true;
     error.value = "";
-    try {
-      const { ok, data } = await standaloneApiFetchJson("/users/me", {
-        skipAuthRedirect: true,
-      });
-      if (ok) {
-        const avatarUrl =
-          data.avatarUrl || data.avatar || data.AvatarUrl || data.Avatar;
-        data.avatarUrl =
-          avatarUrl ||
-          `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`;
-        data.discordUserId = data.discordUserId || data.DiscordUserId || "";
-        data.isSuperAdmin = data.isSuperAdmin ?? data.IsSuperAdmin ?? false;
-        data.isRootUser = data.isRootUser ?? data.IsRootUser ?? false;
-        data.gameWritePermissions = data.gameWritePermissions || data.GameWritePermissions || [];
-        data.username = data.username || data.Username || "";
-        user.value = data;
-        setUserCache(data);
-        fetched = true;
-      } else {
+
+    inflight = (async () => {
+      try {
+        const { ok, data } = await standaloneApiFetchJson("/users/me", {
+          skipAuthRedirect: true,
+        });
+        if (ok) {
+          setAuthState(normalizeUser(data));
+        } else {
+          user.value = null;
+          fetched = true;
+        }
+      } catch (err) {
+        if (err._redirected) return null;
         user.value = null;
+        error.value = err.message || "Failed to fetch user";
+        fetched = true;
+      } finally {
+        loading.value = false;
+        inflight = null;
       }
-    } catch (err) {
-      if (err._redirected) return null;
-      user.value = null;
-      error.value = err.message || "Failed to fetch user";
-    } finally {
-      loading.value = false;
-    }
-    return user.value;
+      return user.value;
+    })();
+
+    return inflight;
   };
 
   const login = () => {
@@ -70,8 +90,7 @@ export function useAuth() {
 
   const hasGamePermission = (game) => {
     if (isSuperAdmin.value) return true;
-    const perms = user.value?.gameWritePermissions || user.value?.GameWritePermissions;
-    return perms?.includes(game) ?? false;
+    return user.value?.gameWritePermissions?.includes(game) ?? false;
   };
 
   return {
@@ -87,3 +106,5 @@ export function useAuth() {
     hasGamePermission,
   };
 }
+
+export { normalizeUser, setAuthState };
