@@ -5,6 +5,7 @@ import { useCharacterManagement } from "./game/useCharacterManagement";
 import { useAliasManagement } from "./game/useAliasManagement";
 import { useCodesManagement } from "./game/useCodesManagement";
 import { usePortraitConfig } from "./game/usePortraitConfig";
+import { useUserPortraits } from "./game/useUserPortraits";
 
 export function useGameView(config) {
   const { getStoredUser } = useApi();
@@ -15,6 +16,7 @@ export function useGameView(config) {
   const characters = useCharacterManagement(config, activeTab);
   const aliases = useAliasManagement(config, activeTab);
   const portrait = usePortraitConfig(config);
+  const userPortraits = useUserPortraits(config);
 
   const codes = useCodesManagement(config, activeTab);
 
@@ -72,6 +74,7 @@ export function useGameView(config) {
     ...characters,
     ...aliases,
     ...portrait,
+    ...userPortraits,
     ...codeRefs,
   };
 }
