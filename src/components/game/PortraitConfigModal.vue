@@ -429,6 +429,7 @@ onUnmounted(() => {
     modal
     header="Edit Portrait Config"
     :style="{ width: '80rem' }"
+    class="portrait-config-dialog"
   >
     <div class="relative">
       <div
@@ -438,8 +439,8 @@ onUnmounted(() => {
         <i class="pi pi-spin pi-spinner text-xl"></i>
       </div>
 
-      <div class="flex gap-6">
-        <div class="flex flex-col gap-3 w-90 shrink-0">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <div class="flex flex-col gap-3 w-full lg:w-90 lg:shrink-0">
           <div class="flex flex-col gap-2">
             <label for="portrait-char">Character</label>
             <input
@@ -548,7 +549,7 @@ onUnmounted(() => {
                         optionLabel="label"
                         optionValue="value"
                         placeholder="Select your portrait"
-                        class="w-55"
+                        class="w-full lg:w-55"
                         :disabled="!userPortraitOptions.length"
                       />
                       <Button
@@ -803,3 +804,18 @@ onUnmounted(() => {
     />
   </Dialog>
 </template>
+
+<style scoped>
+@media (max-width: 768px) {
+  :deep(.portrait-config-dialog .p-dialog) {
+    width: calc(100vw - 1rem) !important;
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+
+  :deep(.portrait-config-dialog .p-dialog-content) {
+    max-height: calc(95vh - 4rem);
+    overflow-y: auto;
+  }
+}
+</style>

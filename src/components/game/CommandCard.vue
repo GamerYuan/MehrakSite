@@ -19,7 +19,7 @@ const gv = useGameViewInject();
     <template #content>
       <form @submit.prevent="gv.executeCommand()">
         <div class="flex flex-col gap-4">
-          <div class="flex flex-row md:flex-row gap-4">
+          <div class="flex flex-col md:flex-row gap-4">
             <div class="flex flex-col gap-2 flex-1">
               <label :for="`${tabConfig?.id}-profile-id`"
                 >Profile ID (1-10)</label

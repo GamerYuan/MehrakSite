@@ -11,9 +11,17 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  modelValue: {
+    type: Boolean,
+    default: false,
+  },
 });
 
+const emit = defineEmits(["update:modelValue"]);
+
 const isActive = (path) => route.path === path;
+
+const close = () => emit("update:modelValue", false);
 
 const handleLogout = () => {
   logout();
@@ -21,10 +29,21 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="sidebar-header" @click="router.push('/')" role="button" tabindex="0">
-      <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
-      <span class="sidebar-logo-text">MehrakBot</span>
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="modelValue" class="sidebar-backdrop" @click="close"></div>
+    </Transition>
+  </Teleport>
+
+  <aside class="sidebar" :class="{ 'sidebar--open': modelValue }">
+    <div class="sidebar-header">
+      <div class="sidebar-header-content" @click="router.push('/')" role="button" tabindex="0">
+        <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
+        <span class="sidebar-logo-text">MehrakBot</span>
+      </div>
+      <button class="sidebar-close-btn" @click="close" aria-label="Close menu">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -32,6 +51,7 @@ const handleLogout = () => {
         to="/dashboard"
         class="nav-item"
         :class="{ active: isActive('/dashboard') }"
+        @click="close"
       >
         Profile
       </router-link>
@@ -39,8 +59,9 @@ const handleLogout = () => {
       <router-link
         v-if="isSuperAdmin"
         to="/dashboard/users"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/users') }"
+        @click="close"
       >
         User Management
       </router-link>
@@ -48,8 +69,9 @@ const handleLogout = () => {
       <router-link
         v-if="isSuperAdmin"
         to="/dashboard/seaweed-filer"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/seaweed-filer') }"
+        @click="close"
       >
         Seaweed Filer
       </router-link>
@@ -57,8 +79,9 @@ const handleLogout = () => {
       <router-link
         v-if="isSuperAdmin || user.gameWritePermissions?.length"
         to="/dashboard/docs"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/docs') }"
+        @click="close"
       >
         Documentation
       </router-link>
@@ -66,8 +89,9 @@ const handleLogout = () => {
       <router-link
         v-if="isSuperAdmin"
         to="/dashboard/release-notes"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/release-notes') }"
+        @click="close"
       >
         Release Notes
       </router-link>
@@ -76,6 +100,7 @@ const handleLogout = () => {
         to="/dashboard/genshin"
         class="nav-item"
         :class="{ active: isActive('/dashboard/genshin') }"
+        @click="close"
       >
         Genshin Impact
       </router-link>
@@ -84,6 +109,7 @@ const handleLogout = () => {
         to="/dashboard/hsr"
         class="nav-item"
         :class="{ active: isActive('/dashboard/hsr') }"
+        @click="close"
       >
         Honkai: Star Rail
       </router-link>
@@ -92,6 +118,7 @@ const handleLogout = () => {
         to="/dashboard/zzz"
         class="nav-item"
         :class="{ active: isActive('/dashboard/zzz') }"
+        @click="close"
       >
         Zenless Zone Zero
       </router-link>
@@ -100,6 +127,7 @@ const handleLogout = () => {
         to="/dashboard/hi3"
         class="nav-item"
         :class="{ active: isActive('/dashboard/hi3') }"
+        @click="close"
       >
         Honkai Impact 3rd
       </router-link>
@@ -123,6 +151,7 @@ const handleLogout = () => {
 <style scoped>
 .sidebar {
   width: 250px;
+  flex-shrink: 0;
   background-color: var(--bg-surface);
   border-right: 1px solid var(--border-primary);
   display: flex;
@@ -136,10 +165,26 @@ const handleLogout = () => {
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-primary);
+}
+
+.sidebar-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1.25rem;
 }
 
 .sidebar-logo-icon {
@@ -221,5 +266,47 @@ const handleLogout = () => {
 
 .logout-btn:hover {
   background-color: var(--border-secondary);
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 280px;
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .nav-item {
+    padding: 1rem;
+  }
+
+  .mobile-hidden {
+    display: none;
+  }
 }
 </style>

@@ -203,45 +203,49 @@ function handleNavClick(link) {
             <span class="trigger-name">{{ user.username }}</span>
             <i class="pi pi-chevron-down trigger-chevron"></i>
           </button>
-          <div v-if="dropdownOpen" class="dropdown-panel">
-            <div class="dropdown-header">
-              <img
-                v-if="user.avatarUrl"
-                :src="user.avatarUrl"
-                :alt="user.username"
-                class="dropdown-avatar"
-              />
-              <div class="dropdown-user-info">
-                <span class="dropdown-username">{{ user.username }}</span>
-                <span class="dropdown-discord-id"
-                  >ID: {{ user.discordUserId }}</span
-                >
-              </div>
-            </div>
-            <div class="dropdown-divider"></div>
-            <button
-              class="dropdown-item"
-              @click="
-                dropdownOpen = false;
-                router.push('/dashboard');
-              "
-            >
-              <i class="pi pi-th-large"></i>
-              <span>Dashboard</span>
-            </button>
-            <div class="dropdown-divider"></div>
-            <button
-              class="dropdown-item dropdown-item-danger"
-              @click="
-                dropdownOpen = false;
-                logout();
-              "
-            >
-              <i class="pi pi-sign-out"></i>
-              <span>Logout</span>
-            </button>
-          </div>
         </div>
+        <Teleport to="body">
+          <div v-if="dropdownOpen" class="dropdown-panel" @click="dropdownOpen = false">
+            <div class="dropdown-inner" @click.stop>
+              <div class="dropdown-header">
+                <img
+                  v-if="user.avatarUrl"
+                  :src="user.avatarUrl"
+                  :alt="user.username"
+                  class="dropdown-avatar"
+                />
+                <div class="dropdown-user-info">
+                  <span class="dropdown-username">{{ user.username }}</span>
+                  <span class="dropdown-discord-id"
+                    >ID: {{ user.discordUserId }}</span
+                  >
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <button
+                class="dropdown-item"
+                @click="
+                  dropdownOpen = false;
+                  router.push('/dashboard');
+                "
+              >
+                <i class="pi pi-th-large"></i>
+                <span>Dashboard</span>
+              </button>
+              <div class="dropdown-divider"></div>
+              <button
+                class="dropdown-item dropdown-item-danger"
+                @click="
+                  dropdownOpen = false;
+                  logout();
+                "
+              >
+                <i class="pi pi-sign-out"></i>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </Teleport>
       </template>
       <Button
         v-else
@@ -295,9 +299,8 @@ function handleNavClick(link) {
   display: flex;
   align-items: center;
   gap: 2rem;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1;
+  justify-content: center;
 }
 
 .nav-link {
@@ -412,10 +415,128 @@ function handleNavClick(link) {
   color: var(--text-muted);
 }
 
+@media (max-width: 768px) {
+  .nav {
+    padding: 0.75rem;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .nav-center {
+    display: none;
+  }
+
+  .nav-right {
+    gap: 0.375rem;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition:
+      transform 0.2s,
+      opacity 0.2s;
+  }
+
+  .hamburger-line.open:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .hamburger-line.open:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger-line.open:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .mobile-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 0.75rem;
+    z-index: 99;
+  }
+
+  .mobile-menu .nav-link {
+    font-size: 1rem;
+    padding: 0.5rem 0;
+  }
+
+  .mobile-login-btn :deep(.p-button) {
+    width: 100%;
+    background: #5865f2;
+    border-color: #5865f2;
+    color: #fff;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+
+  .invite-btn :deep(.p-button-label) {
+    display: none;
+  }
+
+  .invite-btn :deep(.p-button) {
+    padding: 0.55rem;
+  }
+
+  .user-trigger {
+    width: auto;
+    justify-content: center;
+    height: 2.375rem;
+  }
+
+  .trigger-name {
+    display: none;
+  }
+
+  .trigger-chevron {
+    display: none;
+  }
+
+  .login-btn :deep(.p-button-label) {
+    display: none;
+  }
+
+  .login-btn :deep(.p-button) {
+    padding: 0.55rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+}
+</style>
+
+<style>
 .dropdown-panel {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  position: fixed;
+  top: 4rem;
+  right: 2.5rem;
   width: 220px;
   background: var(--bg-surface-raised);
   border: 1px solid var(--border-primary);
@@ -423,6 +544,11 @@ function handleNavClick(link) {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   z-index: 200;
   overflow: hidden;
+}
+
+.dropdown-inner {
+  display: flex;
+  flex-direction: column;
 }
 
 .dropdown-header {
@@ -505,102 +631,54 @@ function handleNavClick(link) {
 }
 
 @media (max-width: 768px) {
-  .nav {
-    padding: 1rem;
-  }
-
-  .nav-center {
-    display: none;
-  }
-
-  .mobile-menu-btn {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-  }
-
-  .hamburger-line {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--text-primary);
-    border-radius: 2px;
-    transition:
-      transform 0.2s,
-      opacity 0.2s;
-  }
-
-  .hamburger-line.open:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
-  }
-
-  .hamburger-line.open:nth-child(2) {
-    opacity: 0;
-  }
-
-  .hamburger-line.open:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
-  }
-
-  .mobile-menu {
-    position: absolute;
-    top: 100%;
+  .dropdown-panel {
+    top: 0;
     left: 0;
     right: 0;
-    background: var(--bg-overlay);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-primary);
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    z-index: 300;
     display: flex;
     flex-direction: column;
-    padding: 1rem;
-    gap: 0.75rem;
-    z-index: 99;
-  }
-
-  .mobile-menu .nav-link {
-    font-size: 1rem;
-    padding: 0.5rem 0;
-  }
-
-  .mobile-login-btn :deep(.p-button) {
-    width: 100%;
-    background: #5865f2;
-    border-color: #5865f2;
-    color: #fff;
-    font-weight: 600;
-    margin-top: 0.5rem;
-  }
-
-  .invite-btn :deep(.p-button-label) {
-    display: none;
-  }
-
-  .invite-btn :deep(.p-button) {
-    padding: 0.55rem;
-  }
-
-  .user-trigger {
-    width: 100%;
     justify-content: center;
-    height: 2.375rem;
+    padding: 2rem 1.5rem;
+    overflow-y: auto;
   }
 
-  .dropdown-panel {
-    position: static;
-    width: 100%;
-    box-shadow: none;
-    border: 1px solid var(--border-primary);
-    margin-top: 0.25rem;
+  .dropdown-inner {
+    display: flex;
+    flex-direction: column;
   }
-}
 
-@media (min-width: 769px) {
-  .mobile-menu-btn {
-    display: none;
+  .dropdown-header {
+    padding: 1.25rem;
+  }
+
+  .dropdown-avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .dropdown-username {
+    font-size: 1rem;
+  }
+
+  .dropdown-discord-id {
+    font-size: 0.8125rem;
+  }
+
+  .dropdown-item {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  .dropdown-item i {
+    font-size: 1rem;
+    width: 1.25rem;
   }
 }
 </style>

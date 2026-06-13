@@ -189,4 +189,10 @@ const toTitleCase = (str) => {
   font-size: 0.875rem;
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
 </style>

@@ -60,3 +60,15 @@ body {
   background-color: var(--bg-page);
   color: var(--text-primary);
 }
+
+@media (max-width: 768px) {
+  .p-dialog {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+    margin: 1rem;
+  }
+
+  .p-dialog-content {
+    overflow-x: auto;
+  }
+}

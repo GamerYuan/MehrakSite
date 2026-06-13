@@ -185,7 +185,7 @@ onMounted(() => {
       />
     </div>
 
-    <div class="controls flex gap-4 mb-4">
+    <div class="controls flex flex-col sm:flex-row gap-4 mb-4">
       <InputText
         v-model="searchQuery"
         placeholder="Search by name..."
@@ -198,14 +198,14 @@ onMounted(() => {
         optionLabel="label"
         optionValue="value"
         placeholder="Filter by game"
-        class="w-64 items-center"
+        class="w-full sm:w-64 items-center"
       />
     </div>
 
     <DataTable
       :value="filteredDocuments"
       :loading="loading"
-      tableStyle="min-width: 50rem"
+      responsiveLayout="scroll"
     >
       <Column field="name" header="Name">
         <template #body="slotProps">
