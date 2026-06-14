@@ -24,6 +24,7 @@ const previewUrl = ref(null);
 const fileError = ref("");
 const nsfwError = ref("");
 const modelLoading = ref(false);
+const classifying = ref(false);
 let nsfwModel = null;
 
 const allowedTypesLabel = ALLOWED_TYPES.map((t) =>
@@ -42,6 +43,7 @@ const resetState = () => {
   selectedFile.value = null;
   fileError.value = "";
   nsfwError.value = "";
+  classifying.value = false;
   if (fileInput.value) fileInput.value.value = "";
 };
 
@@ -134,6 +136,7 @@ const onFileChange = async (event) => {
   previewUrl.value = URL.createObjectURL(file);
   selectedFile.value = file;
 
+  classifying.value = true;
   try {
     const score = await classifyImage(file);
     if (score >= NSFW_THRESHOLD) {
@@ -143,6 +146,8 @@ const onFileChange = async (event) => {
     }
   } catch (err) {
     nsfwError.value = `Could not verify image content: ${err.message || "Unknown error"}. Please try again.`;
+  } finally {
+    classifying.value = false;
   }
 };
 
@@ -246,7 +251,7 @@ onUnmounted(() => {
             label="Submit"
             :loading="props.loading"
             :disabled="
-              !selectedFile || !!fileError || !!nsfwError || props.loading
+              !selectedFile || !!fileError || !!nsfwError || props.loading || classifying
             "
             @click="onSubmit"
           />
