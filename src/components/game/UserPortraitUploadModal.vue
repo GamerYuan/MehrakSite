@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch, onUnmounted } from "vue";
-import * as nsfwjs from "nsfwjs";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import Message from "primevue/message";
@@ -70,6 +69,7 @@ const loadNsfwModel = async () => {
   if (nsfwModel) return nsfwModel;
   modelLoading.value = true;
   try {
+    const nsfwjs = await import("nsfwjs");
     nsfwModel = await nsfwjs.load();
   } catch (err) {
     nsfwModel = null;

@@ -1,5 +1,5 @@
 import { ref, computed, watch, onMounted } from "vue";
-import { getUser } from "../router";
+import { getUser } from "./authStore";
 import { useCommandExecution } from "./game/useCommandExecution";
 import { useCharacterManagement } from "./game/useCharacterManagement";
 import { useAliasManagement } from "./game/useAliasManagement";

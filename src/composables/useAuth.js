@@ -1,21 +1,19 @@
 import { ref, computed, readonly } from "vue";
 import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
-import { setUserCache } from "../router";
+import { setUserCache } from "./authStore";
 
-const normalizeUser = (data) => {
-  const avatarUrl =
-    data.avatarUrl || data.avatar || data.AvatarUrl || data.Avatar;
-  data.avatarUrl =
-    avatarUrl ||
-    `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`;
-  data.discordUserId = data.discordUserId || data.DiscordUserId || "";
-  data.isSuperAdmin = data.isSuperAdmin ?? data.IsSuperAdmin ?? false;
-  data.isRootUser = data.isRootUser ?? data.IsRootUser ?? false;
-  data.gameWritePermissions =
-    data.gameWritePermissions || data.GameWritePermissions || [];
-  data.username = data.username || data.Username || "";
-  return data;
-};
+const normalizeUser = (data) => ({
+  ...data,
+  avatarUrl:
+    data.avatarUrl || data.avatar || data.AvatarUrl || data.Avatar ||
+    `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`,
+  discordUserId: data.discordUserId || data.DiscordUserId || "",
+  isSuperAdmin: data.isSuperAdmin ?? data.IsSuperAdmin ?? false,
+  isRootUser: data.isRootUser ?? data.IsRootUser ?? false,
+  gameWritePermissions:
+    data.gameWritePermissions || data.GameWritePermissions || [],
+  username: data.username || data.Username || "",
+});
 
 const user = ref(null);
 const loading = ref(true);

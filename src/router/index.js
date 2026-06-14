@@ -11,6 +11,7 @@ import ReleaseNotesManagementView from "../views/ReleaseNotesManagementView.vue"
 import PrivacyPolicyView from "../views/PrivacyPolicyView.vue";
 import TermsOfServiceView from "../views/TermsOfServiceView.vue";
 import { gameMeta } from "../configs/gameMeta";
+import { getUser, setUserCache } from "../composables/authStore";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -97,14 +98,6 @@ const router = createRouter({
   ],
 });
 
-let cachedUser = null;
-
-const setUserCache = (u) => {
-  cachedUser = u;
-};
-
-const getUser = () => cachedUser;
-
 router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
@@ -113,24 +106,30 @@ router.beforeEach(async (to) => {
     return;
   }
 
-  if (!cachedUser) {
+  if (!getUser()) {
     try {
       const { standaloneApiFetchJson } = await import("../composables/useApi");
       const { normalizeUser, setAuthState } = await import("../composables/useAuth");
-      const { ok, data } = await standaloneApiFetchJson("/users/me", { skipAuthRedirect: true });
+      const { ok, data, status } = await standaloneApiFetchJson("/users/me", { skipAuthRedirect: true });
       if (!ok) {
-        window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
-        return false;
+        if (status === 401) {
+          window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+          return false;
+        }
+        return { name: "home" };
       }
-      cachedUser = normalizeUser(data);
-      setAuthState(cachedUser);
-    } catch {
-      window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+      const normalized = normalizeUser(data);
+      setUserCache(normalized);
+      setAuthState(normalized);
+    } catch (err) {
+      if (err.status === 401) {
+        window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+      }
       return false;
     }
   }
 
-  const user = cachedUser;
+  const user = getUser();
 
   if (meta.requireSuperAdmin && !user.isSuperAdmin) {
     return { name: "dashboard-home" };
@@ -148,5 +147,4 @@ router.beforeEach(async (to) => {
   }
 });
 
-export { getUser, setUserCache };
 export default router;
