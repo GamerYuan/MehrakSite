@@ -33,11 +33,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section
-    ref="sectionRef"
-    class="showcase-section"
-    :class="{ reversed, visible: isVisible }"
-  >
+  <section ref="sectionRef" class="showcase-section" :class="{ reversed, visible: isVisible }">
     <div class="showcase-text">
       <h2 class="showcase-title">{{ title }}</h2>
       <p class="showcase-desc">{{ description }}</p>

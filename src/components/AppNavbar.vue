@@ -216,9 +216,7 @@ function handleNavClick(link) {
                 />
                 <div class="dropdown-user-info">
                   <span class="dropdown-username">{{ user.username }}</span>
-                  <span class="dropdown-discord-id"
-                    >ID: {{ user.discordUserId }}</span
-                  >
+                  <span class="dropdown-discord-id">ID: {{ user.discordUserId }}</span>
                 </div>
               </div>
               <div class="dropdown-divider"></div>

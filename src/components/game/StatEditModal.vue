@@ -26,12 +26,7 @@ const gv = useGameViewInject();
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-2">
             <label for="stat-char">Character Name</label>
-            <InputText
-              id="stat-char"
-              :modelValue="gv.editStatCharacter"
-              disabled
-              fluid
-            />
+            <InputText id="stat-char" :modelValue="gv.editStatCharacter" disabled fluid />
           </div>
           <div class="flex flex-col gap-2">
             <label for="stat-base">Base Stat (HP)</label>
@@ -80,11 +75,7 @@ const gv = useGameViewInject();
               severity="secondary"
               @click="gv.showEditStatModal = false"
             />
-            <Button
-              type="submit"
-              label="Update"
-              :loading="gv.editStatLoading"
-            />
+            <Button type="submit" label="Update" :loading="gv.editStatLoading" />
           </div>
         </div>
       </form>

@@ -21,7 +21,7 @@ const emit = defineEmits(["update:visible"]);
     class="doc-modal"
   >
     <div v-if="loading" class="modal-loader">
-      <ProgressSpinner style="width:32px;height:32px" strokeWidth="3" />
+      <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="3" />
       <span>Loading details...</span>
     </div>
 
@@ -30,11 +30,39 @@ const emit = defineEmits(["update:visible"]);
         <span
           class="modal-badge"
           :style="{
-            color: doc.game === 'Genshin' ? '#B8860B' : doc.game === 'HonkaiStarRail' ? '#0077A8' : doc.game === 'ZenlessZoneZero' ? '#C45200' : doc.game === 'HonkaiImpact3' ? '#CC3388' : '#666',
-            background: doc.game === 'Genshin' ? 'rgba(184,134,11,0.12)' : doc.game === 'HonkaiStarRail' ? 'rgba(0,119,168,0.12)' : doc.game === 'ZenlessZoneZero' ? 'rgba(196,82,0,0.12)' : doc.game === 'HonkaiImpact3' ? 'rgba(204,51,136,0.12)' : 'rgba(102,102,102,0.12)',
+            color:
+              doc.game === 'Genshin'
+                ? '#B8860B'
+                : doc.game === 'HonkaiStarRail'
+                  ? '#0077A8'
+                  : doc.game === 'ZenlessZoneZero'
+                    ? '#C45200'
+                    : doc.game === 'HonkaiImpact3'
+                      ? '#CC3388'
+                      : '#666',
+            background:
+              doc.game === 'Genshin'
+                ? 'rgba(184,134,11,0.12)'
+                : doc.game === 'HonkaiStarRail'
+                  ? 'rgba(0,119,168,0.12)'
+                  : doc.game === 'ZenlessZoneZero'
+                    ? 'rgba(196,82,0,0.12)'
+                    : doc.game === 'HonkaiImpact3'
+                      ? 'rgba(204,51,136,0.12)'
+                      : 'rgba(102,102,102,0.12)',
           }"
         >
-          {{ doc.game === 'HonkaiStarRail' ? 'Honkai: Star Rail' : doc.game === 'ZenlessZoneZero' ? 'Zenless Zone Zero' : doc.game === 'HonkaiImpact3' ? 'Honkai Impact 3rd' : doc.game === 'Genshin' ? 'Genshin Impact' : doc.game }}
+          {{
+            doc.game === "HonkaiStarRail"
+              ? "Honkai: Star Rail"
+              : doc.game === "ZenlessZoneZero"
+                ? "Zenless Zone Zero"
+                : doc.game === "HonkaiImpact3"
+                  ? "Honkai Impact 3rd"
+                  : doc.game === "Genshin"
+                    ? "Genshin Impact"
+                    : doc.game
+          }}
         </span>
       </div>
 
@@ -46,7 +74,13 @@ const emit = defineEmits(["update:visible"]);
       <section v-if="doc.name" class="modal-section">
         <h4 class="modal-label">Usage</h4>
         <div class="modal-code">
-          /{{ doc.name }}<template v-if="doc.parameters?.length"><template v-for="p in doc.parameters" :key="p.name"><template v-if="p.required">&lt;{{ p.name }}&gt;</template><template v-else> [{{ p.name }}]</template></template></template>
+          /{{ doc.name
+          }}<template v-if="doc.parameters?.length"
+            ><template v-for="p in doc.parameters" :key="p.name"
+              ><template v-if="p.required">&lt;{{ p.name }}&gt;</template
+              ><template v-else> [{{ p.name }}]</template></template
+            ></template
+          >
         </div>
       </section>
 
@@ -173,7 +207,7 @@ const emit = defineEmits(["update:visible"]);
   font-size: 0.625rem;
   font-weight: 600;
   padding: 0.0625rem 0.375rem;
-  background: rgba(34,197,94,0.1);
+  background: rgba(34, 197, 94, 0.1);
   color: var(--accent);
   border-radius: 0.1875rem;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -183,7 +217,7 @@ const emit = defineEmits(["update:visible"]);
   font-size: 0.5625rem;
   font-weight: 700;
   padding: 0.0625rem 0.3125rem;
-  background: rgba(239,68,68,0.1);
+  background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border-radius: 0.1875rem;
   text-transform: uppercase;

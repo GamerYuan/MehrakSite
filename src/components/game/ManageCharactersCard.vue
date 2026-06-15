@@ -39,35 +39,19 @@ const formatStat = (value) => {
             fluid
             class="flex-1"
           />
-          <Button
-            label="Add"
-            @click="gv.addCharacter"
-            :loading="gv.manageLoading"
-          />
+          <Button label="Add" @click="gv.addCharacter" :loading="gv.manageLoading" />
         </div>
-        <Message v-if="gv.manageError" severity="error">{{
-          gv.manageError
-        }}</Message>
+        <Message v-if="gv.manageError" severity="error">{{ gv.manageError }}</Message>
         <div class="flex flex-col gap-2">
-          <InputText
-            v-model="gv.manageSearchQuery"
-            placeholder="Search characters..."
-            fluid
-          />
+          <InputText v-model="gv.manageSearchQuery" placeholder="Search characters..." fluid />
         </div>
-        <div
-          v-if="gv.config.hasStatEdit"
-          class="flex items-center align-middle gap-2"
-        >
+        <div v-if="gv.config.hasStatEdit" class="flex items-center align-middle gap-2">
           <Checkbox
             v-model="gv.showOnlyMissingAscension"
             binary
             inputId="missing-ascension-filter"
           />
-          <label
-            for="missing-ascension-filter"
-            class="text-sm text-gray-500 mb-0!"
-          >
+          <label for="missing-ascension-filter" class="text-sm text-gray-500 mb-0!">
             Only show characters without max ascension value
           </label>
         </div>
@@ -79,10 +63,7 @@ const formatStat = (value) => {
           >
             <div class="flex flex-col gap-1 text-left">
               <span>{{ item.name }}</span>
-              <div
-                v-if="gv.config.hasStatEdit"
-                class="flex gap-2 text-xs text-gray-500"
-              >
+              <div v-if="gv.config.hasStatEdit" class="flex gap-2 text-xs text-gray-500">
                 <span>Base: {{ formatStat(item.baseVal) }}</span>
                 <span>Max Asc: {{ formatStat(item.maxAscVal) }}</span>
               </div>

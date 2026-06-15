@@ -21,8 +21,7 @@ export function useGameView(config) {
   const user = getUser();
   const canManage =
     user.isSuperAdmin ||
-    (user.gameWritePermissions &&
-      user.gameWritePermissions.includes(config.permission));
+    (user.gameWritePermissions && user.gameWritePermissions.includes(config.permission));
 
   const tabs = computed(() => {
     const t = [...config.tabs];

@@ -102,7 +102,12 @@ router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
   const meta = to.meta;
-  if (!meta.requireAuth && !meta.requireSuperAdmin && !meta.requireGamePermission && !meta.requireAnyPermission) {
+  if (
+    !meta.requireAuth &&
+    !meta.requireSuperAdmin &&
+    !meta.requireGamePermission &&
+    !meta.requireAnyPermission
+  ) {
     return;
   }
 
@@ -110,7 +115,9 @@ router.beforeEach(async (to) => {
     try {
       const { standaloneApiFetchJson } = await import("../composables/useApi");
       const { normalizeUser, setAuthState } = await import("../composables/useAuth");
-      const { ok, data, status } = await standaloneApiFetchJson("/users/me", { skipAuthRedirect: true });
+      const { ok, data, status } = await standaloneApiFetchJson("/users/me", {
+        skipAuthRedirect: true,
+      });
       if (!ok) {
         if (status === 401) {
           window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;

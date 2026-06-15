@@ -1,26 +1,18 @@
 <template>
-  <button
-    class="theme-toggle"
-    :title="tooltip"
-    @click="toggleTheme"
-  >
+  <button class="theme-toggle" :title="tooltip" @click="toggleTheme">
     <i :class="icon" />
   </button>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useTheme } from '../composables/useTheme'
+import { computed } from "vue";
+import { useTheme } from "../composables/useTheme";
 
-const { theme, toggleTheme } = useTheme()
+const { theme, toggleTheme } = useTheme();
 
-const icon = computed(() =>
-  theme.value === 'dark' ? 'pi pi-moon' : 'pi pi-sun'
-)
+const icon = computed(() => (theme.value === "dark" ? "pi pi-moon" : "pi pi-sun"));
 
-const tooltip = computed(() =>
-  `Switch to ${theme.value === 'dark' ? 'light' : 'dark'} mode`
-)
+const tooltip = computed(() => `Switch to ${theme.value === "dark" ? "light" : "dark"} mode`);
 </script>
 
 <style scoped>

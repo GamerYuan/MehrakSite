@@ -71,9 +71,7 @@ const userPortraitOptions = computed(() =>
   })),
 );
 
-const remainingSlots = computed(
-  () => gv.MAX_PER_CHARACTER - (gv.userPortraits?.length || 0),
-);
+const remainingSlots = computed(() => gv.MAX_PER_CHARACTER - (gv.userPortraits?.length || 0));
 
 const backgroundImage = ref(null);
 
@@ -191,9 +189,7 @@ const renderPreview = () => {
 
   const scale =
     cfg.targetScale ??
-    (gv.config.portraitDefaultWidth
-      ? gv.config.portraitDefaultWidth / portrait.naturalWidth
-      : 1);
+    (gv.config.portraitDefaultWidth ? gv.config.portraitDefaultWidth / portrait.naturalWidth : 1);
   const portraitW = Math.round(portrait.naturalWidth * scale);
   const portraitH = Math.round(portrait.naturalHeight * scale);
 
@@ -336,9 +332,7 @@ const isFetching = computed(() => {
   }
   return gv.userPortraitConfigFetching || portraitLoading.value;
 });
-const isSaving = computed(
-  () => gv.portraitConfigSaving || gv.userPortraitConfigSaving,
-);
+const isSaving = computed(() => gv.portraitConfigSaving || gv.userPortraitConfigSaving);
 
 const isPortraitActive = computed(() => {
   if (!gv.userPortraitId || !gv.userPortraits) return false;
@@ -385,15 +379,9 @@ const onUpload = async (file) => {
         422,
       );
     } else if (err.status === 429) {
-      showErrorToast(
-        `Rate limited. ${data.remaining ?? 0} upload(s) remaining.`,
-        429,
-      );
+      showErrorToast(`Rate limited. ${data.remaining ?? 0} upload(s) remaining.`, 429);
     } else if (err.status === 502) {
-      showErrorToast(
-        "Classification service unavailable. Try again later.",
-        502,
-      );
+      showErrorToast("Classification service unavailable. Try again later.", 502);
     } else {
       showErrorToast(err.message, err.status);
     }
@@ -460,10 +448,7 @@ onUnmounted(() => {
               <TabPanel value="default">
                 <div class="flex flex-col gap-3">
                   <div
-                    v-if="
-                      gv.portraitConfigServerIds &&
-                      gv.portraitConfigServerIds.length > 1
-                    "
+                    v-if="gv.portraitConfigServerIds && gv.portraitConfigServerIds.length > 1"
                     class="flex flex-col gap-2"
                   >
                     <label for="portrait-server-id">Portrait (Server ID)</label>
@@ -501,8 +486,7 @@ onUnmounted(() => {
                         v-if="gv.config.portraitDefaultWidth"
                         class="text-xs text-gray-400"
                       >
-                        (defaults to {{ gv.config.portraitDefaultWidth }}px
-                        width)</span
+                        (defaults to {{ gv.config.portraitDefaultWidth }}px width)</span
                       ></label
                     >
                     <InputNumber
@@ -571,12 +555,9 @@ onUnmounted(() => {
                         @click="onSetActiveUserPortrait"
                       />
                     </div>
-                    <div
-                      class="flex items-center justify-between text-xs text-gray-500"
-                    >
+                    <div class="flex items-center justify-between text-xs text-gray-500">
                       <span
-                        >{{ gv.userPortraits?.length || 0 }} /
-                        {{ gv.MAX_PER_CHARACTER }} used</span
+                        >{{ gv.userPortraits?.length || 0 }} / {{ gv.MAX_PER_CHARACTER }} used</span
                       >
                       <Button
                         type="button"
@@ -612,8 +593,7 @@ onUnmounted(() => {
                         v-if="gv.config.portraitDefaultWidth"
                         class="text-xs text-gray-400"
                       >
-                        (defaults to {{ gv.config.portraitDefaultWidth }}px
-                        width)</span
+                        (defaults to {{ gv.config.portraitDefaultWidth }}px width)</span
                       ></label
                     >
                     <InputNumber
@@ -634,9 +614,7 @@ onUnmounted(() => {
                     <label for="user-portrait-fade">Enable Gradient Fade</label>
                   </div>
                   <div class="flex flex-col gap-2">
-                    <label for="user-portrait-fade-start"
-                      >Gradient Fade Start</label
-                    >
+                    <label for="user-portrait-fade-start">Gradient Fade Start</label>
                     <InputNumber
                       id="user-portrait-fade-start"
                       v-model="gv.userPortraitConfigFadeStart"
@@ -685,13 +663,8 @@ onUnmounted(() => {
                   @click="onSetActiveUserPortrait"
                 />
               </div>
-              <div
-                class="flex items-center justify-between text-xs text-gray-500"
-              >
-                <span
-                  >{{ gv.userPortraits?.length || 0 }} /
-                  {{ gv.MAX_PER_CHARACTER }} used</span
-                >
+              <div class="flex items-center justify-between text-xs text-gray-500">
+                <span>{{ gv.userPortraits?.length || 0 }} / {{ gv.MAX_PER_CHARACTER }} used</span>
                 <Button
                   type="button"
                   label="Add Image"
@@ -726,8 +699,7 @@ onUnmounted(() => {
                   v-if="gv.config.portraitDefaultWidth"
                   class="text-xs text-gray-400"
                 >
-                  (defaults to {{ gv.config.portraitDefaultWidth }}px
-                  width)</span
+                  (defaults to {{ gv.config.portraitDefaultWidth }}px width)</span
                 ></label
               >
               <InputNumber
@@ -740,11 +712,7 @@ onUnmounted(() => {
               />
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox
-                v-model="gv.userPortraitConfigEnableFade"
-                binary
-                inputId="um-fade"
-              />
+              <Checkbox v-model="gv.userPortraitConfigEnableFade" binary inputId="um-fade" />
               <label for="um-fade">Enable Gradient Fade</label>
             </div>
             <div class="flex flex-col gap-2">
@@ -780,15 +748,10 @@ onUnmounted(() => {
 
         <div class="flex-1 min-w-0 flex flex-col gap-2">
           <label class="text-sm text-gray-500">Preview</label>
-          <div
-            class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800"
-          >
+          <div class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
             <canvas ref="canvasRef" class="w-full h-auto" />
           </div>
-          <div
-            v-if="portraitError"
-            class="text-sm text-red-500 text-center italic"
-          >
+          <div v-if="portraitError" class="text-sm text-red-500 text-center italic">
             Portrait image not available
           </div>
         </div>

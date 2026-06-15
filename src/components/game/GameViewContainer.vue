@@ -52,12 +52,7 @@ const getTabConfig = (tabId) => gv.config.tabs.find((t) => t.id === tabId);
     <div v-if="gv.resultImages[gv.activeTab]" class="result-container mt-4">
       <Card>
         <template #content>
-          <Image
-            :src="gv.resultImages[gv.activeTab]"
-            alt="Result"
-            preview
-            width="100%"
-          />
+          <Image :src="gv.resultImages[gv.activeTab]" alt="Result" preview width="100%" />
         </template>
       </Card>
     </div>

@@ -18,13 +18,7 @@ const toTitleCase = (str) => {
 <template>
   <div class="dashboard-container">
     <div v-if="loading" class="state-box">Loading user data...</div>
-    <Message
-      v-else-if="error"
-      severity="error"
-      :closable="false"
-      class="mb-4"
-      >{{ error }}</Message
-    >
+    <Message v-else-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
     <div v-else-if="user">
       <header class="dashboard-header">
         <h1 class="page-title">Dashboard</h1>
@@ -42,9 +36,7 @@ const toTitleCase = (str) => {
               />
               <div>
                 <div class="profile-name">{{ user.username }}</div>
-                <div class="profile-id">
-                  Discord ID: {{ user.discordUserId }}
-                </div>
+                <div class="profile-id">Discord ID: {{ user.discordUserId }}</div>
               </div>
             </div>
           </div>

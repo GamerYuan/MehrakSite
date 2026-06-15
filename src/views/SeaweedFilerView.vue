@@ -27,8 +27,7 @@ const openFiler = () => {
     <header class="seaweed-header">
       <h1 class="text-4xl font-bold mb-3">Seaweed Filer</h1>
       <p class="seaweed-subtitle">
-        Open the filer UI in a new tab through the authenticated dashboard
-        proxy.
+        Open the filer UI in a new tab through the authenticated dashboard proxy.
       </p>
     </header>
 
@@ -38,12 +37,9 @@ const openFiler = () => {
 
     <div v-else class="seaweed-card">
       <p>
-        You are signed in as <strong>{{ userInfo.username }}</strong> with
-        superadmin access.
+        You are signed in as <strong>{{ userInfo.username }}</strong> with superadmin access.
       </p>
-      <Button @click="openFiler" :disabled="!filerUrl">
-        Open Seaweed Filer UI
-      </Button>
+      <Button @click="openFiler" :disabled="!filerUrl"> Open Seaweed Filer UI </Button>
       <p v-if="!filerUrl" class="seaweed-error">
         Backend URL is not configured. Set <code>VITE_APP_BACKEND_URL</code>.
       </p>

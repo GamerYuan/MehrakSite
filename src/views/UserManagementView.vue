@@ -15,13 +15,7 @@ import Select from "primevue/select";
 import Message from "primevue/message";
 
 const confirm = useConfirm();
-const {
-  apiFetch,
-  apiFetchJson,
-  showErrorToast,
-  showSuccessToast,
-  showWarnToast,
-} = useApi();
+const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast } = useApi();
 
 const props = defineProps({
   userInfo: {
@@ -95,8 +89,7 @@ const filteredUsers = computed(() => {
       .includes(searchQuery.value.toLowerCase());
 
     if (filterPermission.value === "All") return matchesSearch;
-    if (filterPermission.value === "SuperAdmin")
-      return matchesSearch && user.isSuperAdmin;
+    if (filterPermission.value === "SuperAdmin") return matchesSearch && user.isSuperAdmin;
 
     return (
       matchesSearch &&
@@ -112,9 +105,7 @@ const resetForm = () => {
     discordUserId: "",
     isSuperAdmin: false,
     isActive: true,
-    permissions: Object.fromEntries(
-      availablePermissions.map((p) => [p, false]),
-    ),
+    permissions: Object.fromEntries(availablePermissions.map((p) => [p, false])),
   };
 };
 
@@ -129,9 +120,7 @@ const openUpdateModal = (user) => {
     return;
   }
   selectedUser.value = user;
-  const userPerms = new Set(
-    (user.gameWritePermissions || []).map((p) => p.toLowerCase()),
-  );
+  const userPerms = new Set((user.gameWritePermissions || []).map((p) => p.toLowerCase()));
 
   const newPermissions = {};
   availablePermissions.forEach((perm) => {
@@ -307,12 +296,7 @@ const permissionOptions = computed(() => {
     <Message v-if="error" severity="error" class="mb-4">{{ error }}</Message>
 
     <div class="controls flex flex-col sm:flex-row gap-4 mb-4">
-      <InputText
-        v-model="searchQuery"
-        placeholder="Search by username..."
-        class="flex-1"
-        fluid
-      />
+      <InputText v-model="searchQuery" placeholder="Search by username..." class="flex-1" fluid />
 
       <Select
         v-model="filterPermission"
@@ -324,25 +308,13 @@ const permissionOptions = computed(() => {
       />
     </div>
 
-    <DataTable
-      :value="filteredUsers"
-      :loading="loading"
-      responsiveLayout="scroll"
-    >
+    <DataTable :value="filteredUsers" :loading="loading" responsiveLayout="scroll">
       <Column field="username" header="Username"></Column>
       <Column field="discordUserId" header="Discord ID"></Column>
       <Column header="Role">
         <template #body="slotProps">
-          <Tag
-            v-if="slotProps.data.isRootUser"
-            severity="danger"
-            value="Root User"
-          />
-          <Tag
-            v-else-if="slotProps.data.isSuperAdmin"
-            severity="success"
-            value="Super Admin"
-          />
+          <Tag v-if="slotProps.data.isRootUser" severity="danger" value="Root User" />
+          <Tag v-else-if="slotProps.data.isSuperAdmin" severity="success" value="Super Admin" />
           <Tag v-else severity="secondary" value="User" />
         </template>
       </Column>
@@ -385,12 +357,7 @@ const permissionOptions = computed(() => {
     </DataTable>
 
     <!-- Add/Update Modal -->
-    <Dialog
-      v-model:visible="showAddModal"
-      modal
-      header="Add New User"
-      :style="{ width: '25rem' }"
-    >
+    <Dialog v-model:visible="showAddModal" modal header="Add New User" :style="{ width: '25rem' }">
       <form @submit.prevent="handleAddUser">
         <div class="flex flex-col gap-4 mb-4">
           <div class="flex flex-col gap-2">
@@ -416,11 +383,7 @@ const permissionOptions = computed(() => {
             />
           </div>
           <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="formData.isSuperAdmin"
-              binary
-              inputId="isSuperAdmin"
-            />
+            <Checkbox v-model="formData.isSuperAdmin" binary inputId="isSuperAdmin" />
             <label for="isSuperAdmin" class="font-semibold">Super Admin</label>
           </div>
           <div class="flex flex-col gap-2">
@@ -467,9 +430,7 @@ const permissionOptions = computed(() => {
       <form @submit.prevent="handleUpdateUser">
         <div class="flex flex-col gap-4 mb-4">
           <div class="flex flex-col gap-2">
-            <label for="edit-username" class="font-semibold w-24"
-              >Username</label
-            >
+            <label for="edit-username" class="font-semibold w-24">Username</label>
             <InputText
               id="edit-username"
               v-model="formData.username"
@@ -479,9 +440,7 @@ const permissionOptions = computed(() => {
             />
           </div>
           <div class="flex flex-col gap-2">
-            <label for="edit-discordId" class="font-semibold w-24"
-              >Discord ID</label
-            >
+            <label for="edit-discordId" class="font-semibold w-24">Discord ID</label>
             <InputText
               id="edit-discordId"
               v-model="formData.discordUserId"
@@ -493,14 +452,8 @@ const permissionOptions = computed(() => {
             />
           </div>
           <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="formData.isSuperAdmin"
-              binary
-              inputId="edit-isSuperAdmin"
-            />
-            <label for="edit-isSuperAdmin" class="font-semibold"
-              >Super Admin</label
-            >
+            <Checkbox v-model="formData.isSuperAdmin" binary inputId="edit-isSuperAdmin" />
+            <label for="edit-isSuperAdmin" class="font-semibold">Super Admin</label>
           </div>
           <div class="flex flex-col gap-2">
             <label class="font-semibold">Game Write Permissions</label>
@@ -547,9 +500,7 @@ const permissionOptions = computed(() => {
       <div class="code-block select-all">
         {{ tempPassword }}
       </div>
-      <p class="text-orange-500 mb-4">
-        Please copy this password. It will not be shown again.
-      </p>
+      <p class="text-orange-500 mb-4">Please copy this password. It will not be shown again.</p>
       <div class="flex justify-end">
         <Button label="Close" @click="showTempPasswordModal = false"></Button>
       </div>

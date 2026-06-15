@@ -80,10 +80,7 @@ export const gameOptions = Object.entries(gameMeta)
   .map(([value, meta]) => ({ label: meta.label, value }))
   .concat([{ label: "Miscellaneous", value: "Unsupported" }]);
 
-export const gameFilterOptions = [
-  { label: "All Games", value: "All" },
-  ...gameOptions,
-];
+export const gameFilterOptions = [{ label: "All Games", value: "All" }, ...gameOptions];
 
 export const permissionLabels = Object.fromEntries(
   Object.values(gameMeta)

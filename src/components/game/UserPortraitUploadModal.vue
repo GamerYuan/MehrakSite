@@ -27,9 +27,7 @@ const modelLoading = ref(false);
 const classifying = ref(false);
 let nsfwModel = null;
 
-const allowedTypesLabel = ALLOWED_TYPES.map((t) =>
-  t === "image/jpeg" ? "JPG" : "PNG",
-).join(", ");
+const allowedTypesLabel = ALLOWED_TYPES.map((t) => (t === "image/jpeg" ? "JPG" : "PNG")).join(", ");
 
 const revokePreview = () => {
   if (previewUrl.value) {
@@ -89,8 +87,7 @@ const classifyImage = async (file) => {
     const img = new Image();
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = () =>
-        reject(new Error("Failed to load image for classification"));
+      img.onerror = () => reject(new Error("Failed to load image for classification"));
       img.src = url;
     });
     const predictions = await model.classify(img);
@@ -188,9 +185,7 @@ onUnmounted(() => {
         <p class="text-sm text-gray-600 dark:text-gray-300">
           Uploading portrait for
           <strong>{{ props.character }}</strong>
-          ({{ props.remainingSlots }} slot{{
-            props.remainingSlots === 1 ? "" : "s"
-          }}
+          ({{ props.remainingSlots }} slot{{ props.remainingSlots === 1 ? "" : "s" }}
           remaining)
         </p>
 
@@ -250,9 +245,7 @@ onUnmounted(() => {
             type="button"
             label="Submit"
             :loading="props.loading"
-            :disabled="
-              !selectedFile || !!fileError || !!nsfwError || props.loading || classifying
-            "
+            :disabled="!selectedFile || !!fileError || !!nsfwError || props.loading || classifying"
             @click="onSubmit"
           />
         </div>

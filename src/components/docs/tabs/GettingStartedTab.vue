@@ -19,7 +19,9 @@ const router = useRouter();
       </div>
       <div>
         <h1 class="gs-title">Getting Started</h1>
-        <p class="gs-sub">Learn how to install and use Mehrak in your Discord server or user profile.</p>
+        <p class="gs-sub">
+          Learn how to install and use Mehrak in your Discord server or user profile.
+        </p>
       </div>
     </div>
 
@@ -44,8 +46,15 @@ const router = useRouter();
           <Step value="1">Install Page</Step>
           <StepPanel v-slot="{ activateCallback }" value="1">
             <div class="gs-step">
-              <p>Click this link to open the
-                <a href="https://discord.com/oauth2/authorize?client_id=1365154828430610532" target="_blank" rel="noopener noreferrer" class="gs-link">Mehrak install page</a>
+              <p>
+                Click this link to open the
+                <a
+                  href="https://discord.com/oauth2/authorize?client_id=1365154828430610532"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="gs-link"
+                  >Mehrak install page</a
+                >
                 and select <strong>Add to Server</strong>.
               </p>
               <Button size="small" label="Next" @click="activateCallback('2')" />
@@ -58,7 +67,12 @@ const router = useRouter();
             <div class="gs-step">
               <p>Select the server where you want Mehrak to be installed.</p>
               <div class="gs-step-btns">
-                <Button size="small" label="Back" severity="secondary" @click="activateCallback('1')" />
+                <Button
+                  size="small"
+                  label="Back"
+                  severity="secondary"
+                  @click="activateCallback('1')"
+                />
                 <Button size="small" label="Next" @click="activateCallback('3')" />
               </div>
             </div>
@@ -69,7 +83,12 @@ const router = useRouter();
           <StepPanel v-slot="{ activateCallback }" value="3">
             <div class="gs-step">
               <p>You have successfully installed Mehrak to that server.</p>
-              <Button size="small" label="Back" severity="secondary" @click="activateCallback('2')" />
+              <Button
+                size="small"
+                label="Back"
+                severity="secondary"
+                @click="activateCallback('2')"
+              />
             </div>
           </StepPanel>
         </StepItem>
@@ -91,8 +110,15 @@ const router = useRouter();
           <Step value="1">Install Page</Step>
           <StepPanel v-slot="{ activateCallback }" value="1">
             <div class="gs-step">
-              <p>Click this link to open the
-                <a href="https://discord.com/oauth2/authorize?client_id=1365154828430610532" target="_blank" rel="noopener noreferrer" class="gs-link">Mehrak install page</a>
+              <p>
+                Click this link to open the
+                <a
+                  href="https://discord.com/oauth2/authorize?client_id=1365154828430610532"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="gs-link"
+                  >Mehrak install page</a
+                >
                 and select <strong>Install to account</strong>.
               </p>
               <Button size="small" label="Next" @click="activateCallback('2')" />
@@ -103,8 +129,16 @@ const router = useRouter();
           <Step value="2">Done</Step>
           <StepPanel v-slot="{ activateCallback }" value="2">
             <div class="gs-step">
-              <p>You have successfully installed Mehrak to your user account. You can now use Mehrak in any Discord server with External Applications enabled, or in DMs.</p>
-              <Button size="small" label="Back" severity="secondary" @click="activateCallback('1')" />
+              <p>
+                You have successfully installed Mehrak to your user account. You can now use Mehrak
+                in any Discord server with External Applications enabled, or in DMs.
+              </p>
+              <Button
+                size="small"
+                label="Back"
+                severity="secondary"
+                @click="activateCallback('1')"
+              />
             </div>
           </StepPanel>
         </StepItem>
@@ -122,7 +156,10 @@ const router = useRouter();
           <p class="gs-card-sub">Mehrak uses Discord slash commands.</p>
         </div>
       </div>
-      <p class="gs-text">After successful installation, you can access the command list by typing <code class="gs-code-inline">/</code> in supported text channels.</p>
+      <p class="gs-text">
+        After successful installation, you can access the command list by typing
+        <code class="gs-code-inline">/</code> in supported text channels.
+      </p>
     </section>
 
     <!-- Adding a Profile -->
@@ -137,11 +174,17 @@ const router = useRouter();
         </div>
       </div>
 
-      <p class="gs-text">To use game-related commands, you must first add a profile to Mehrak. Run the following command:</p>
+      <p class="gs-text">
+        To use game-related commands, you must first add a profile to Mehrak. Run the following
+        command:
+      </p>
 
       <pre class="gs-code-block"><code>/profile add</code></pre>
 
-      <p class="gs-text">After running Profile Add, you will be prompted with an authentication modal with the following inputs:</p>
+      <p class="gs-text">
+        After running Profile Add, you will be prompted with an authentication modal with the
+        following inputs:
+      </p>
 
       <ul class="gs-list">
         <li>HoYoLAB UID</li>
@@ -150,7 +193,8 @@ const router = useRouter();
       </ul>
 
       <Message severity="info" :closable="false" class="gs-msg">
-        You are advised to use a computer to complete authentication, as these steps are easier to perform on desktop.
+        You are advised to use a computer to complete authentication, as these steps are easier to
+        perform on desktop.
       </Message>
 
       <div class="gs-divider"></div>
@@ -163,7 +207,17 @@ const router = useRouter();
           <Step value="1">Login</Step>
           <StepPanel v-slot="{ activateCallback }" value="1">
             <div class="gs-step">
-              <p>Go to <a href="https://www.hoyolab.com/" target="_blank" rel="noopener noreferrer" class="gs-link">HoYoLAB</a> and sign in with your HoYoverse account.</p>
+              <p>
+                Go to
+                <a
+                  href="https://www.hoyolab.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="gs-link"
+                  >HoYoLAB</a
+                >
+                and sign in with your HoYoverse account.
+              </p>
               <Button size="small" label="Next" @click="activateCallback('2')" />
             </div>
           </StepPanel>
@@ -172,9 +226,17 @@ const router = useRouter();
           <Step value="2">Profile Page</Step>
           <StepPanel v-slot="{ activateCallback }" value="2">
             <div class="gs-step">
-              <p>Click your profile picture in the top-right corner and select <strong>Personal Homepage</strong>.</p>
+              <p>
+                Click your profile picture in the top-right corner and select
+                <strong>Personal Homepage</strong>.
+              </p>
               <div class="gs-step-btns">
-                <Button size="small" label="Back" severity="secondary" @click="activateCallback('1')" />
+                <Button
+                  size="small"
+                  label="Back"
+                  severity="secondary"
+                  @click="activateCallback('1')"
+                />
                 <Button size="small" label="Next" @click="activateCallback('3')" />
               </div>
             </div>
@@ -184,15 +246,32 @@ const router = useRouter();
           <Step value="3">Copy UID</Step>
           <StepPanel v-slot="{ activateCallback }" value="3">
             <div class="gs-step">
-              <p>Your UID is the numeric value after <code class="gs-code-inline">id=</code> in the URL.</p>
+              <p>
+                Your UID is the numeric value after <code class="gs-code-inline">id=</code> in the
+                URL.
+              </p>
               <figure class="gs-figure">
-                <Image src="/docs/getting-started/hoyolab-uid-url-example.webp" alt="HoYoLAB UID in browser URL" preview class="gs-image" imageClass="w-full h-auto block">
+                <Image
+                  src="/docs/getting-started/hoyolab-uid-url-example.webp"
+                  alt="HoYoLAB UID in browser URL"
+                  preview
+                  class="gs-image"
+                  imageClass="w-full h-auto block"
+                >
                   <template #previewicon><i class="pi pi-search"></i></template>
                 </Image>
                 <figcaption class="gs-figcap">HoYoLAB UID in browser URL bar.</figcaption>
               </figure>
-              <p>Copy this number and paste it into the UID input in the authentication modal. In this example, the HoYoLAB UID is <strong>36639475</strong>.</p>
-              <Button size="small" label="Back" severity="secondary" @click="activateCallback('2')" />
+              <p>
+                Copy this number and paste it into the UID input in the authentication modal. In
+                this example, the HoYoLAB UID is <strong>36639475</strong>.
+              </p>
+              <Button
+                size="small"
+                label="Back"
+                severity="secondary"
+                @click="activateCallback('2')"
+              />
             </div>
           </StepPanel>
         </StepItem>
@@ -203,7 +282,17 @@ const router = useRouter();
       <!-- HoYoLAB Cookies -->
       <h3 class="gs-section-title">HoYoLAB Cookies</h3>
 
-      <p class="gs-text">Mehrak requires your HoYoLAB cookies to retrieve in-game information for other commands. You are strongly advised to read the <a href="#" @click.prevent="router.push('/docs?tab=appendix&section=cookies')" class="gs-link">About HoYoLAB Cookies</a> page before providing this data.</p>
+      <p class="gs-text">
+        Mehrak requires your HoYoLAB cookies to retrieve in-game information for other commands. You
+        are strongly advised to read the
+        <a
+          href="#"
+          @click.prevent="router.push('/docs?tab=appendix&section=cookies')"
+          class="gs-link"
+          >About HoYoLAB Cookies</a
+        >
+        page before providing this data.
+      </p>
 
       <Stepper value="1">
         <StepItem value="1">
@@ -219,9 +308,17 @@ const router = useRouter();
           <Step value="2">Open DevTools</Step>
           <StepPanel v-slot="{ activateCallback }" value="2">
             <div class="gs-step">
-              <p>Press <code class="gs-code-inline">Ctrl</code> + <code class="gs-code-inline">Shift</code> + <code class="gs-code-inline">I</code>.</p>
+              <p>
+                Press <code class="gs-code-inline">Ctrl</code> +
+                <code class="gs-code-inline">Shift</code> + <code class="gs-code-inline">I</code>.
+              </p>
               <div class="gs-step-btns">
-                <Button size="small" label="Back" severity="secondary" @click="activateCallback('1')" />
+                <Button
+                  size="small"
+                  label="Back"
+                  severity="secondary"
+                  @click="activateCallback('1')"
+                />
                 <Button size="small" label="Next" @click="activateCallback('3')" />
               </div>
             </div>
@@ -231,34 +328,65 @@ const router = useRouter();
           <Step value="3">Copy Cookies</Step>
           <StepPanel v-slot="{ activateCallback }" value="3">
             <div class="gs-step">
-              <p>Browser menus may differ, but use these general steps and copy the value for <code class="gs-code-inline">ltoken_v2</code>.</p>
+              <p>
+                Browser menus may differ, but use these general steps and copy the value for
+                <code class="gs-code-inline">ltoken_v2</code>.
+              </p>
 
               <div class="gs-browser-block">
                 <p class="gs-browser-label">Chromium-based browsers (Chrome, Edge, Opera, Brave)</p>
-                <p>Open <strong>Application</strong> tab, select <strong>Storage &gt; Cookies</strong>, choose the site, then copy <code class="gs-code-inline">ltoken_v2</code>.</p>
+                <p>
+                  Open <strong>Application</strong> tab, select
+                  <strong>Storage &gt; Cookies</strong>, choose the site, then copy
+                  <code class="gs-code-inline">ltoken_v2</code>.
+                </p>
               </div>
 
               <figure class="gs-figure">
-                <Image src="/docs/getting-started/cookies-chromium-devtools.webp" alt="Chromium developer tools cookies panel" preview class="gs-image" imageClass="w-full h-auto block">
+                <Image
+                  src="/docs/getting-started/cookies-chromium-devtools.webp"
+                  alt="Chromium developer tools cookies panel"
+                  preview
+                  class="gs-image"
+                  imageClass="w-full h-auto block"
+                >
                   <template #previewicon><i class="pi pi-search"></i></template>
                 </Image>
-                <figcaption class="gs-figcap">Developer console for Chromium-based browser.</figcaption>
+                <figcaption class="gs-figcap">
+                  Developer console for Chromium-based browser.
+                </figcaption>
               </figure>
 
               <div class="gs-browser-block">
                 <p class="gs-browser-label">Firefox-based browsers (Firefox, LibreWolf)</p>
-                <p>Open <strong>Storage</strong> tab, select <strong>Cookies</strong>, choose the site, then copy <code class="gs-code-inline">ltoken_v2</code>.</p>
+                <p>
+                  Open <strong>Storage</strong> tab, select <strong>Cookies</strong>, choose the
+                  site, then copy <code class="gs-code-inline">ltoken_v2</code>.
+                </p>
               </div>
 
               <figure class="gs-figure">
-                <Image src="/docs/getting-started/cookies-firefox-devtools.webp" alt="Firefox developer tools cookies panel" preview class="gs-image" imageClass="w-full h-auto block">
+                <Image
+                  src="/docs/getting-started/cookies-firefox-devtools.webp"
+                  alt="Firefox developer tools cookies panel"
+                  preview
+                  class="gs-image"
+                  imageClass="w-full h-auto block"
+                >
                   <template #previewicon><i class="pi pi-search"></i></template>
                 </Image>
-                <figcaption class="gs-figcap">Developer console for Firefox-based browser.</figcaption>
+                <figcaption class="gs-figcap">
+                  Developer console for Firefox-based browser.
+                </figcaption>
               </figure>
 
               <div class="gs-step-btns">
-                <Button size="small" label="Back" severity="secondary" @click="activateCallback('2')" />
+                <Button
+                  size="small"
+                  label="Back"
+                  severity="secondary"
+                  @click="activateCallback('2')"
+                />
                 <Button size="small" label="Next" @click="activateCallback('4')" />
               </div>
             </div>
@@ -268,8 +396,16 @@ const router = useRouter();
           <Step value="4">Provide Cookie</Step>
           <StepPanel v-slot="{ activateCallback }" value="4">
             <div class="gs-step">
-              <p>Paste the copied value into the cookie input. Your cookie should begin with <code class="gs-code-inline">v2_C...</code>.</p>
-              <Button size="small" label="Back" severity="secondary" @click="activateCallback('3')" />
+              <p>
+                Paste the copied value into the cookie input. Your cookie should begin with
+                <code class="gs-code-inline">v2_C...</code>.
+              </p>
+              <Button
+                size="small"
+                label="Back"
+                severity="secondary"
+                @click="activateCallback('3')"
+              />
             </div>
           </StepPanel>
         </StepItem>
@@ -280,19 +416,34 @@ const router = useRouter();
       <!-- Passphrase -->
       <h3 class="gs-section-title">Passphrase</h3>
 
-      <p class="gs-text">To protect stored cookies, Mehrak requires a passphrase that is used to encrypt your cookie in the database. A passphrase should be easy for humans to remember, but difficult for machines to crack.</p>
+      <p class="gs-text">
+        To protect stored cookies, Mehrak requires a passphrase that is used to encrypt your cookie
+        in the database. A passphrase should be easy for humans to remember, but difficult for
+        machines to crack.
+      </p>
 
       <div class="gs-tip">
         <p class="gs-tip-title">Recommended passphrase practices:</p>
         <ul class="gs-list">
-          <li>Choose a sentence you can remember, such as a quote from a movie, book, or game character.</li>
+          <li>
+            Choose a sentence you can remember, such as a quote from a movie, book, or game
+            character.
+          </li>
           <li>Use a long sentence, ideally at least 20 characters.</li>
           <li>Do not reuse passphrases from other services or profiles.</li>
         </ul>
       </div>
 
-      <p class="gs-text">The passphrase is used verbatim for encryption, including leading or trailing spaces, line breaks, and paragraph breaks.</p>
-      <p class="gs-text">Mehrak does not store passphrases in the database. Your passphrase is required for commands that use HoYoLAB cookies. For convenience, after authentication, decrypted cookies are cached for 5 minutes before active eviction, allowing additional commands without re-entering the passphrase.</p>
+      <p class="gs-text">
+        The passphrase is used verbatim for encryption, including leading or trailing spaces, line
+        breaks, and paragraph breaks.
+      </p>
+      <p class="gs-text">
+        Mehrak does not store passphrases in the database. Your passphrase is required for commands
+        that use HoYoLAB cookies. For convenience, after authentication, decrypted cookies are
+        cached for 5 minutes before active eviction, allowing additional commands without
+        re-entering the passphrase.
+      </p>
     </section>
   </div>
 </template>
@@ -359,7 +510,7 @@ const router = useRouter();
   display: grid;
   place-items: center;
   border-radius: 0.5rem;
-  background: rgba(34,197,94,0.1);
+  background: rgba(34, 197, 94, 0.1);
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -515,8 +666,8 @@ const router = useRouter();
 
 .gs-tip {
   padding: 1rem 1.25rem;
-  background: rgba(34,197,94,0.05);
-  border: 1px solid rgba(34,197,94,0.15);
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.15);
   border-radius: 0.5rem;
   margin: 0 0 0.75rem 0;
 }

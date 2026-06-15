@@ -2,13 +2,7 @@ import { ref } from "vue";
 import { useApi } from "../useApi";
 
 export function usePortraitConfig(config) {
-  const {
-    showErrorToast,
-    showSuccessToast,
-    buildError,
-    apiFetch,
-    apiFetchJson,
-  } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const showPortraitConfigModal = ref(false);
   const portraitConfigCharacter = ref("");
@@ -83,10 +77,7 @@ export function usePortraitConfig(config) {
 
   const handlePortraitConfigSubmit = async () => {
     if (!portraitConfigServerId.value) {
-      showErrorToast(
-        "No portrait selected. Please select a portrait first.",
-        400,
-      );
+      showErrorToast("No portrait selected. Please select a portrait first.", 400);
       return;
     }
     portraitConfigSaving.value = true;
@@ -108,10 +99,7 @@ export function usePortraitConfig(config) {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw buildError(
-          data.error || "Failed to update portrait config",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to update portrait config", response.status);
       }
 
       showPortraitConfigModal.value = false;

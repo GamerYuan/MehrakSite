@@ -154,7 +154,7 @@ const handleTabChange = (tab) => {
             />
 
             <div v-if="loading" class="state-box">
-              <ProgressSpinner style="width:36px;height:36px" strokeWidth="3" />
+              <ProgressSpinner style="width: 36px; height: 36px" strokeWidth="3" />
               <span>Loading commands...</span>
             </div>
 
@@ -163,14 +163,17 @@ const handleTabChange = (tab) => {
             </div>
 
             <div v-else-if="Object.keys(groupedDocuments).length === 0" class="state-box">
-              <i class="pi pi-search" style="font-size:1.5rem;opacity:0.3"></i>
+              <i class="pi pi-search" style="font-size: 1.5rem; opacity: 0.3"></i>
               <span>No commands found matching your search.</span>
             </div>
 
             <div v-else class="game-groups">
               <section v-for="(docs, game) in groupedDocuments" :key="game" class="game-group">
                 <div class="game-group-head">
-                  <span class="game-dot" :style="{ background: gameLabels[game] ? undefined : 'var(--accent)' }"></span>
+                  <span
+                    class="game-dot"
+                    :style="{ background: gameLabels[game] ? undefined : 'var(--accent)' }"
+                  ></span>
                   <h3 class="game-group-title">{{ gameLabels[game] }}</h3>
                   <span class="game-count">{{ docs.length }}</span>
                 </div>

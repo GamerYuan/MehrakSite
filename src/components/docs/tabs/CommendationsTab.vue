@@ -1,5 +1,4 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
   <div class="com">
@@ -43,7 +42,12 @@
       </div>
     </section>
 
-    <p class="com-disclaimer">All assets belong to their respective owners. Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Honkai Impact 3rd are registered under the trademarks of Cognosphere Pte., Ltd. and miHoYo Co., Ltd. This website and the Discord Bot service is not associated with Cognosphere or miHoYo Co., Ltd. in any official capacity.</p>
+    <p class="com-disclaimer">
+      All assets belong to their respective owners. Genshin Impact, Honkai: Star Rail, Zenless Zone
+      Zero and Honkai Impact 3rd are registered under the trademarks of Cognosphere Pte., Ltd. and
+      miHoYo Co., Ltd. This website and the Discord Bot service is not associated with Cognosphere
+      or miHoYo Co., Ltd. in any official capacity.
+    </p>
   </div>
 </template>
 
@@ -126,7 +130,7 @@
   display: grid;
   place-items: center;
   border-radius: 0.5rem;
-  background: rgba(34,197,94,0.08);
+  background: rgba(34, 197, 94, 0.08);
   color: var(--accent);
   font-size: 0.875rem;
   flex-shrink: 0;

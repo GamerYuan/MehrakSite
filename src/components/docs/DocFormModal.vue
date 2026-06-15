@@ -172,21 +172,13 @@ const canEditGame = computed(() => {
                   optionValue="value"
                 />
                 <div class="flex items-center gap-2 px-2">
-                  <Checkbox
-                    v-model="newParam.required"
-                    binary
-                    inputId="param-required"
-                  />
+                  <Checkbox v-model="newParam.required" binary inputId="param-required" />
                   <label for="param-required" class="text-sm text-zinc-700 dark:text-zinc-300"
                     >Required</label
                   >
                 </div>
               </div>
-              <InputText
-                v-model="newParam.description"
-                placeholder="Description"
-                class="w-full"
-              />
+              <InputText v-model="newParam.description" placeholder="Description" class="w-full" />
             </div>
             <Button
               type="button"
@@ -257,9 +249,7 @@ const canEditGame = computed(() => {
               :key="index"
               class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
             >
-              <code class="flex-1 font-mono text-sm text-emerald-300/80">{{
-                example
-              }}</code>
+              <code class="flex-1 font-mono text-sm text-emerald-300/80">{{ example }}</code>
               <Button
                 type="button"
                 icon="pi pi-times"
@@ -274,12 +264,7 @@ const canEditGame = computed(() => {
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
-        <Button
-          type="button"
-          label="Cancel"
-          severity="secondary"
-          @click="handleClose"
-        />
+        <Button type="button" label="Cancel" severity="secondary" @click="handleClose" />
         <Button
           type="submit"
           :label="isEditing ? 'Update' : 'Create'"

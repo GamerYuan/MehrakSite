@@ -2,13 +2,7 @@ import { ref, computed } from "vue";
 import { useApi } from "../useApi";
 
 export function useAliasManagement(config, activeTab) {
-  const {
-    showErrorToast,
-    showSuccessToast,
-    buildError,
-    apiFetch,
-    apiFetchJson,
-  } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const aliases = ref([]);
   const aliasSearchQuery = ref("");
@@ -21,9 +15,7 @@ export function useAliasManagement(config, activeTab) {
 
   const fetchAliases = async () => {
     try {
-      const { ok, data, status } = await apiFetchJson(
-        `/alias/list?game=${config.id}`,
-      );
+      const { ok, data, status } = await apiFetchJson(`/alias/list?game=${config.id}`);
       if (ok) {
         aliases.value = Object.entries(data).map(([name, aliasList]) => ({
           name,
@@ -75,9 +67,7 @@ export function useAliasManagement(config, activeTab) {
         .filter((s) => s.length > 0);
 
       if (isEditingAlias.value) {
-        const addedAliases = currentAliasesArray.filter(
-          (a) => !originalAliases.value.includes(a),
-        );
+        const addedAliases = currentAliasesArray.filter((a) => !originalAliases.value.includes(a));
         const removedAliases = originalAliases.value.filter(
           (a) => !currentAliasesArray.includes(a),
         );
@@ -93,10 +83,7 @@ export function useAliasManagement(config, activeTab) {
           });
           if (!addRes.ok) {
             const data = await addRes.json().catch(() => ({}));
-            throw buildError(
-              data.error || "Failed to add new aliases",
-              addRes.status,
-            );
+            throw buildError(data.error || "Failed to add new aliases", addRes.status);
           }
         }
 
@@ -107,10 +94,7 @@ export function useAliasManagement(config, activeTab) {
           );
           if (!delRes.ok) {
             const data = await delRes.json().catch(() => ({}));
-            throw buildError(
-              data.error || `Failed to delete alias ${alias}`,
-              delRes.status,
-            );
+            throw buildError(data.error || `Failed to delete alias ${alias}`, delRes.status);
           }
         }
       } else {
@@ -125,10 +109,7 @@ export function useAliasManagement(config, activeTab) {
 
         if (!response.ok) {
           const data = await response.json();
-          throw buildError(
-            data.error || "Failed to add aliases",
-            response.status,
-          );
+          throw buildError(data.error || "Failed to add aliases", response.status);
         }
       }
 
@@ -138,9 +119,7 @@ export function useAliasManagement(config, activeTab) {
       originalAliases.value = [];
       await fetchAliases();
       showSuccessToast(
-        isEditingAlias.value
-          ? "Aliases updated successfully"
-          : "Aliases added successfully",
+        isEditingAlias.value ? "Aliases updated successfully" : "Aliases added successfully",
       );
     } catch (err) {
       if (err._redirected) return;

@@ -4,13 +4,7 @@ import { useApi } from "../useApi";
 const MAX_PORTRAITS_PER_CHARACTER = 5;
 
 export function useUserPortraits(config) {
-  const {
-    showErrorToast,
-    showSuccessToast,
-    buildError,
-    apiFetch,
-    apiFetchJson,
-  } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const userPortraits = ref([]);
   const userPortraitsLoading = ref(false);
@@ -37,11 +31,7 @@ export function useUserPortraits(config) {
       if (ok && Array.isArray(data)) {
         userPortraits.value = data;
         const active = data.find((p) => p.isActive);
-        userPortraitId.value = active
-          ? active.id
-          : data.length
-            ? data[0].id
-            : null;
+        userPortraitId.value = active ? active.id : data.length ? data[0].id : null;
       } else {
         userPortraits.value = [];
         userPortraitId.value = null;
@@ -97,10 +87,7 @@ export function useUserPortraits(config) {
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      const err = buildError(
-        data.error || "Failed to upload portrait",
-        response.status,
-      );
+      const err = buildError(data.error || "Failed to upload portrait", response.status);
       err.data = data;
       throw err;
     }
@@ -114,10 +101,7 @@ export function useUserPortraits(config) {
     });
     if (!response.ok && response.status !== 204) {
       const data = await response.json().catch(() => ({}));
-      throw buildError(
-        data.error || "Failed to delete portrait",
-        response.status,
-      );
+      throw buildError(data.error || "Failed to delete portrait", response.status);
     }
   };
 
@@ -128,10 +112,7 @@ export function useUserPortraits(config) {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw buildError(
-          data.error || "Failed to set active portrait",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to set active portrait", response.status);
       }
       showSuccessToast("Active portrait updated");
       if (userPortraitsCharacter.value) {
@@ -145,35 +126,26 @@ export function useUserPortraits(config) {
 
   const handleUserPortraitConfigSubmit = async () => {
     if (!userPortraitId.value) {
-      showErrorToast(
-        "No portrait selected. Please select a portrait first.",
-        400,
-      );
+      showErrorToast("No portrait selected. Please select a portrait first.", 400);
       return;
     }
     userPortraitConfigSaving.value = true;
     try {
-      const response = await apiFetch(
-        `/user-portraits/${userPortraitId.value}/config`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            offsetX: userPortraitConfigOffsetX.value,
-            offsetY: userPortraitConfigOffsetY.value,
-            targetScale: userPortraitConfigTargetScale.value,
-            enableGradientFade: userPortraitConfigEnableFade.value,
-            gradientFadeStart: userPortraitConfigFadeStart.value,
-          }),
-        },
-      );
+      const response = await apiFetch(`/user-portraits/${userPortraitId.value}/config`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          offsetX: userPortraitConfigOffsetX.value,
+          offsetY: userPortraitConfigOffsetY.value,
+          targetScale: userPortraitConfigTargetScale.value,
+          enableGradientFade: userPortraitConfigEnableFade.value,
+          gradientFadeStart: userPortraitConfigFadeStart.value,
+        }),
+      });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw buildError(
-          data.error || "Failed to update portrait config",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to update portrait config", response.status);
       }
 
       showSuccessToast("Portrait config updated successfully");

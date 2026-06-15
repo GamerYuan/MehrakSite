@@ -31,11 +31,7 @@ const showcases = [
     title: "Character List Summary",
     description:
       "Get a comprehensive overview of your entire roster. View character levels, constellations, and key equipment at a glance.",
-    images: [
-      "/showcase/list-1.webp",
-      "/showcase/list-2.webp",
-      "/showcase/list-3.webp",
-    ],
+    images: ["/showcase/list-1.webp", "/showcase/list-2.webp", "/showcase/list-3.webp"],
     reversed: true,
   },
   {
@@ -75,9 +71,8 @@ const showcases = [
           </h1>
 
           <p class="hero-description">
-            Seamlessly integrate Genshin Impact, Honkai: Star Rail, and Zenless
-            Zone Zero data directly into your Discord server. View builds,
-            endgame clear records, and more.
+            Seamlessly integrate Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero data
+            directly into your Discord server. View builds, endgame clear records, and more.
           </p>
 
           <div class="game-tags">
@@ -134,18 +129,12 @@ const showcases = [
     <section id="features" class="features-section">
       <div class="section-header">
         <h2 class="section-title">Features</h2>
-        <p class="section-subtitle">
-          Everything you need for your HoYoverse gaming experience
-        </p>
+        <p class="section-subtitle">Everything you need for your HoYoverse gaming experience</p>
       </div>
     </section>
 
     <div class="showcases-wrapper">
-      <ShowcaseSection
-        v-for="showcase in showcases"
-        :key="showcase.title"
-        v-bind="showcase"
-      />
+      <ShowcaseSection v-for="showcase in showcases" :key="showcase.title" v-bind="showcase" />
     </div>
 
     <section class="cta-section">
@@ -371,12 +360,7 @@ const showcases = [
 /* ── Features ── */
 .features-section {
   padding: 6rem 2.5rem 0 2.5rem;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(255, 255, 255, 0.015),
-    transparent
-  );
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.015), transparent);
 }
 
 .section-header {
@@ -408,11 +392,7 @@ const showcases = [
   max-width: 520px;
   margin: 0 auto;
   padding: 3rem;
-  background: linear-gradient(
-    135deg,
-    rgba(var(--accent-rgb), 0.1),
-    rgba(var(--accent-rgb), 0.03)
-  );
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.03));
   border: 1px solid rgba(var(--accent-rgb), 0.2);
   border-radius: 20px;
 }

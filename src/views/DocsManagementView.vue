@@ -54,9 +54,7 @@ const fetchDocuments = async () => {
 
 const filteredDocuments = computed(() => {
   return documents.value.filter((doc) => {
-    const matchesSearch = doc.name
-      .toLowerCase()
-      .includes(searchQuery.value.toLowerCase());
+    const matchesSearch = doc.name.toLowerCase().includes(searchQuery.value.toLowerCase());
 
     if (filterGame.value === "All") return matchesSearch;
     return matchesSearch && doc.game === filterGame.value;
@@ -150,9 +148,7 @@ const handleSave = async (formData) => {
     showModal.value = false;
     fetchDocuments();
     showSuccessToast(
-      isEditing.value
-        ? "Documentation updated successfully"
-        : "Documentation created successfully",
+      isEditing.value ? "Documentation updated successfully" : "Documentation created successfully",
     );
   } catch (err) {
     if (err._redirected) return;
@@ -178,20 +174,11 @@ onMounted(() => {
   <div class="docs-management">
     <div class="header">
       <h1 class="text-4xl font-bold mb-3">Documentation Management</h1>
-      <Button
-        label="Add Documentation"
-        icon="pi pi-plus"
-        @click="openAddModal"
-      />
+      <Button label="Add Documentation" icon="pi pi-plus" @click="openAddModal" />
     </div>
 
     <div class="controls flex flex-col sm:flex-row gap-4 mb-4">
-      <InputText
-        v-model="searchQuery"
-        placeholder="Search by name..."
-        class="flex-1"
-        fluid
-      />
+      <InputText v-model="searchQuery" placeholder="Search by name..." class="flex-1" fluid />
       <Select
         v-model="filterGame"
         :options="gameFilterOptions"
@@ -202,11 +189,7 @@ onMounted(() => {
       />
     </div>
 
-    <DataTable
-      :value="filteredDocuments"
-      :loading="loading"
-      responsiveLayout="scroll"
-    >
+    <DataTable :value="filteredDocuments" :loading="loading" responsiveLayout="scroll">
       <Column field="name" header="Name">
         <template #body="slotProps">
           <span class="font-semibold">{{ slotProps.data.name }}</span>
