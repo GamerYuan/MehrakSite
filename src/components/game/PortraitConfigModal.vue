@@ -374,10 +374,7 @@ const onUpload = async (file) => {
     if (err._redirected) return;
     const data = err.data || {};
     if (err.status === 422) {
-      showErrorToast(
-        `NSFW content detected (confidence ${data.confidence ?? "N/A"}). Upload rejected.`,
-        422,
-      );
+        showErrorToast("Potential NSFW image detected", 422);
     } else if (err.status === 429) {
       showErrorToast(`Rate limited. ${data.remaining ?? 0} upload(s) remaining.`, 429);
     } else if (err.status === 502) {

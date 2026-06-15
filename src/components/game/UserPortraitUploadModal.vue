@@ -137,7 +137,7 @@ const onFileChange = async (event) => {
   try {
     const score = await classifyImage(file);
     if (score >= NSFW_THRESHOLD) {
-      nsfwError.value = `Image rejected: NSFW content detected (confidence ${(score * 100).toFixed(1)}%).`;
+      nsfwError.value = "Potential NSFW image detected";
       revokePreview();
       selectedFile.value = null;
     }
