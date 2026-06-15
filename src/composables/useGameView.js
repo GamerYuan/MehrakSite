@@ -1,24 +1,24 @@
 import { ref, computed, watch, onMounted } from "vue";
-import { useApi } from "./useApi";
+import { getUser } from "./authStore";
 import { useCommandExecution } from "./game/useCommandExecution";
 import { useCharacterManagement } from "./game/useCharacterManagement";
 import { useAliasManagement } from "./game/useAliasManagement";
 import { useCodesManagement } from "./game/useCodesManagement";
 import { usePortraitConfig } from "./game/usePortraitConfig";
+import { useUserPortraits } from "./game/useUserPortraits";
 
 export function useGameView(config) {
-  const { getStoredUser } = useApi();
-
   const activeTab = ref(config.tabs[0]?.id || "character");
 
   const command = useCommandExecution(config, activeTab);
   const characters = useCharacterManagement(config, activeTab);
   const aliases = useAliasManagement(config, activeTab);
   const portrait = usePortraitConfig(config);
+  const userPortraits = useUserPortraits(config);
 
   const codes = useCodesManagement(config, activeTab);
 
-  const user = getStoredUser();
+  const user = getUser();
   const canManage =
     user.isSuperAdmin ||
     (user.gameWritePermissions &&
@@ -72,6 +72,7 @@ export function useGameView(config) {
     ...characters,
     ...aliases,
     ...portrait,
+    ...userPortraits,
     ...codeRefs,
   };
 }

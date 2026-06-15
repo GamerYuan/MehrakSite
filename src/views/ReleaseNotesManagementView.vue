@@ -181,7 +181,7 @@ onMounted(loadReleases);
   <div class="flex flex-col gap-6 p-6">
     <Card class="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl">
       <template #content>
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-2">
               Release Notes Management
@@ -312,7 +312,7 @@ onMounted(loadReleases);
       class="bg-zinc-900 border border-zinc-200 dark:border-white/10"
     >
       <div class="flex flex-col gap-4">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
             <label class="text-sm text-zinc-500 dark:text-zinc-400">Version</label>
             <InputText

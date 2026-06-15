@@ -1,18 +1,10 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useApi } from "../composables/useApi";
-import Button from "primevue/button";
+import { useAuth } from "../composables/useAuth";
 import Card from "primevue/card";
 import Tag from "primevue/tag";
 import Message from "primevue/message";
 
-const router = useRouter();
-const { apiFetchJson } = useApi();
-
-const userInfo = ref(null);
-const loading = ref(true);
-const error = ref("");
+const { user, loading, error } = useAuth();
 
 const toTitleCase = (str) => {
   if (!str) return "";
@@ -21,27 +13,11 @@ const toTitleCase = (str) => {
     (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
   );
 };
-
-onMounted(async () => {
-  try {
-    const { ok, data } = await apiFetchJson("/users/me");
-    if (ok) {
-      userInfo.value = data;
-    } else {
-      error.value = "Failed to fetch user data";
-    }
-  } catch (err) {
-    if (err._redirected) return;
-    error.value = err.message || "An error occurred";
-  } finally {
-    loading.value = false;
-  }
-});
 </script>
 
 <template>
   <div class="dashboard-container">
-    <div v-if="loading" class="text-center p-4">Loading user data...</div>
+    <div v-if="loading" class="state-box">Loading user data...</div>
     <Message
       v-else-if="error"
       severity="error"
@@ -49,71 +25,60 @@ onMounted(async () => {
       class="mb-4"
       >{{ error }}</Message
     >
-    <div v-else-if="userInfo">
+    <div v-else-if="user">
       <header class="dashboard-header">
-        <h1 class="text-4xl font-bold mb-3">Dashboard</h1>
+        <h1 class="page-title">Dashboard</h1>
       </header>
 
-      <Card class="mb-4">
-        <template #title>
-          <div class="flex justify-between items-center">
-            <span>User Profile</span>
-            <Button
-              label="Change Password"
-              size="small"
-              outlined
-              @click="router.push('/dashboard/change-password')"
-            />
-          </div>
-        </template>
+      <Card class="profile-card">
         <template #content>
-          <div class="flex flex-col gap-2">
-            <div class="info-row">
-              <span class="label">Username:</span>
-              <span class="value">{{ userInfo.username }}</span>
+          <div class="profile-row">
+            <div class="profile-info">
+              <img
+                v-if="user.avatarUrl"
+                :src="user.avatarUrl"
+                :alt="user.username"
+                class="profile-avatar"
+              />
+              <div>
+                <div class="profile-name">{{ user.username }}</div>
+                <div class="profile-id">
+                  Discord ID: {{ user.discordUserId }}
+                </div>
+              </div>
             </div>
-            <div class="info-row">
-              <span class="label">Discord User ID:</span>
-              <span class="value">{{ userInfo.discordUserId }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Root User:</span>
+          </div>
+
+          <div v-if="user.isRootUser || user.isSuperAdmin" class="profile-fields">
+            <div class="field-row">
+              <span class="field-label">Root User</span>
               <Tag
-                :severity="userInfo.isRootUser ? 'warn' : 'secondary'"
-                :value="userInfo.isRootUser ? 'Yes' : 'No'"
+                :severity="user.isRootUser ? 'warn' : 'secondary'"
+                :value="user.isRootUser ? 'Yes' : 'No'"
               />
             </div>
-            <div class="info-row">
-              <span class="label">Super Admin:</span>
+            <div class="field-row">
+              <span class="field-label">Super Admin</span>
               <Tag
-                :severity="userInfo.isSuperAdmin ? 'success' : 'secondary'"
-                :value="userInfo.isSuperAdmin ? 'Yes' : 'No'"
+                :severity="user.isSuperAdmin ? 'success' : 'secondary'"
+                :value="user.isSuperAdmin ? 'Yes' : 'No'"
               />
             </div>
           </div>
         </template>
       </Card>
 
-      <Card>
-        <template #title>Game Permissions</template>
+      <Card v-if="user.gameWritePermissions?.length" class="perms-card">
         <template #content>
-          <div
-            v-if="
-              userInfo.gameWritePermissions &&
-              userInfo.gameWritePermissions.length > 0
-            "
-            class="flex flex-wrap gap-2"
-          >
+          <h3 class="card-title">Game Permissions</h3>
+          <div class="perm-tags">
             <Tag
-              v-for="perm in userInfo.gameWritePermissions"
+              v-for="perm in user.gameWritePermissions"
               :key="perm"
               :value="toTitleCase(perm)"
               severity="info"
             />
           </div>
-          <p v-else class="no-perms">
-            No specific game write permissions assigned.
-          </p>
         </template>
       </Card>
     </div>
@@ -124,40 +89,110 @@ onMounted(async () => {
 .dashboard-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: left;
+}
+
+.state-box {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
 }
 
 .dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 2rem;
 }
 
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.8rem 0;
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.profile-card {
+  background: var(--card-surface) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 0.75rem !important;
+  margin-bottom: 1rem;
+}
+
+.profile-row {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-primary);
 }
 
-.info-row:last-child {
-  border-bottom: none;
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.label {
+.profile-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.profile-id {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.field-label {
   color: var(--text-secondary);
-  font-weight: bold;
+  font-weight: 500;
+  font-size: 0.875rem;
 }
 
-.value {
-  font-family: monospace;
-  font-size: 1.1rem;
+.perms-card {
+  background: var(--card-surface) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 0.75rem !important;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.perm-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .no-perms {
   color: var(--text-muted);
-  font-style: italic;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
 }
 </style>

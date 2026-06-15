@@ -75,4 +75,10 @@ const getTabConfig = (tabId) => gv.config.tabs.find((t) => t.id === tabId);
   max-width: 100%;
   border-radius: 8px;
 }
+
+@media (max-width: 768px) {
+  .game-view h1 {
+    font-size: 1.5rem;
+  }
+}
 </style>

@@ -67,7 +67,15 @@ const fetchUsers = async () => {
   try {
     const { ok, data, status } = await apiFetchJson("/users/list");
     if (ok) {
-      users.value = data;
+      users.value = data.map((u) => ({
+        ...u,
+        userId: u.userId || u.UserId || u.id || "",
+        username: u.username || u.Username || "",
+        discordUserId: u.discordUserId || u.DiscordUserId || "",
+        isSuperAdmin: u.isSuperAdmin ?? u.IsSuperAdmin ?? false,
+        isRootUser: u.isRootUser ?? u.IsRootUser ?? false,
+        gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
+      }));
     } else {
       error.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
@@ -82,7 +90,7 @@ const fetchUsers = async () => {
 
 const filteredUsers = computed(() => {
   return users.value.filter((user) => {
-    const matchesSearch = user.username
+    const matchesSearch = (user.username || "")
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
 
@@ -121,13 +129,13 @@ const openUpdateModal = (user) => {
     return;
   }
   selectedUser.value = user;
-  const userPerms = (user.gameWritePermissions || []).map((p) =>
-    p.toLowerCase(),
+  const userPerms = new Set(
+    (user.gameWritePermissions || []).map((p) => p.toLowerCase()),
   );
 
   const newPermissions = {};
   availablePermissions.forEach((perm) => {
-    newPermissions[perm] = userPerms.includes(perm);
+    newPermissions[perm] = userPerms.has(perm);
   });
 
   formData.value = {
@@ -159,28 +167,6 @@ const confirmDelete = (user) => {
       severity: "danger",
     },
     accept: () => handleDeleteUser(user),
-  });
-};
-
-const confirmReset = (user) => {
-  if (isRootUser(user)) {
-    blockRootAction();
-    return;
-  }
-  confirm.require({
-    message: `Force password reset for ${user.username}?`,
-    header: "Confirm Password Reset",
-    icon: "pi pi-exclamation-triangle",
-    rejectProps: {
-      label: "Cancel",
-      severity: "secondary",
-      outlined: true,
-    },
-    acceptProps: {
-      label: "Confirm",
-      severity: "primary",
-    },
-    accept: () => handleResetPassword(user),
   });
 };
 
@@ -295,29 +281,6 @@ const handleDeleteUser = async (user) => {
   }
 };
 
-const handleResetPassword = async (user) => {
-  if (isRootUser(user)) {
-    blockRootAction();
-    return;
-  }
-  try {
-    const response = await apiFetch(
-      `/users/${user.userId}/password/require-reset`,
-      { method: "POST" },
-    );
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || "Failed to reset password");
-    }
-
-    showSuccessToast("Password reset required for user.", "Success");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
-  }
-};
-
 onMounted(() => {
   fetchUsers();
 });
@@ -337,13 +300,13 @@ const permissionOptions = computed(() => {
 <template>
   <div class="user-management">
     <div class="header">
-      <h1 class="text-4xl font-bold mb-3">User Management</h1>
+      <h1 class="text-2xl sm:text-4xl font-bold mb-3">User Management</h1>
       <Button label="Add User" icon="pi pi-plus" @click="openAddModal" />
     </div>
 
     <Message v-if="error" severity="error" class="mb-4">{{ error }}</Message>
 
-    <div class="controls flex gap-4 mb-4">
+    <div class="controls flex flex-col sm:flex-row gap-4 mb-4">
       <InputText
         v-model="searchQuery"
         placeholder="Search by username..."
@@ -357,14 +320,14 @@ const permissionOptions = computed(() => {
         optionLabel="label"
         optionValue="value"
         placeholder="Filter Permissions"
-        class="w-1/3 items-center"
+        class="w-full sm:w-1/3 items-center"
       />
     </div>
 
     <DataTable
       :value="filteredUsers"
       :loading="loading"
-      tableStyle="min-width: 50rem"
+      responsiveLayout="scroll"
     >
       <Column field="username" header="Username"></Column>
       <Column field="discordUserId" header="Discord ID"></Column>
@@ -406,15 +369,6 @@ const permissionOptions = computed(() => {
               aria-label="Edit"
               :disabled="slotProps.data.isRootUser"
               @click="openUpdateModal(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-lock"
-              severity="warn"
-              text
-              rounded
-              aria-label="Reset Password"
-              :disabled="slotProps.data.isRootUser"
-              @click="confirmReset(slotProps.data)"
             />
             <Button
               icon="pi pi-trash"

@@ -18,17 +18,22 @@
 - `.env.local` overrides `.env` for local dev
 
 ## Auth & API
-- Auth state stored in `localStorage` under key `mehrak_user`
+- Auth is cookie-based via Discord OAuth (no localStorage user data)
+- `src/composables/useAuth.js` — `useAuth()` composable manages auth state
+  - `normalizeUser()` handles both camelCase and PascalCase API responses
+  - `setAuthState()` syncs state between the router guard and useAuth
+  - `fetchUser()` fetches `/users/me` with inflight deduplication
+  - `login()` redirects to Discord OAuth; `logout()` hits `/auth/logout` then redirects home
 - `src/composables/useApi.js` — all API calls go through `apiFetch` / `apiFetchJson`
   - Uses `credentials: "include"` (cookie-based sessions)
-  - Auto-redirects to `/login` on 401 (pass `skipAuthRedirect: true` to suppress)
-  - `getStoredUser()` reads and parses `localStorage` safely
+  - Auto-redirects to `/` on 401 (pass `skipAuthRedirect: true` to suppress)
+  - Also exports standalone functions (`standaloneApiFetch`, `standaloneApiFetchJson`) for use outside Vue components
 
 ## Routing (`src/router/index.js`)
-- Public routes: `/`, `/login`, `/reset-password`, `/docs`, `/privacy`, `/terms`
+- Public routes: `/`, `/docs`, `/privacy`, `/terms`
 - Dashboard (auth-guarded): `/dashboard` with children
 - Games: `/dashboard/:game` where `:game` must match a `routeKey` from `gameMeta`
-- Router guard: any `/dashboard/*` route redirects to `/login` if `mehrak_user` not in localStorage
+- Router guard: fetches `/users/me`, normalizes response, syncs with useAuth state. Redirects to Discord OAuth on 401. Checks `meta.requireAuth`, `meta.requireSuperAdmin`, `meta.requireGamePermission`, `meta.requireAnyPermission`
 
 ## Game System
 - **Game definitions:** `src/configs/gameMeta.js` — labels, colors, permissions, routeKeys

@@ -1,42 +1,49 @@
 <script setup>
 import { useRouter, useRoute } from "vue-router";
-import { computed } from "vue";
-import { useApi } from "../composables/useApi";
+import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
-const { apiFetch } = useApi();
+const { user, logout, isSuperAdmin } = useAuth();
 
 const props = defineProps({
   userInfo: {
     type: Object,
     required: true,
   },
+  modelValue: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits(["update:modelValue"]);
 
 const isActive = (path) => route.path === path;
 
-const hasPermission = (perm) => {
-  if (props.userInfo.isSuperAdmin) return true;
-  return props.userInfo.gameWritePermissions?.includes(perm);
-};
+const close = () => emit("update:modelValue", false);
 
-const handleLogout = async () => {
-  try {
-    await apiFetch("/auth/logout", { method: "POST", skipAuthRedirect: true });
-  } catch (e) {
-    console.error("Logout error", e);
-  } finally {
-    localStorage.removeItem("mehrak_user");
-    router.push("/login");
-  }
+const handleLogout = () => {
+  logout();
 };
 </script>
 
 <template>
-  <aside class="sidebar">
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="modelValue" class="sidebar-backdrop" @click="close"></div>
+    </Transition>
+  </Teleport>
+
+  <aside class="sidebar" :class="{ 'sidebar--open': modelValue }">
     <div class="sidebar-header">
-      <h2>MehrakBot</h2>
+      <div class="sidebar-header-content" @click="router.push('/')" role="button" tabindex="0">
+        <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
+        <span class="sidebar-logo-text">MehrakBot</span>
+      </div>
+      <button class="sidebar-close-btn" @click="close" aria-label="Close menu">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -44,42 +51,47 @@ const handleLogout = async () => {
         to="/dashboard"
         class="nav-item"
         :class="{ active: isActive('/dashboard') }"
+        @click="close"
       >
         Profile
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin"
+        v-if="isSuperAdmin"
         to="/dashboard/users"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/users') }"
+        @click="close"
       >
         User Management
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin"
+        v-if="isSuperAdmin"
         to="/dashboard/seaweed-filer"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/seaweed-filer') }"
+        @click="close"
       >
         Seaweed Filer
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin || userInfo.gameWritePermissions?.length"
+        v-if="isSuperAdmin || user.gameWritePermissions?.length"
         to="/dashboard/docs"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/docs') }"
+        @click="close"
       >
         Documentation
       </router-link>
 
       <router-link
-        v-if="userInfo.isSuperAdmin"
+        v-if="isSuperAdmin"
         to="/dashboard/release-notes"
-        class="nav-item"
+        class="nav-item mobile-hidden"
         :class="{ active: isActive('/dashboard/release-notes') }"
+        @click="close"
       >
         Release Notes
       </router-link>
@@ -88,6 +100,7 @@ const handleLogout = async () => {
         to="/dashboard/genshin"
         class="nav-item"
         :class="{ active: isActive('/dashboard/genshin') }"
+        @click="close"
       >
         Genshin Impact
       </router-link>
@@ -96,6 +109,7 @@ const handleLogout = async () => {
         to="/dashboard/hsr"
         class="nav-item"
         :class="{ active: isActive('/dashboard/hsr') }"
+        @click="close"
       >
         Honkai: Star Rail
       </router-link>
@@ -104,6 +118,7 @@ const handleLogout = async () => {
         to="/dashboard/zzz"
         class="nav-item"
         :class="{ active: isActive('/dashboard/zzz') }"
+        @click="close"
       >
         Zenless Zone Zero
       </router-link>
@@ -112,6 +127,7 @@ const handleLogout = async () => {
         to="/dashboard/hi3"
         class="nav-item"
         :class="{ active: isActive('/dashboard/hi3') }"
+        @click="close"
       >
         Honkai Impact 3rd
       </router-link>
@@ -119,6 +135,12 @@ const handleLogout = async () => {
 
     <div class="sidebar-footer">
       <div class="user-mini-profile">
+        <img
+          v-if="userInfo.avatarUrl"
+          :src="userInfo.avatarUrl"
+          :alt="userInfo.username"
+          class="user-avatar"
+        />
         <span class="username">{{ userInfo.username }}</span>
       </div>
       <button @click="handleLogout" class="btn logout-btn">Logout</button>
@@ -129,6 +151,7 @@ const handleLogout = async () => {
 <style scoped>
 .sidebar {
   width: 250px;
+  flex-shrink: 0;
   background-color: var(--bg-surface);
   border-right: 1px solid var(--border-primary);
   display: flex;
@@ -140,14 +163,42 @@ const handleLogout = async () => {
 }
 
 .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-primary);
 }
 
-.sidebar-header h2 {
-  margin: 0;
-  color: var(--primary-color);
-  font-size: 1.5rem;
+.sidebar-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.sidebar-logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.sidebar-logo-text {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
 }
 
 .sidebar-nav {
@@ -184,7 +235,20 @@ const handleLogout = async () => {
 }
 
 .user-mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.username {
   font-weight: bold;
   color: var(--text-primary);
 }
@@ -202,5 +266,47 @@ const handleLogout = async () => {
 
 .logout-btn:hover {
   background-color: var(--border-secondary);
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 280px;
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .nav-item {
+    padding: 1rem;
+  }
+
+  .mobile-hidden {
+    display: none;
+  }
 }
 </style>
