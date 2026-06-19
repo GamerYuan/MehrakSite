@@ -178,9 +178,15 @@ const getDefaultScale = () => {
 
 const syncLocalState = () => {
   const isDefault = activeModalTab.value === "default";
-  localOffsetX.value = isDefault ? (gv.portraitConfigOffsetX ?? 0) : (gv.userPortraitConfigOffsetX ?? 0);
-  localOffsetY.value = isDefault ? (gv.portraitConfigOffsetY ?? 0) : (gv.userPortraitConfigOffsetY ?? 0);
-  localFlipX.value = isDefault ? (gv.portraitConfigFlipX ?? false) : (gv.userPortraitConfigFlipX ?? false);
+  localOffsetX.value = isDefault
+    ? (gv.portraitConfigOffsetX ?? 0)
+    : (gv.userPortraitConfigOffsetX ?? 0);
+  localOffsetY.value = isDefault
+    ? (gv.portraitConfigOffsetY ?? 0)
+    : (gv.userPortraitConfigOffsetY ?? 0);
+  localFlipX.value = isDefault
+    ? (gv.portraitConfigFlipX ?? false)
+    : (gv.userPortraitConfigFlipX ?? false);
   const targetScale = isDefault ? gv.portraitConfigTargetScale : gv.userPortraitConfigTargetScale;
   const defaultScale = getDefaultScale();
   zoomLevel.value = targetScale && defaultScale ? targetScale / defaultScale : 1;
@@ -267,7 +273,10 @@ const renderPreview = () => {
       canvas,
       background: backgroundImage.value,
       portrait: portraitImage.value,
-      x, y, w: portraitW, h: portraitH,
+      x,
+      y,
+      w: portraitW,
+      h: portraitH,
       flipX: localFlipX.value,
       fadeX: gv.config.fadeX ?? 0,
       fadeWidth: gv.config.fadeWidth ?? 0,
@@ -280,7 +289,10 @@ const renderPreview = () => {
     }
     renderPortrait(ctx, {
       portrait: portraitImage.value,
-      x, y, w: portraitW, h: portraitH,
+      x,
+      y,
+      w: portraitW,
+      h: portraitH,
       flipX: localFlipX.value,
       fadeX: 0,
       fadeWidth: 0,
@@ -319,6 +331,7 @@ watch(
   () => gv.portraitConfigServerId,
   (newId, oldId) => {
     if (newId == null) return;
+    if (activeModalTab.value !== "default") return;
     cleanupPortrait();
     loadDefaultPortrait();
     if (oldId != null && oldId !== newId) {
@@ -330,6 +343,7 @@ watch(
 watch(
   () => gv.userPortraitId,
   (newId, oldId) => {
+    if (activeModalTab.value !== "user") return;
     cleanupPortrait();
     if (newId == null) {
       drawBackgroundOnly();
@@ -447,7 +461,7 @@ const onUpload = async (file) => {
     if (err._redirected) return;
     const data = err.data || {};
     if (err.status === 422) {
-        showErrorToast("Potential NSFW image detected", 422);
+      showErrorToast("Potential NSFW image detected", 422);
     } else if (err.status === 429) {
       showErrorToast(`Rate limited. ${data.remaining ?? 0} upload(s) remaining.`, 429);
     } else if (err.status === 502) {
@@ -488,7 +502,7 @@ onUnmounted(() => {
     v-model:visible="gv.showPortraitConfigModal"
     modal
     header="Edit Portrait Config"
-    :style="{ width: '80rem' }"
+    :style="{ width: '70rem' }"
     class="portrait-config-dialog"
   >
     <div class="relative">
@@ -535,11 +549,7 @@ onUnmounted(() => {
                     />
                   </div>
                   <div class="flex items-center gap-2">
-                    <Checkbox
-                      v-model="localFlipX"
-                      binary
-                      inputId="portrait-flip-x"
-                    />
+                    <Checkbox v-model="localFlipX" binary inputId="portrait-flip-x" />
                     <label for="portrait-flip-x">Flip Horizontal</label>
                   </div>
                 </div>
@@ -594,11 +604,7 @@ onUnmounted(() => {
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
-                    <Checkbox
-                      v-model="localFlipX"
-                      binary
-                      inputId="user-portrait-flip-x"
-                    />
+                    <Checkbox v-model="localFlipX" binary inputId="user-portrait-flip-x" />
                     <label for="user-portrait-flip-x">Flip Horizontal</label>
                   </div>
                 </div>
@@ -674,12 +680,14 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="flex-1 min-w-0 flex flex-col gap-2">
+        <div class="flex-1 min-w-0 min-h-0 flex flex-col gap-2 overflow-y-auto">
           <label class="text-sm text-gray-500">Preview</label>
-          <div class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
+          <div
+            class="flex border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[55vh] items-center justify-center"
+          >
             <canvas
               ref="canvasRef"
-              class="w-full h-auto"
+              class="max-w-full max-h-full object-contain"
               :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
               @mousedown="onCanvasMouseDown"
               @wheel="onCanvasWheel"
@@ -715,6 +723,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+:deep(.portrait-config-dialog .p-dialog-content) {
+  max-height: calc(70vh - 4rem);
+  overflow-y: auto;
+}
+
 @media (max-width: 768px) {
   :deep(.portrait-config-dialog .p-dialog) {
     width: calc(100vw - 1rem) !important;
