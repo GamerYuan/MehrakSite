@@ -1,6 +1,7 @@
 <script setup>
 import { useRouter, useRoute } from "vue-router";
 import { useAuth } from "../composables/useAuth";
+import ThemeToggle from "./ThemeToggle.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -41,6 +42,7 @@ const handleLogout = () => {
         <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
         <span class="sidebar-logo-text">MehrakBot</span>
       </div>
+      <ThemeToggle />
       <button class="sidebar-close-btn" @click="close" aria-label="Close menu">
         <i class="pi pi-times"></i>
       </button>
@@ -225,8 +227,8 @@ const handleLogout = () => {
 }
 
 .nav-item.active {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: rgba(var(--accent-rgb), 0.12);
+  color: var(--accent);
 }
 
 .sidebar-footer {
