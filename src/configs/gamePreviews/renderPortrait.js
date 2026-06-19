@@ -6,6 +6,7 @@ function easeInCubic(t) {
 }
 
 export function renderPortrait(ctx, { portrait, x, y, w, h, flipX, fadeX, fadeWidth }) {
+  if (w <= 0 || h <= 0) return;
   tempCanvas.width = w;
   tempCanvas.height = h;
   tempCtx.clearRect(0, 0, w, h);

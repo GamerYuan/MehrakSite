@@ -94,6 +94,11 @@ const loadBackground = () => {
     initCanvas();
     renderPreview();
   };
+  backgroundImage.value.onerror = () => {
+    bgLoaded.value = true;
+    initCanvas();
+    drawBackgroundOnly();
+  };
   backgroundImage.value.src = bgUrl.value;
 };
 
@@ -131,6 +136,9 @@ const loadDefaultPortrait = async () => {
       syncLocalState();
       renderPreview();
     };
+    portraitImage.value.onerror = () => {
+      portraitError.value = true;
+    };
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (err) {
     if (err._redirected) return;
@@ -159,6 +167,9 @@ const loadUserPortraitImage = async (id) => {
       portraitLoaded.value = true;
       syncLocalState();
       renderPreview();
+    };
+    portraitImage.value.onerror = () => {
+      portraitError.value = true;
     };
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (err) {
