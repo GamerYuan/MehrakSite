@@ -13,6 +13,7 @@ import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
 import UserPortraitUploadModal from "./UserPortraitUploadModal.vue";
 import { previewConfigs } from "../../configs/gamePreviews/index.js";
+import { renderPortrait } from "../../configs/gamePreviews/renderPortrait.js";
 
 const gv = useGameViewInject();
 const { apiFetch, showErrorToast, showSuccessToast } = useApi();
@@ -80,7 +81,13 @@ const remainingSlots = computed(() => gv.MAX_PER_CHARACTER - (gv.userPortraits?.
 const backgroundImage = ref(null);
 
 const loadBackground = () => {
-  if (!bgUrl.value) return;
+  if (!bgUrl.value) {
+    bgLoaded.value = true;
+    backgroundImage.value = null;
+    initCanvas();
+    renderPreview();
+    return;
+  }
   backgroundImage.value = new Image();
   backgroundImage.value.onload = () => {
     bgLoaded.value = true;
@@ -221,12 +228,12 @@ const resetToDefault = () => {
 
 const initCanvas = () => {
   const canvas = canvasRef.value;
-  const bg = backgroundImage.value;
-  if (!canvas || !bg) return;
+  if (!canvas) return;
 
   const pc = previewConfig.value;
-  const w = pc?.width ?? bg.naturalWidth;
-  const h = pc?.height ?? bg.naturalHeight;
+  const w = pc?.width ?? backgroundImage.value?.naturalWidth ?? 0;
+  const h = pc?.height ?? backgroundImage.value?.naturalHeight ?? 0;
+  if (!w || !h) return;
 
   if (canvas.width !== w || canvas.height !== h) {
     canvas.width = w;
@@ -236,7 +243,7 @@ const initCanvas = () => {
 
 const renderPreview = () => {
   if (!canvasRef.value || !bgLoaded.value || !portraitLoaded.value) return;
-  if (!backgroundImage.value || !portraitImage.value) return;
+  if (!portraitImage.value) return;
 
   const canvas = canvasRef.value;
   const ctx = canvas.getContext("2d");
@@ -262,21 +269,22 @@ const renderPreview = () => {
       portrait: portraitImage.value,
       x, y, w: portraitW, h: portraitH,
       flipX: localFlipX.value,
+      fadeX: gv.config.fadeX ?? 0,
+      fadeWidth: gv.config.fadeWidth ?? 0,
       config: gv.config,
     });
   } else {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(backgroundImage.value, 0, 0, canvas.width, canvas.height);
-
-    if (localFlipX.value) {
-      ctx.save();
-      ctx.translate(x + portraitW, y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(portraitImage.value, 0, 0, portraitW, portraitH);
-      ctx.restore();
-    } else {
-      ctx.drawImage(portraitImage.value, x, y, portraitW, portraitH);
+    if (backgroundImage.value) {
+      ctx.drawImage(backgroundImage.value, 0, 0, canvas.width, canvas.height);
     }
+    renderPortrait(ctx, {
+      portrait: portraitImage.value,
+      x, y, w: portraitW, h: portraitH,
+      flipX: localFlipX.value,
+      fadeX: 0,
+      fadeWidth: 0,
+    });
   }
 };
 
@@ -351,11 +359,19 @@ watch(
 );
 
 const drawBackgroundOnly = () => {
-  if (!canvasRef.value || !bgLoaded.value || !backgroundImage.value) return;
+  if (!canvasRef.value || !bgLoaded.value) return;
   const canvas = canvasRef.value;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(backgroundImage.value, 0, 0, canvas.width, canvas.height);
+  if (backgroundImage.value) {
+    ctx.drawImage(backgroundImage.value, 0, 0, canvas.width, canvas.height);
+  } else {
+    const pc = previewConfig.value;
+    if (pc?.bgColor) {
+      ctx.fillStyle = pc.bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
 };
 
 watch(activeModalTab, (newTab) => {
