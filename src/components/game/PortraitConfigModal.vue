@@ -4,6 +4,7 @@ import { useGameViewInject } from "../../composables/game/injectKey";
 import { useApi } from "../../composables/useApi";
 import Dialog from "primevue/dialog";
 import Checkbox from "primevue/checkbox";
+import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Button from "primevue/button";
 import Tabs from "primevue/tabs";
@@ -36,6 +37,7 @@ const localOffsetX = ref(0);
 const localOffsetY = ref(0);
 const zoomLevel = ref(1);
 const localFlipX = ref(false);
+const localArtistAttribution = ref(null);
 const isDragging = ref(false);
 const dragStartX = ref(0);
 const dragStartY = ref(0);
@@ -198,6 +200,9 @@ const syncLocalState = () => {
   localFlipX.value = isDefault
     ? (gv.portraitConfigFlipX ?? false)
     : (gv.userPortraitConfigFlipX ?? false);
+  localArtistAttribution.value = isDefault
+    ? null
+    : (gv.userPortraitConfigArtistAttribution ?? null);
   const targetScale = isDefault ? gv.portraitConfigTargetScale : gv.userPortraitConfigTargetScale;
   const defaultScale = getDefaultScale();
   zoomLevel.value = targetScale && defaultScale ? targetScale / defaultScale : 1;
@@ -457,6 +462,7 @@ const onSave = () => {
     gv.userPortraitConfigOffsetY = localOffsetY.value;
     gv.userPortraitConfigTargetScale = zoomLevel.value === 1 ? null : computedTargetScale;
     gv.userPortraitConfigFlipX = localFlipX.value;
+    gv.userPortraitConfigArtistAttribution = localArtistAttribution.value;
     gv.handleUserPortraitConfigSubmit();
   }
 };
@@ -618,6 +624,16 @@ onUnmounted(() => {
                     <Checkbox v-model="localFlipX" binary inputId="user-portrait-flip-x" />
                     <label for="user-portrait-flip-x">Flip Horizontal</label>
                   </div>
+                  <div class="flex flex-col gap-2">
+                    <label for="user-portrait-artist">Artist Tag (Optional)</label>
+                    <InputText
+                      id="user-portrait-artist"
+                      v-model="localArtistAttribution"
+                      placeholder="e.g. @artist"
+                      :maxlength="15"
+                      class="w-full"
+                    />
+                  </div>
                 </div>
               </TabPanel>
             </TabPanels>
@@ -671,6 +687,16 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <Checkbox v-model="localFlipX" binary inputId="um-flip-x" />
               <label for="um-flip-x">Flip Horizontal</label>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="um-portrait-artist">Artist Tag (Optional)</label>
+              <InputText
+                id="um-portrait-artist"
+                v-model="localArtistAttribution"
+                placeholder="e.g. @artist"
+                :maxlength="15"
+                class="w-full"
+              />
             </div>
           </template>
 

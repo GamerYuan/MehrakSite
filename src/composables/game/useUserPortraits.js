@@ -15,6 +15,7 @@ export function useUserPortraits(config) {
   const userPortraitConfigOffsetY = ref(0);
   const userPortraitConfigTargetScale = ref(null);
   const userPortraitConfigFlipX = ref(false);
+  const userPortraitConfigArtistAttribution = ref(null);
   const userPortraitConfigFetching = ref(false);
   const userPortraitConfigSaving = ref(false);
 
@@ -51,6 +52,7 @@ export function useUserPortraits(config) {
     userPortraitConfigOffsetY.value = 0;
     userPortraitConfigTargetScale.value = null;
     userPortraitConfigFlipX.value = false;
+    userPortraitConfigArtistAttribution.value = null;
     userPortraitConfigFetching.value = true;
 
     try {
@@ -61,6 +63,7 @@ export function useUserPortraits(config) {
         userPortraitConfigOffsetY.value = cfg.offsetY ?? 0;
         userPortraitConfigTargetScale.value = cfg.targetScale ?? null;
         userPortraitConfigFlipX.value = cfg.flipX ?? false;
+        userPortraitConfigArtistAttribution.value = cfg.artistAttribution ?? null;
       }
     } catch (err) {
       if (err._redirected) return;
@@ -136,6 +139,7 @@ export function useUserPortraits(config) {
           offsetY: Math.round(userPortraitConfigOffsetY.value),
           targetScale: userPortraitConfigTargetScale.value,
           flipX: userPortraitConfigFlipX.value,
+          artistAttribution: userPortraitConfigArtistAttribution.value || null,
         }),
       });
 
@@ -165,6 +169,7 @@ export function useUserPortraits(config) {
     userPortraitConfigOffsetY,
     userPortraitConfigTargetScale,
     userPortraitConfigFlipX,
+    userPortraitConfigArtistAttribution,
     userPortraitConfigFetching,
     userPortraitConfigSaving,
 
