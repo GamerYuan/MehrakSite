@@ -3,7 +3,6 @@ import { ref, watch, computed, onUnmounted } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 import { useApi } from "../../composables/useApi";
 import Dialog from "primevue/dialog";
-import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
 import Select from "primevue/select";
 import Button from "primevue/button";
@@ -13,6 +12,7 @@ import Tab from "primevue/tab";
 import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
 import UserPortraitUploadModal from "./UserPortraitUploadModal.vue";
+import { previewConfigs } from "../../configs/gamePreviews/index.js";
 
 const gv = useGameViewInject();
 const { apiFetch, showErrorToast, showSuccessToast } = useApi();
@@ -24,12 +24,22 @@ const portraitError = ref(false);
 const portraitLoading = ref(false);
 const bgLoaded = ref(false);
 const portraitLoaded = ref(false);
-let renderTimeout;
+let renderRaf = 0;
 
 const activeModalTab = ref("default");
 
 const showUploadModal = ref(false);
 const uploadLoading = ref(false);
+
+const localOffsetX = ref(0);
+const localOffsetY = ref(0);
+const zoomLevel = ref(1);
+const localFlipX = ref(false);
+const isDragging = ref(false);
+const dragStartX = ref(0);
+const dragStartY = ref(0);
+const dragStartOffsetX = ref(0);
+const dragStartOffsetY = ref(0);
 
 const revokePortraitBlob = () => {
   if (portraitBlobUrl.value) {
@@ -45,16 +55,10 @@ const cleanupPortrait = () => {
   portraitLoaded.value = false;
 };
 
-const bgFileByGameId = {
-  Genshin: "genshin_portrait_bg.webp",
-  HonkaiImpact3: "hi3_portrait_bg.webp",
-  HonkaiStarRail: "hsr_portrait_bg.webp",
-  ZenlessZoneZero: "zzz_portrait_bg.webp",
-};
+const previewConfig = computed(() => previewConfigs[gv.config.id] ?? null);
 
 const bgUrl = computed(() => {
-  const file = bgFileByGameId[gv.config.id];
-  return file ? `/${file}` : "";
+  return previewConfig.value?.background ?? "";
 });
 
 const serverIdOptions = computed(() =>
@@ -80,6 +84,7 @@ const loadBackground = () => {
   backgroundImage.value = new Image();
   backgroundImage.value.onload = () => {
     bgLoaded.value = true;
+    initCanvas();
     renderPreview();
   };
   backgroundImage.value.src = bgUrl.value;
@@ -116,6 +121,7 @@ const loadDefaultPortrait = async () => {
     portraitImage.value = new Image();
     portraitImage.value.onload = () => {
       portraitLoaded.value = true;
+      syncLocalState();
       renderPreview();
     };
     portraitImage.value.src = portraitBlobUrl.value;
@@ -144,6 +150,7 @@ const loadUserPortraitImage = async (id) => {
     portraitImage.value = new Image();
     portraitImage.value.onload = () => {
       portraitLoaded.value = true;
+      syncLocalState();
       renderPreview();
     };
     portraitImage.value.src = portraitBlobUrl.value;
@@ -155,106 +162,149 @@ const loadUserPortraitImage = async (id) => {
   }
 };
 
+const getDefaultScale = () => {
+  if (!portraitImage.value) return 1;
+  return gv.config.portraitDefaultWidth
+    ? gv.config.portraitDefaultWidth / portraitImage.value.naturalWidth
+    : 1;
+};
+
+const syncLocalState = () => {
+  const isDefault = activeModalTab.value === "default";
+  localOffsetX.value = isDefault ? (gv.portraitConfigOffsetX ?? 0) : (gv.userPortraitConfigOffsetX ?? 0);
+  localOffsetY.value = isDefault ? (gv.portraitConfigOffsetY ?? 0) : (gv.userPortraitConfigOffsetY ?? 0);
+  localFlipX.value = isDefault ? (gv.portraitConfigFlipX ?? false) : (gv.userPortraitConfigFlipX ?? false);
+  const targetScale = isDefault ? gv.portraitConfigTargetScale : gv.userPortraitConfigTargetScale;
+  const defaultScale = getDefaultScale();
+  zoomLevel.value = targetScale && defaultScale ? targetScale / defaultScale : 1;
+};
+
+const onCanvasMouseDown = (e) => {
+  if (e.button !== 0) return;
+  isDragging.value = true;
+  dragStartX.value = e.clientX;
+  dragStartY.value = e.clientY;
+  dragStartOffsetX.value = localOffsetX.value;
+  dragStartOffsetY.value = localOffsetY.value;
+  window.addEventListener("mousemove", onCanvasMouseMove);
+  window.addEventListener("mouseup", onCanvasMouseUp);
+  e.preventDefault();
+};
+
+const onCanvasMouseMove = (e) => {
+  if (!isDragging.value || !canvasRef.value) return;
+  const dx = e.clientX - dragStartX.value;
+  const dy = e.clientY - dragStartY.value;
+  const scale = canvasRef.value.width / canvasRef.value.clientWidth;
+  localOffsetX.value = dragStartOffsetX.value + dx * scale;
+  localOffsetY.value = dragStartOffsetY.value + dy * scale;
+};
+
+const onCanvasMouseUp = () => {
+  isDragging.value = false;
+  window.removeEventListener("mousemove", onCanvasMouseMove);
+  window.removeEventListener("mouseup", onCanvasMouseUp);
+};
+
+const onCanvasWheel = (e) => {
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? 0.9 : 1.1;
+  zoomLevel.value = Math.max(0.1, Math.min(5, zoomLevel.value * factor));
+};
+
+const resetToDefault = () => {
+  localOffsetX.value = 0;
+  localOffsetY.value = 0;
+  zoomLevel.value = 1;
+  localFlipX.value = false;
+};
+
+const initCanvas = () => {
+  const canvas = canvasRef.value;
+  const bg = backgroundImage.value;
+  if (!canvas || !bg) return;
+
+  const pc = previewConfig.value;
+  const w = pc?.width ?? bg.naturalWidth;
+  const h = pc?.height ?? bg.naturalHeight;
+
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+};
+
 const renderPreview = () => {
   if (!canvasRef.value || !bgLoaded.value || !portraitLoaded.value) return;
   if (!backgroundImage.value || !portraitImage.value) return;
 
   const canvas = canvasRef.value;
-  const bg = backgroundImage.value;
-  const portrait = portraitImage.value;
-
-  canvas.width = bg.naturalWidth;
-  canvas.height = bg.naturalHeight;
   const ctx = canvas.getContext("2d");
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(bg, 0, 0);
-
-  const cfg =
-    activeModalTab.value === "user"
-      ? {
-          offsetX: gv.userPortraitConfigOffsetX,
-          offsetY: gv.userPortraitConfigOffsetY,
-          targetScale: gv.userPortraitConfigTargetScale,
-          enableFade: gv.userPortraitConfigEnableFade,
-          fadeStart: gv.userPortraitConfigFadeStart,
-        }
-      : {
-          offsetX: gv.portraitConfigOffsetX,
-          offsetY: gv.portraitConfigOffsetY,
-          targetScale: gv.portraitConfigTargetScale,
-          enableFade: gv.portraitConfigEnableFade,
-          fadeStart: gv.portraitConfigFadeStart,
-        };
-
-  const scale =
-    cfg.targetScale ??
-    (gv.config.portraitDefaultWidth ? gv.config.portraitDefaultWidth / portrait.naturalWidth : 1);
-  const portraitW = Math.round(portrait.naturalWidth * scale);
-  const portraitH = Math.round(portrait.naturalHeight * scale);
+  const defaultScale = getDefaultScale();
+  const scale = defaultScale * zoomLevel.value;
+  const portraitW = Math.round(portraitImage.value.naturalWidth * scale);
+  const portraitH = Math.round(portraitImage.value.naturalHeight * scale);
 
   const alignX = gv.config.portraitAlignX ?? 0;
   const alignY = gv.config.portraitAlignY ?? 0;
   const anchorX = gv.config.portraitAnchorX ?? 0.5;
   const anchorY = gv.config.portraitAnchorY ?? 0.5;
-  const offsetX = cfg.offsetX ?? 0;
-  const offsetY = cfg.offsetY ?? 0;
 
-  const x = alignX - portraitW * anchorX + offsetX;
-  const y = alignY - portraitH * anchorY + offsetY;
+  const x = alignX - portraitW * anchorX + localOffsetX.value;
+  const y = alignY - portraitH * anchorY + localOffsetY.value;
 
-  if (cfg.enableFade) {
-    const fadeCanvas = document.createElement("canvas");
-    fadeCanvas.width = portraitW;
-    fadeCanvas.height = portraitH;
-    const fadeCtx = fadeCanvas.getContext("2d", { willReadFrequently: true });
-    fadeCtx.drawImage(portrait, 0, 0, portraitW, portraitH);
-
-    const imageData = fadeCtx.getImageData(0, 0, portraitW, portraitH);
-    const data = imageData.data;
-    const fadeStartRatio = cfg.fadeStart ?? 0.75;
-    const fadeStartX = Math.floor(portraitW * fadeStartRatio);
-    const fadeWidth = portraitW - fadeStartX;
-
-    if (fadeWidth > 0) {
-      for (let px = fadeStartX; px < portraitW; px++) {
-        const t = (px - fadeStartX) / fadeWidth;
-        const alpha = 1.0 - t;
-        const fadeAlpha = Math.pow(alpha, 5);
-        const clampedFade = Math.max(0, Math.min(1, fadeAlpha));
-        for (let py = 0; py < portraitH; py++) {
-          const idx = (py * portraitW + px) * 4 + 3;
-          data[idx] = Math.round(data[idx] * clampedFade);
-        }
-      }
-    }
-
-    fadeCtx.putImageData(imageData, 0, 0);
-    ctx.drawImage(fadeCanvas, x, y);
+  const pc = previewConfig.value;
+  if (pc?.render) {
+    pc.render(ctx, {
+      canvas,
+      background: backgroundImage.value,
+      portrait: portraitImage.value,
+      x, y, w: portraitW, h: portraitH,
+      flipX: localFlipX.value,
+      config: gv.config,
+    });
   } else {
-    ctx.drawImage(portrait, x, y, portraitW, portraitH);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(backgroundImage.value, 0, 0, canvas.width, canvas.height);
+
+    if (localFlipX.value) {
+      ctx.save();
+      ctx.translate(x + portraitW, y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(portraitImage.value, 0, 0, portraitW, portraitH);
+      ctx.restore();
+    } else {
+      ctx.drawImage(portraitImage.value, x, y, portraitW, portraitH);
+    }
   }
 };
 
 const scheduleRender = () => {
-  clearTimeout(renderTimeout);
-  renderTimeout = setTimeout(renderPreview, 50);
+  if (renderRaf) cancelAnimationFrame(renderRaf);
+  renderRaf = requestAnimationFrame(() => {
+    renderRaf = 0;
+    renderPreview();
+  });
 };
+
+watch(
+  () => [localOffsetX.value, localOffsetY.value, zoomLevel.value, localFlipX.value],
+  scheduleRender,
+);
 
 watch(
   () => [
     gv.portraitConfigOffsetX,
     gv.portraitConfigOffsetY,
     gv.portraitConfigTargetScale,
-    gv.portraitConfigEnableFade,
-    gv.portraitConfigFadeStart,
+    gv.portraitConfigFlipX,
     gv.userPortraitConfigOffsetX,
     gv.userPortraitConfigOffsetY,
     gv.userPortraitConfigTargetScale,
-    gv.userPortraitConfigEnableFade,
-    gv.userPortraitConfigFadeStart,
+    gv.userPortraitConfigFlipX,
   ],
-  scheduleRender,
+  syncLocalState,
 );
 
 watch(
@@ -303,12 +353,9 @@ watch(
 const drawBackgroundOnly = () => {
   if (!canvasRef.value || !bgLoaded.value || !backgroundImage.value) return;
   const canvas = canvasRef.value;
-  const bg = backgroundImage.value;
-  canvas.width = bg.naturalWidth;
-  canvas.height = bg.naturalHeight;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(bg, 0, 0);
+  ctx.drawImage(backgroundImage.value, 0, 0, canvas.width, canvas.height);
 };
 
 watch(activeModalTab, (newTab) => {
@@ -356,9 +403,19 @@ const isSaveDisabled = computed(() => {
 });
 
 const onSave = () => {
+  const defaultScale = getDefaultScale();
+  const computedTargetScale = defaultScale * zoomLevel.value;
   if (activeModalTab.value === "default") {
+    gv.portraitConfigOffsetX = localOffsetX.value;
+    gv.portraitConfigOffsetY = localOffsetY.value;
+    gv.portraitConfigTargetScale = zoomLevel.value === 1 ? null : computedTargetScale;
+    gv.portraitConfigFlipX = localFlipX.value;
     gv.handlePortraitConfigSubmit();
   } else {
+    gv.userPortraitConfigOffsetX = localOffsetX.value;
+    gv.userPortraitConfigOffsetY = localOffsetY.value;
+    gv.userPortraitConfigTargetScale = zoomLevel.value === 1 ? null : computedTargetScale;
+    gv.userPortraitConfigFlipX = localFlipX.value;
     gv.handleUserPortraitConfigSubmit();
   }
 };
@@ -403,8 +460,10 @@ const onDeleteUserPortrait = async () => {
 };
 
 onUnmounted(() => {
-  clearTimeout(renderTimeout);
+  if (renderRaf) cancelAnimationFrame(renderRaf);
   revokePortraitBlob();
+  window.removeEventListener("mousemove", onCanvasMouseMove);
+  window.removeEventListener("mouseup", onCanvasMouseUp);
 });
 </script>
 
@@ -459,61 +518,13 @@ onUnmounted(() => {
                       fluid
                     />
                   </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="portrait-offset-x">Offset X (px)</label>
-                    <InputNumber
-                      id="portrait-offset-x"
-                      v-model="gv.portraitConfigOffsetX"
-                      :minFractionDigits="0"
-                      fluid
-                    />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="portrait-offset-y">Offset Y (px)</label>
-                    <InputNumber
-                      id="portrait-offset-y"
-                      v-model="gv.portraitConfigOffsetY"
-                      :minFractionDigits="0"
-                      fluid
-                    />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="portrait-scale"
-                      >Target Scale<span
-                        v-if="gv.config.portraitDefaultWidth"
-                        class="text-xs text-gray-400"
-                      >
-                        (defaults to {{ gv.config.portraitDefaultWidth }}px width)</span
-                      ></label
-                    >
-                    <InputNumber
-                      id="portrait-scale"
-                      v-model="gv.portraitConfigTargetScale"
-                      :minFractionDigits="2"
-                      :maxFractionDigits="4"
-                      placeholder="e.g. 1.0"
-                      fluid
-                    />
-                  </div>
                   <div class="flex items-center gap-2">
                     <Checkbox
-                      v-model="gv.portraitConfigEnableFade"
+                      v-model="localFlipX"
                       binary
-                      inputId="portrait-fade"
+                      inputId="portrait-flip-x"
                     />
-                    <label for="portrait-fade">Enable Gradient Fade</label>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="portrait-fade-start">Gradient Fade Start</label>
-                    <InputNumber
-                      id="portrait-fade-start"
-                      v-model="gv.portraitConfigFadeStart"
-                      :minFractionDigits="2"
-                      :maxFractionDigits="2"
-                      :min="0"
-                      :max="1"
-                      fluid
-                    />
+                    <label for="portrait-flip-x">Flip Horizontal</label>
                   </div>
                 </div>
               </TabPanel>
@@ -566,61 +577,13 @@ onUnmounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="user-portrait-offset-x">Offset X (px)</label>
-                    <InputNumber
-                      id="user-portrait-offset-x"
-                      v-model="gv.userPortraitConfigOffsetX"
-                      :minFractionDigits="0"
-                      fluid
-                    />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="user-portrait-offset-y">Offset Y (px)</label>
-                    <InputNumber
-                      id="user-portrait-offset-y"
-                      v-model="gv.userPortraitConfigOffsetY"
-                      :minFractionDigits="0"
-                      fluid
-                    />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="user-portrait-scale"
-                      >Target Scale<span
-                        v-if="gv.config.portraitDefaultWidth"
-                        class="text-xs text-gray-400"
-                      >
-                        (defaults to {{ gv.config.portraitDefaultWidth }}px width)</span
-                      ></label
-                    >
-                    <InputNumber
-                      id="user-portrait-scale"
-                      v-model="gv.userPortraitConfigTargetScale"
-                      :minFractionDigits="2"
-                      :maxFractionDigits="4"
-                      placeholder="e.g. 1.0"
-                      fluid
-                    />
-                  </div>
                   <div class="flex items-center gap-2">
                     <Checkbox
-                      v-model="gv.userPortraitConfigEnableFade"
+                      v-model="localFlipX"
                       binary
-                      inputId="user-portrait-fade"
+                      inputId="user-portrait-flip-x"
                     />
-                    <label for="user-portrait-fade">Enable Gradient Fade</label>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="user-portrait-fade-start">Gradient Fade Start</label>
-                    <InputNumber
-                      id="user-portrait-fade-start"
-                      v-model="gv.userPortraitConfigFadeStart"
-                      :minFractionDigits="2"
-                      :maxFractionDigits="2"
-                      :min="0"
-                      :max="1"
-                      fluid
-                    />
+                    <label for="user-portrait-flip-x">Flip Horizontal</label>
                   </div>
                 </div>
               </TabPanel>
@@ -672,57 +635,9 @@ onUnmounted(() => {
                 />
               </div>
             </div>
-            <div class="flex flex-col gap-2">
-              <label for="um-offset-x">Offset X (px)</label>
-              <InputNumber
-                id="um-offset-x"
-                v-model="gv.userPortraitConfigOffsetX"
-                :minFractionDigits="0"
-                fluid
-              />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label for="um-offset-y">Offset Y (px)</label>
-              <InputNumber
-                id="um-offset-y"
-                v-model="gv.userPortraitConfigOffsetY"
-                :minFractionDigits="0"
-                fluid
-              />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label for="um-scale"
-                >Target Scale<span
-                  v-if="gv.config.portraitDefaultWidth"
-                  class="text-xs text-gray-400"
-                >
-                  (defaults to {{ gv.config.portraitDefaultWidth }}px width)</span
-                ></label
-              >
-              <InputNumber
-                id="um-scale"
-                v-model="gv.userPortraitConfigTargetScale"
-                :minFractionDigits="2"
-                :maxFractionDigits="4"
-                placeholder="e.g. 1.0"
-                fluid
-              />
-            </div>
             <div class="flex items-center gap-2">
-              <Checkbox v-model="gv.userPortraitConfigEnableFade" binary inputId="um-fade" />
-              <label for="um-fade">Enable Gradient Fade</label>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label for="um-fade-start">Gradient Fade Start</label>
-              <InputNumber
-                id="um-fade-start"
-                v-model="gv.userPortraitConfigFadeStart"
-                :minFractionDigits="2"
-                :maxFractionDigits="2"
-                :min="0"
-                :max="1"
-                fluid
-              />
+              <Checkbox v-model="localFlipX" binary inputId="um-flip-x" />
+              <label for="um-flip-x">Flip Horizontal</label>
             </div>
           </template>
 
@@ -746,7 +661,25 @@ onUnmounted(() => {
         <div class="flex-1 min-w-0 flex flex-col gap-2">
           <label class="text-sm text-gray-500">Preview</label>
           <div class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <canvas ref="canvasRef" class="w-full h-auto" />
+            <canvas
+              ref="canvasRef"
+              class="w-full h-auto"
+              :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
+              @mousedown="onCanvasMouseDown"
+              @wheel="onCanvasWheel"
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <Button
+              type="button"
+              label="Reset"
+              icon="pi pi-refresh"
+              severity="secondary"
+              size="small"
+              outlined
+              @click="resetToDefault"
+            />
+            <span class="text-xs text-gray-400">Drag to move, scroll to zoom</span>
           </div>
           <div v-if="portraitError" class="text-sm text-red-500 text-center italic">
             Portrait image not available

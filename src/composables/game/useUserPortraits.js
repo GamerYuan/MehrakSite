@@ -14,8 +14,7 @@ export function useUserPortraits(config) {
   const userPortraitConfigOffsetX = ref(0);
   const userPortraitConfigOffsetY = ref(0);
   const userPortraitConfigTargetScale = ref(null);
-  const userPortraitConfigEnableFade = ref(false);
-  const userPortraitConfigFadeStart = ref(0.75);
+  const userPortraitConfigFlipX = ref(false);
   const userPortraitConfigFetching = ref(false);
   const userPortraitConfigSaving = ref(false);
 
@@ -51,8 +50,7 @@ export function useUserPortraits(config) {
     userPortraitConfigOffsetX.value = 0;
     userPortraitConfigOffsetY.value = 0;
     userPortraitConfigTargetScale.value = null;
-    userPortraitConfigEnableFade.value = false;
-    userPortraitConfigFadeStart.value = 0.75;
+    userPortraitConfigFlipX.value = false;
     userPortraitConfigFetching.value = true;
 
     try {
@@ -62,8 +60,7 @@ export function useUserPortraits(config) {
         userPortraitConfigOffsetX.value = cfg.offsetX ?? 0;
         userPortraitConfigOffsetY.value = cfg.offsetY ?? 0;
         userPortraitConfigTargetScale.value = cfg.targetScale ?? null;
-        userPortraitConfigEnableFade.value = cfg.enableGradientFade ?? false;
-        userPortraitConfigFadeStart.value = cfg.gradientFadeStart ?? 0.75;
+        userPortraitConfigFlipX.value = cfg.flipX ?? false;
       }
     } catch (err) {
       if (err._redirected) return;
@@ -138,8 +135,7 @@ export function useUserPortraits(config) {
           offsetX: userPortraitConfigOffsetX.value,
           offsetY: userPortraitConfigOffsetY.value,
           targetScale: userPortraitConfigTargetScale.value,
-          enableGradientFade: userPortraitConfigEnableFade.value,
-          gradientFadeStart: userPortraitConfigFadeStart.value,
+          flipX: userPortraitConfigFlipX.value,
         }),
       });
 
@@ -168,8 +164,7 @@ export function useUserPortraits(config) {
     userPortraitConfigOffsetX,
     userPortraitConfigOffsetY,
     userPortraitConfigTargetScale,
-    userPortraitConfigEnableFade,
-    userPortraitConfigFadeStart,
+    userPortraitConfigFlipX,
     userPortraitConfigFetching,
     userPortraitConfigSaving,
 

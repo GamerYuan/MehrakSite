@@ -11,8 +11,7 @@ export function usePortraitConfig(config) {
   const portraitConfigOffsetX = ref(null);
   const portraitConfigOffsetY = ref(null);
   const portraitConfigTargetScale = ref(null);
-  const portraitConfigEnableFade = ref(null);
-  const portraitConfigFadeStart = ref(null);
+  const portraitConfigFlipX = ref(false);
   const portraitConfigFetching = ref(false);
   const portraitConfigSaving = ref(false);
 
@@ -21,8 +20,7 @@ export function usePortraitConfig(config) {
     portraitConfigOffsetX.value = null;
     portraitConfigOffsetY.value = null;
     portraitConfigTargetScale.value = null;
-    portraitConfigEnableFade.value = null;
-    portraitConfigFadeStart.value = null;
+    portraitConfigFlipX.value = false;
     portraitConfigFetching.value = true;
 
     try {
@@ -33,8 +31,7 @@ export function usePortraitConfig(config) {
         portraitConfigOffsetX.value = data.offsetX ?? 0;
         portraitConfigOffsetY.value = data.offsetY ?? 0;
         portraitConfigTargetScale.value = data.targetScale ?? null;
-        portraitConfigEnableFade.value = data.enableGradientFade ?? false;
-        portraitConfigFadeStart.value = data.gradientFadeStart ?? 0.75;
+        portraitConfigFlipX.value = data.flipX ?? false;
       }
     } catch (err) {
       if (err._redirected) return;
@@ -51,8 +48,7 @@ export function usePortraitConfig(config) {
     portraitConfigOffsetX.value = 0;
     portraitConfigOffsetY.value = 0;
     portraitConfigTargetScale.value = null;
-    portraitConfigEnableFade.value = false;
-    portraitConfigFadeStart.value = 0.75;
+    portraitConfigFlipX.value = false;
     showPortraitConfigModal.value = true;
     portraitConfigFetching.value = true;
 
@@ -91,8 +87,7 @@ export function usePortraitConfig(config) {
             offsetX: portraitConfigOffsetX.value,
             offsetY: portraitConfigOffsetY.value,
             targetScale: portraitConfigTargetScale.value,
-            enableGradientFade: portraitConfigEnableFade.value,
-            gradientFadeStart: portraitConfigFadeStart.value,
+            flipX: portraitConfigFlipX.value,
           }),
         },
       );
@@ -120,8 +115,7 @@ export function usePortraitConfig(config) {
     portraitConfigOffsetX,
     portraitConfigOffsetY,
     portraitConfigTargetScale,
-    portraitConfigEnableFade,
-    portraitConfigFadeStart,
+    portraitConfigFlipX,
     portraitConfigFetching,
     portraitConfigSaving,
     openPortraitConfigModal,
