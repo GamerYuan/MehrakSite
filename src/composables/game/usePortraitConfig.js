@@ -84,8 +84,8 @@ export function usePortraitConfig(config) {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            offsetX: portraitConfigOffsetX.value,
-            offsetY: portraitConfigOffsetY.value,
+            offsetX: Math.round(portraitConfigOffsetX.value),
+            offsetY: Math.round(portraitConfigOffsetY.value),
             targetScale: portraitConfigTargetScale.value,
             flipX: portraitConfigFlipX.value,
           }),

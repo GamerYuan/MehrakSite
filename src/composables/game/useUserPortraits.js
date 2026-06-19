@@ -132,8 +132,8 @@ export function useUserPortraits(config) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          offsetX: userPortraitConfigOffsetX.value,
-          offsetY: userPortraitConfigOffsetY.value,
+          offsetX: Math.round(userPortraitConfigOffsetX.value),
+          offsetY: Math.round(userPortraitConfigOffsetY.value),
           targetScale: userPortraitConfigTargetScale.value,
           flipX: userPortraitConfigFlipX.value,
         }),
