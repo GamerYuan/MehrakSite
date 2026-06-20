@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { useApi } from "../useApi";
 
-export function useCommandExecution(config, activeTab) {
+export function useCommandExecution(config, activeTab, initialServer) {
   const { showErrorToast, buildError, apiFetch } = useApi();
 
   const loading = ref({});
@@ -15,7 +15,7 @@ export function useCommandExecution(config, activeTab) {
   const authError = ref("");
 
   const profileId = ref(1);
-  const server = ref(config.servers[0]?.value || "America");
+  const server = ref(initialServer || config.servers[0]?.value || "America");
   const characterName = ref("");
   const floor = ref(config.tabs.find((t) => t.hasFloorInput)?.floorMin || 12);
 

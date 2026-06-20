@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useAuth } from "../composables/useAuth";
 import { useProfileManagement } from "../composables/useProfileManagement";
+import { gameConfigs } from "../configs/gameConfigs";
 import Card from "primevue/card";
 import Tag from "primevue/tag";
 import Message from "primevue/message";
@@ -39,10 +40,9 @@ const toTitleCase = (str) => {
   );
 };
 
-const toTitleCaseGame = (key) => {
-  if (!key) return "";
-  return key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/\b\w/g, (c) => c.toUpperCase());
-};
+const gameIdToTitle = Object.fromEntries(
+  Object.values(gameConfigs).map((c) => [c.id, c.title]),
+);
 
 onMounted(() => {
   fetchProfiles();
@@ -147,7 +147,7 @@ onMounted(() => {
               <template #body="{ data }">
                 <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-row">
                   <div class="game-uid-left">
-                    <span class="game-uid-name">{{ toTitleCaseGame(game) }}</span>
+                    <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
                     <Tag
                       v-if="data.lastUsedRegions?.[game]"
                       :value="`Last Used: ${data.lastUsedRegions[game]}`"
@@ -325,12 +325,6 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.no-perms {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  margin: 0;
 }
 
 .profiles-card {
