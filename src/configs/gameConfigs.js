@@ -31,6 +31,8 @@ export const gameConfigs = {
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
     portraitDefaultWidth: 1400,
+    fadeX: 1000,
+    fadeWidth: 150,
   },
 
   hsr: {
@@ -59,6 +61,8 @@ export const gameConfigs = {
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
     portraitDefaultWidth: 1000,
+    fadeX: 0,
+    fadeWidth: 0,
   },
 
   zzz: {
@@ -84,6 +88,8 @@ export const gameConfigs = {
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.25,
     portraitDefaultWidth: 2000,
+    fadeX: 0,
+    fadeWidth: 0,
   },
 
   hi3: {
@@ -113,5 +119,7 @@ export const gameConfigs = {
     portraitAlignY: 425,
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
+    fadeX: 650,
+    fadeWidth: 100,
   },
 };
