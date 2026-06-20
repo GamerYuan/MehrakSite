@@ -130,6 +130,7 @@ onMounted(() => {
 
           <p v-else-if="!profiles.length" class="no-profiles">
             No profiles yet. Add one to get started.
+            <a href="/#/docs" target="_blank" class="docs-link">Read the docs</a>
           </p>
 
           <DataTable v-else :value="profiles" size="small" stripedRows>
@@ -220,14 +221,17 @@ onMounted(() => {
             />
           </div>
           <div class="form-actions">
-            <Button
-              type="button"
-              label="Cancel"
-              severity="secondary"
-              outlined
-              @click="showAddModal = false"
-            />
-            <Button type="submit" label="Add" :loading="profilesLoading" />
+            <a href="/#/docs" target="_blank" class="docs-link">Need help? Read the docs</a>
+            <div class="flex gap-2">
+              <Button
+                type="button"
+                label="Cancel"
+                severity="secondary"
+                outlined
+                @click="showAddModal = false"
+              />
+              <Button type="submit" label="Add" :loading="profilesLoading" />
+            </div>
           </div>
         </form>
       </Dialog>
@@ -409,6 +413,18 @@ onMounted(() => {
   margin: 0;
 }
 
+.docs-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--p-primary-color);
+  text-decoration: none;
+}
+
+.docs-link:hover {
+  text-decoration: underline;
+}
+
 .mono-text {
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 0.8125rem;
@@ -495,7 +511,8 @@ onMounted(() => {
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
   margin-top: 1.5rem;
 }
