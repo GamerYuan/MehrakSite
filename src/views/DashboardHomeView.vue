@@ -40,9 +40,7 @@ const toTitleCase = (str) => {
   );
 };
 
-const gameIdToTitle = Object.fromEntries(
-  Object.values(gameConfigs).map((c) => [c.id, c.title]),
-);
+const gameIdToTitle = Object.fromEntries(Object.values(gameConfigs).map((c) => [c.id, c.title]));
 
 onMounted(() => {
   fetchProfiles();
@@ -130,7 +128,9 @@ onMounted(() => {
             <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
           </div>
 
-          <p v-else-if="!profiles.length" class="no-profiles">No profiles yet. Add one to get started.</p>
+          <p v-else-if="!profiles.length" class="no-profiles">
+            No profiles yet. Add one to get started.
+          </p>
 
           <DataTable v-else :value="profiles" size="small" stripedRows>
             <Column header="Profile" style="width: 6rem">
@@ -143,7 +143,7 @@ onMounted(() => {
                 <span class="mono-text">{{ data.ltUid }}</span>
               </template>
             </Column>
-            <Column header="Game">
+            <Column header="Game UIDs">
               <template #body="{ data }">
                 <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-row">
                   <div class="game-uid-left">
@@ -155,13 +155,6 @@ onMounted(() => {
                       class="last-used-tag"
                     />
                   </div>
-                </div>
-                <span v-if="!Object.keys(data.gameUids || {}).length" class="muted-text">—</span>
-              </template>
-            </Column>
-            <Column header="UIDs">
-              <template #body="{ data }">
-                <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-row">
                   <table class="uid-table">
                     <tr v-for="(uid, region) in regions" :key="region">
                       <td class="uid-region">{{ region }}</td>
@@ -169,13 +162,27 @@ onMounted(() => {
                     </tr>
                   </table>
                 </div>
+                <span v-if="!Object.keys(data.gameUids || {}).length" class="muted-text">—</span>
               </template>
             </Column>
             <Column header="" style="width: 9rem">
               <template #body="{ data }">
                 <div class="row-actions">
-                  <Button icon="pi pi-pencil" size="small" text rounded @click="openEditModal(data)" />
-                  <Button icon="pi pi-trash" size="small" text rounded severity="danger" @click="confirmDelete(data)" />
+                  <Button
+                    icon="pi pi-pencil"
+                    size="small"
+                    text
+                    rounded
+                    @click="openEditModal(data)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    size="small"
+                    text
+                    rounded
+                    severity="danger"
+                    @click="confirmDelete(data)"
+                  />
                 </div>
               </template>
             </Column>
@@ -187,7 +194,13 @@ onMounted(() => {
         <form @submit.prevent="handleAdd" class="profile-form">
           <div class="field">
             <label for="addLtUid">HoYoLAB UID</label>
-            <InputText id="addLtUid" v-model="addForm.ltUid" type="number" required class="w-full" />
+            <InputText
+              id="addLtUid"
+              v-model="addForm.ltUid"
+              type="number"
+              required
+              class="w-full"
+            />
           </div>
           <div class="field">
             <label for="addLToken">LToken</label>
@@ -195,16 +208,36 @@ onMounted(() => {
           </div>
           <div class="field">
             <label for="addPassphrase">Passphrase</label>
-            <Password id="addPassphrase" v-model="addForm.passphrase" :feedback="false" :maxlength="64" required class="w-full" inputClass="w-full" />
+            <Password
+              id="addPassphrase"
+              toggleMask
+              v-model="addForm.passphrase"
+              :feedback="false"
+              :maxlength="64"
+              required
+              class="w-full"
+              inputClass="w-full"
+            />
           </div>
           <div class="form-actions">
-            <Button type="button" label="Cancel" severity="secondary" outlined @click="showAddModal = false" />
+            <Button
+              type="button"
+              label="Cancel"
+              severity="secondary"
+              outlined
+              @click="showAddModal = false"
+            />
             <Button type="submit" label="Add" :loading="profilesLoading" />
           </div>
         </form>
       </Dialog>
 
-      <Dialog v-model:visible="showEditModal" header="Edit Profile" modal :style="{ width: '28rem' }">
+      <Dialog
+        v-model:visible="showEditModal"
+        header="Edit Profile"
+        modal
+        :style="{ width: '28rem' }"
+      >
         <form @submit.prevent="handleEdit" class="profile-form">
           <div class="field">
             <label>HoYoLAB UID</label>
@@ -216,10 +249,24 @@ onMounted(() => {
           </div>
           <div class="field">
             <label for="editPassphrase">New Passphrase</label>
-            <Password id="editPassphrase" v-model="editForm.passphrase" :feedback="false" :maxlength="64" required class="w-full" inputClass="w-full" />
+            <Password
+              id="editPassphrase"
+              v-model="editForm.passphrase"
+              :feedback="false"
+              :maxlength="64"
+              required
+              class="w-full"
+              inputClass="w-full"
+            />
           </div>
           <div class="form-actions">
-            <Button type="button" label="Cancel" severity="secondary" outlined @click="showEditModal = false" />
+            <Button
+              type="button"
+              label="Cancel"
+              severity="secondary"
+              outlined
+              @click="showEditModal = false"
+            />
             <Button type="submit" label="Save" :loading="profilesLoading" />
           </div>
         </form>
@@ -374,6 +421,8 @@ onMounted(() => {
 }
 
 .game-uid-row {
+  display: flex;
+  gap: 1.5rem;
   padding: 0.375rem 0;
 }
 
