@@ -27,6 +27,7 @@ const portraitLoading = ref(false);
 const bgLoaded = ref(false);
 const portraitLoaded = ref(false);
 let renderRaf = 0;
+let portraitLoadToken = 0;
 
 const activeModalTab = ref("default");
 
@@ -52,6 +53,8 @@ const revokePortraitBlob = () => {
 };
 
 const cleanupPortrait = () => {
+  portraitLoadToken++;
+  portraitLoading.value = false;
   revokePortraitBlob();
   portraitImage.value = null;
   portraitError.value = false;
@@ -97,6 +100,7 @@ const loadBackground = () => {
     renderPreview();
   };
   backgroundImage.value.onerror = () => {
+    backgroundImage.value = null;
     bgLoaded.value = true;
     initCanvas();
     drawBackgroundOnly();
@@ -106,19 +110,22 @@ const loadBackground = () => {
 
 const loadDefaultPortrait = async () => {
   if (!gv.config.id || !gv.portraitConfigServerId) return;
+  const token = ++portraitLoadToken;
+  const serverId = gv.portraitConfigServerId;
   portraitLoading.value = true;
   portraitError.value = false;
   portraitLoaded.value = false;
 
   try {
     const response = await apiFetch(
-      `/portraits/image?game=${encodeURIComponent(gv.config.id)}&serverId=${gv.portraitConfigServerId}`,
+      `/portraits/image?game=${encodeURIComponent(gv.config.id)}&serverId=${encodeURIComponent(serverId)}`,
     );
+    if (token !== portraitLoadToken) return;
 
     if (response.status === 404) {
       portraitError.value = true;
       showErrorToast(
-        `Portrait image for ${gv.portraitConfigCharacter} (ID: ${gv.portraitConfigServerId}) not found, please generate an image with this character in the Characters tab and try again`,
+        `Portrait image for ${gv.portraitConfigCharacter} (ID: ${serverId}) not found, please generate an image with this character in the Characters tab and try again`,
         404,
       );
       return;
@@ -131,54 +138,64 @@ const loadDefaultPortrait = async () => {
 
     revokePortraitBlob();
     const blob = await response.blob();
+    if (token !== portraitLoadToken) return;
     portraitBlobUrl.value = URL.createObjectURL(blob);
     portraitImage.value = new Image();
     portraitImage.value.onload = () => {
+      if (token !== portraitLoadToken) return;
       portraitLoaded.value = true;
       syncLocalState();
       renderPreview();
     };
     portraitImage.value.onerror = () => {
+      if (token !== portraitLoadToken) return;
       portraitError.value = true;
     };
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (err) {
     if (err._redirected) return;
+    if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
-    portraitLoading.value = false;
+    if (token === portraitLoadToken) portraitLoading.value = false;
   }
 };
 
 const loadUserPortraitImage = async (id) => {
+  const token = ++portraitLoadToken;
   portraitLoading.value = true;
   portraitError.value = false;
   portraitLoaded.value = false;
 
   try {
     const response = await apiFetch(`/user-portraits/${id}/image`);
+    if (token !== portraitLoadToken) return;
     if (!response.ok) {
       portraitError.value = true;
       return;
     }
     revokePortraitBlob();
     const blob = await response.blob();
+    if (token !== portraitLoadToken) return;
     portraitBlobUrl.value = URL.createObjectURL(blob);
     portraitImage.value = new Image();
     portraitImage.value.onload = () => {
+      if (token !== portraitLoadToken) return;
       portraitLoaded.value = true;
       syncLocalState();
       renderPreview();
     };
     portraitImage.value.onerror = () => {
+      if (token !== portraitLoadToken) return;
       portraitError.value = true;
     };
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (err) {
     if (err._redirected) return;
+    if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
-    portraitLoading.value = false;
+    if (token === portraitLoadToken) portraitLoading.value = false;
   }
 };
 
@@ -208,19 +225,18 @@ const syncLocalState = () => {
   zoomLevel.value = targetScale && defaultScale ? targetScale / defaultScale : 1;
 };
 
-const onCanvasMouseDown = (e) => {
+const onCanvasPointerDown = (e) => {
   if (e.button !== 0) return;
+  canvasRef.value?.setPointerCapture(e.pointerId);
   isDragging.value = true;
   dragStartX.value = e.clientX;
   dragStartY.value = e.clientY;
   dragStartOffsetX.value = localOffsetX.value;
   dragStartOffsetY.value = localOffsetY.value;
-  window.addEventListener("mousemove", onCanvasMouseMove);
-  window.addEventListener("mouseup", onCanvasMouseUp);
   e.preventDefault();
 };
 
-const onCanvasMouseMove = (e) => {
+const onCanvasPointerMove = (e) => {
   if (!isDragging.value || !canvasRef.value) return;
   const dx = e.clientX - dragStartX.value;
   const dy = e.clientY - dragStartY.value;
@@ -229,10 +245,9 @@ const onCanvasMouseMove = (e) => {
   localOffsetY.value = dragStartOffsetY.value + dy * scale;
 };
 
-const onCanvasMouseUp = () => {
+const onCanvasPointerUp = (e) => {
+  canvasRef.value?.releasePointerCapture(e.pointerId);
   isDragging.value = false;
-  window.removeEventListener("mousemove", onCanvasMouseMove);
-  window.removeEventListener("mouseup", onCanvasMouseUp);
 };
 
 const onCanvasWheel = (e) => {
@@ -339,6 +354,7 @@ watch(
     gv.userPortraitConfigOffsetY,
     gv.userPortraitConfigTargetScale,
     gv.userPortraitConfigFlipX,
+    gv.userPortraitConfigArtistAttribution,
   ],
   syncLocalState,
 );
@@ -372,6 +388,21 @@ watch(
   },
 );
 
+const loadPortraitForActiveTab = () => {
+  if (activeModalTab.value === "user") {
+    if (gv.userPortraitId) {
+      loadUserPortraitImage(gv.userPortraitId);
+      gv.fetchUserPortraitConfig(gv.userPortraitId);
+    } else {
+      drawBackgroundOnly();
+    }
+  } else if (gv.portraitConfigServerId) {
+    loadDefaultPortrait();
+  } else {
+    drawBackgroundOnly();
+  }
+};
+
 watch(
   () => gv.showPortraitConfigModal,
   (visible) => {
@@ -380,7 +411,10 @@ watch(
       bgLoaded.value = false;
       backgroundImage.value = null;
       loadBackground();
-      activeModalTab.value = gv.canManage ? "default" : "user";
+      const nextTab = gv.canManage ? "default" : "user";
+      const tabChanged = activeModalTab.value !== nextTab;
+      activeModalTab.value = nextTab;
+      if (!tabChanged) loadPortraitForActiveTab();
       if (gv.portraitConfigCharacter) {
         gv.fetchUserPortraits(gv.portraitConfigCharacter);
       }
@@ -509,8 +543,6 @@ const onDeleteUserPortrait = async () => {
 onUnmounted(() => {
   if (renderRaf) cancelAnimationFrame(renderRaf);
   revokePortraitBlob();
-  window.removeEventListener("mousemove", onCanvasMouseMove);
-  window.removeEventListener("mouseup", onCanvasMouseUp);
 });
 </script>
 
@@ -724,9 +756,12 @@ onUnmounted(() => {
           >
             <canvas
               ref="canvasRef"
-              class="max-w-full max-h-full object-contain"
+              class="max-w-full max-h-full object-contain touch-none"
               :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
-              @mousedown="onCanvasMouseDown"
+              @pointerdown="onCanvasPointerDown"
+              @pointermove="onCanvasPointerMove"
+              @pointerup="onCanvasPointerUp"
+              @pointercancel="onCanvasPointerUp"
               @wheel="onCanvasWheel"
             />
           </div>

@@ -29,8 +29,8 @@ export function renderPortrait(ctx, { portrait, x, y, w, h, flipX, fadeX, fadeWi
     for (let px = 0; px < w; px++) {
       if (px < fadeStart) continue;
 
-      const t = Math.min(1, (px - fadeStart) / fadeWidth);
-      const fadeAlpha = t >= 1 ? 0 : 1 - easeInCubic(t);
+      const t = 1 - Math.min(Math.max((px - fadeStart) / fadeWidth, 0), 1);
+      const fadeAlpha = easeInCubic(t);
 
       for (let py = 0; py < h; py++) {
         const idx = (py * w + px) * 4 + 3;
