@@ -246,6 +246,7 @@ onMounted(loadReleases);
                   icon="pi pi-pencil"
                   severity="secondary"
                   text
+                  aria-label="Edit release"
                   class="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   @click="openEditModal(release)"
                 />
@@ -253,6 +254,7 @@ onMounted(loadReleases);
                   icon="pi pi-trash"
                   severity="danger"
                   text
+                  aria-label="Delete release"
                   class="text-red-500"
                   @click="confirmDelete(release)"
                 />
@@ -331,6 +333,7 @@ onMounted(loadReleases);
                 icon="pi pi-trash"
                 severity="danger"
                 text
+                aria-label="Remove section"
                 class="text-red-500 shrink-0"
                 @click="removeSection(sIndex)"
               />
@@ -361,6 +364,7 @@ onMounted(loadReleases);
                     icon="pi pi-trash"
                     severity="danger"
                     text
+                    aria-label="Remove note"
                     class="text-red-500 shrink-0"
                     @click="removeNote(sIndex, nIndex)"
                   />
@@ -389,7 +393,7 @@ onMounted(loadReleases);
           <Button label="Cancel" severity="secondary" text @click="showModal = false" />
           <Button
             label="Save"
-            class="!bg-[rgba(var(--accent-rgb),0.2)] !border-[rgba(var(--accent-rgb),0.5)] !text-[var(--accent)]"
+            class="bg-[rgba(var(--accent-rgb),0.2)]! border-[rgba(var(--accent-rgb),0.5)]! text-[var(--accent)]!"
             @click="handleSave"
           />
         </div>

@@ -128,7 +128,7 @@ const openUpdateModal = (user) => {
   formData.value = {
     discordUserId: user.discordUserId || "",
     isSuperAdmin: user.isSuperAdmin,
-    isActive: true,
+    isActive: user.isActive ?? true,
     permissions: newPermissions,
   };
   showUpdateModal.value = true;

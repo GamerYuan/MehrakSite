@@ -57,9 +57,12 @@ export function usePortraitConfig(config) {
       const listResponse = await apiFetch(
         `/portraits/list?game=${config.id}&character=${encodeURIComponent(char)}`,
       );
-      if (listResponse.ok) {
-        portraitConfigServerIds.value = await listResponse.json();
+      if (!listResponse.ok) {
+        const data = await listResponse.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to fetch portrait list (${listResponse.status})`);
       }
+
+      portraitConfigServerIds.value = await listResponse.json();
 
       if (portraitConfigServerIds.value.length === 0) {
         missingServerIdCharacter.value = char;

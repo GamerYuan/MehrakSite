@@ -109,8 +109,8 @@ const formatStat = (value) => {
     :style="{ width: '24rem' }"
   >
     <div class="flex flex-col gap-4">
-      <p class="text-[var(--text-secondary)]">
-        Server ID not found for character <strong class="text-[var(--text-primary)]">{{ gv.missingServerIdCharacter }}</strong>.
+      <p class="text-(--text-secondary)">
+        Server ID not found for character <strong class="text-(--text-primary)">{{ gv.missingServerIdCharacter }}</strong>.
       </p>
       <div class="flex justify-end">
         <Button

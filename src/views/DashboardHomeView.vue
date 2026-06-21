@@ -126,7 +126,7 @@ onUnmounted(() => {
           <div v-else-if="!profiles.length" class="empty-state">
             <i class="pi pi-user-plus empty-icon"></i>
             <p>No profiles yet. Add one to get started.</p>
-            <a href="/#/docs" target="_blank" class="docs-link">Read the docs</a>
+            <a href="/#/docs" target="_blank" rel="noopener noreferrer" class="docs-link">Read the docs</a>
           </div>
 
           <DataTable

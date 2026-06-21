@@ -27,17 +27,14 @@ const handleLogout = () => {
   logout();
 };
 
-const gameRouteMap = {
-  genshin: "Genshin",
-  hsr: "HonkaiStarRail",
-  zzz: "ZenlessZoneZero",
-  hi3: "HonkaiImpact3",
-};
-
-const gameRoutes = Object.keys(gameRouteMap).map((key) => {
-  const meta = gameMeta[gameRouteMap[key]];
-  return { key, label: meta.label, logo: meta.logo, metaKey: gameRouteMap[key] };
-});
+const gameRoutes = Object.entries(gameMeta)
+  .filter(([, meta]) => Boolean(meta.routeKey))
+  .map(([metaKey, meta]) => ({
+    key: meta.routeKey,
+    label: meta.label,
+    logo: meta.logo,
+    metaKey,
+  }));
 
 const isActive = (path) => route.path === path;
 </script>
