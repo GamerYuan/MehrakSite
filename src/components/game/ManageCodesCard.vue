@@ -10,7 +10,7 @@ const gv = useGameViewInject();
 </script>
 
 <template>
-  <Card>
+  <Card class="game-card">
     <template #title>Manage Codes</template>
     <template #content>
       <div class="flex flex-col gap-4">

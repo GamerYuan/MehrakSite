@@ -4,6 +4,7 @@ import { useGameViewInject } from "../../composables/game/injectKey";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import Dialog from "primevue/dialog";
 import Message from "primevue/message";
 import Checkbox from "primevue/checkbox";
 
@@ -28,7 +29,7 @@ const formatStat = (value) => {
 </script>
 
 <template>
-  <Card>
+  <Card class="game-card">
     <template #title>Manage Characters</template>
     <template #content>
       <div class="flex flex-col gap-4">
@@ -100,4 +101,24 @@ const formatStat = (value) => {
       </div>
     </template>
   </Card>
+
+  <Dialog
+    v-model:visible="gv.showMissingServerIdModal"
+    modal
+    header="Portrait Not Found"
+    :style="{ width: '24rem' }"
+  >
+    <div class="flex flex-col gap-4">
+      <p class="text-(--text-secondary)">
+        Server ID not found for character <strong class="text-(--text-primary)">{{ gv.missingServerIdCharacter }}</strong>.
+      </p>
+      <div class="flex justify-end">
+        <Button
+          label="OK"
+          severity="secondary"
+          @click="gv.showMissingServerIdModal = false"
+        />
+      </div>
+    </div>
+  </Dialog>
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useAuth } from "../composables/useAuth";
 import { useProfileManagement } from "../composables/useProfileManagement";
 import { gameConfigs } from "../configs/gameConfigs";
@@ -32,18 +32,29 @@ const {
   confirmDeleteAll,
 } = useProfileManagement();
 
+const gameIdToTitle = Object.fromEntries(
+  Object.values(gameConfigs).map((c) => [c.id, c.title]),
+);
+
+const isMobile = ref(false);
+
 const toTitleCase = (str) => {
   if (!str) return "";
-  return str.replace(
-    /\w\S*/g,
-    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
-  );
+  return str.replace(/\w\S*/g, (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase());
 };
 
-const gameIdToTitle = Object.fromEntries(Object.values(gameConfigs).map((c) => [c.id, c.title]));
+const checkViewport = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
 
 onMounted(() => {
   fetchProfiles();
+  checkViewport();
+  window.addEventListener("resize", checkViewport);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkViewport);
 });
 </script>
 
@@ -51,54 +62,35 @@ onMounted(() => {
   <div class="dashboard-container">
     <div v-if="loading" class="state-box">Loading user data...</div>
     <Message v-else-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
-    <div v-else-if="user">
+
+    <div v-else-if="user" class="space-y-6">
       <header class="dashboard-header">
         <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Manage your MehrakBot profiles and game commands.</p>
       </header>
 
-      <Card class="profile-card">
+      <Card class="dashboard-card profile-panel">
         <template #content>
-          <div class="profile-row">
-            <div class="profile-info">
-              <img
-                v-if="user.avatarUrl"
-                :src="user.avatarUrl"
-                :alt="user.username"
-                class="profile-avatar"
-              />
-              <div>
-                <div class="profile-name">{{ user.username }}</div>
-                <div class="profile-id">Discord ID: {{ user.discordUserId }}</div>
-              </div>
+          <div class="profile-identity">
+            <img
+              v-if="user.avatarUrl"
+              :src="user.avatarUrl"
+              :alt="user.username"
+              class="profile-avatar"
+            />
+            <div class="profile-details">
+              <div class="profile-name">{{ user.username }}</div>
+              <div class="profile-id">Discord ID: {{ user.discordUserId }}</div>
             </div>
           </div>
 
-          <div v-if="user.isRootUser || user.isSuperAdmin" class="profile-fields">
-            <div class="field-row">
-              <span class="field-label">Root User</span>
-              <Tag
-                :severity="user.isRootUser ? 'warn' : 'secondary'"
-                :value="user.isRootUser ? 'Yes' : 'No'"
-              />
-            </div>
-            <div class="field-row">
-              <span class="field-label">Super Admin</span>
-              <Tag
-                :severity="user.isSuperAdmin ? 'success' : 'secondary'"
-                :value="user.isSuperAdmin ? 'Yes' : 'No'"
-              />
-            </div>
-          </div>
-        </template>
-      </Card>
-
-      <Card v-if="user.gameWritePermissions?.length" class="perms-card">
-        <template #content>
-          <h3 class="card-title">Game Permissions</h3>
-          <div class="perm-tags">
+          <div class="profile-badges">
+            <Tag v-if="user.isRootUser" icon="pi pi-star-fill" value="Root" severity="warn" />
+            <Tag v-if="user.isSuperAdmin" icon="pi pi-shield" value="Super Admin" severity="success" />
             <Tag
-              v-for="perm in user.gameWritePermissions"
+              v-for="perm in user.gameWritePermissions || []"
               :key="perm"
+              icon="pi pi-pen-to-square"
               :value="toTitleCase(perm)"
               severity="info"
             />
@@ -106,10 +98,13 @@ onMounted(() => {
         </template>
       </Card>
 
-      <Card class="profiles-card">
+      <Card class="dashboard-card profiles-panel">
         <template #content>
           <div class="profiles-header">
-            <h3 class="card-title">Manage Profiles</h3>
+            <div>
+              <h3 class="card-title">Manage Profiles</h3>
+              <p class="card-subtitle">Profiles link your HoYoLAB account to generated images.</p>
+            </div>
             <div class="profiles-actions">
               <Button label="Add Profile" icon="pi pi-plus" size="small" @click="openAddModal" />
               <Button
@@ -128,66 +123,100 @@ onMounted(() => {
             <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
           </div>
 
-          <p v-else-if="!profiles.length" class="no-profiles">
-            No profiles yet. Add one to get started.
-            <a href="/#/docs" target="_blank" class="docs-link">Read the docs</a>
-          </p>
+          <div v-else-if="!profiles.length" class="empty-state">
+            <i class="pi pi-user-plus empty-icon"></i>
+            <p>No profiles yet. Add one to get started.</p>
+            <a href="/#/docs" target="_blank" rel="noopener noreferrer" class="docs-link">Read the docs</a>
+          </div>
 
-          <DataTable v-else :value="profiles" size="small" stripedRows>
+          <DataTable
+            v-else-if="!isMobile"
+            :value="profiles"
+            size="small"
+            stripedRows
+            responsiveLayout="scroll"
+            class="profiles-table"
+          >
             <Column header="Profile" style="width: 6rem">
               <template #body="{ data }">
                 <Tag :value="`#${data.profileId}`" severity="secondary" />
               </template>
             </Column>
-            <Column field="ltUid" header="HoYoLAB UID" style="width: 10rem">
+            <Column field="ltUid" header="HoYoLAB UID" style="width: 11rem">
               <template #body="{ data }">
                 <span class="mono-text">{{ data.ltUid }}</span>
               </template>
             </Column>
             <Column header="Game UIDs">
               <template #body="{ data }">
-                <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-row">
-                  <div class="game-uid-left">
-                    <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
-                    <Tag
-                      v-if="data.lastUsedRegions?.[game]"
-                      :value="`Last Used: ${data.lastUsedRegions[game]}`"
-                      severity="secondary"
-                      class="last-used-tag"
-                    />
+                <div v-if="!Object.keys(data.gameUids || {}).length" class="muted-text">—</div>
+                <div v-else class="game-uids-stack">
+                  <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-block">
+                    <div class="game-uid-header">
+                      <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
+                      <Tag
+                        v-if="data.lastUsedRegions?.[game]"
+                        :value="`Last Used: ${data.lastUsedRegions[game]}`"
+                        severity="secondary"
+                        class="last-used-tag"
+                      />
+                    </div>
+                    <div class="uid-rows">
+                      <div v-for="(uid, region) in regions" :key="region" class="uid-row">
+                        <span class="uid-region">{{ region }}</span>
+                        <span class="uid-value">{{ uid }}</span>
+                      </div>
+                    </div>
                   </div>
-                  <table class="uid-table">
-                    <tr v-for="(uid, region) in regions" :key="region">
-                      <td class="uid-region">{{ region }}</td>
-                      <td class="uid-value">{{ uid }}</td>
-                    </tr>
-                  </table>
                 </div>
-                <span v-if="!Object.keys(data.gameUids || {}).length" class="muted-text">—</span>
               </template>
             </Column>
-            <Column header="" style="width: 9rem">
+            <Column header="" style="width: 7rem">
               <template #body="{ data }">
                 <div class="row-actions">
-                  <Button
-                    icon="pi pi-pencil"
-                    size="small"
-                    text
-                    rounded
-                    @click="openEditModal(data)"
-                  />
-                  <Button
-                    icon="pi pi-trash"
-                    size="small"
-                    text
-                    rounded
-                    severity="danger"
-                    @click="confirmDelete(data)"
-                  />
+                  <Button icon="pi pi-pencil" size="small" text rounded @click="openEditModal(data)" />
+                  <Button icon="pi pi-trash" size="small" text rounded severity="danger" @click="confirmDelete(data)" />
                 </div>
               </template>
             </Column>
           </DataTable>
+
+          <div v-else class="profile-cards">
+            <Card v-for="profile in profiles" :key="profile.profileId" class="profile-card-mobile">
+              <template #content>
+                <div class="profile-card-top">
+                  <div class="profile-card-meta">
+                    <Tag :value="`#${profile.profileId}`" severity="secondary" />
+                    <span class="mono-text">{{ profile.ltUid }}</span>
+                  </div>
+                  <div class="row-actions">
+                    <Button icon="pi pi-pencil" size="small" text rounded @click="openEditModal(profile)" />
+                    <Button icon="pi pi-trash" size="small" text rounded severity="danger" @click="confirmDelete(profile)" />
+                  </div>
+                </div>
+                <div class="profile-card-uids">
+                  <div v-if="!Object.keys(profile.gameUids || {}).length" class="muted-text">No game UIDs</div>
+                  <div v-for="(regions, game) in profile.gameUids" :key="game" class="game-uid-block">
+                    <div class="game-uid-header">
+                      <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
+                      <Tag
+                        v-if="profile.lastUsedRegions?.[game]"
+                        :value="profile.lastUsedRegions[game]"
+                        severity="secondary"
+                        class="last-used-tag"
+                      />
+                    </div>
+                    <div class="uid-rows">
+                      <div v-for="(uid, region) in regions" :key="region" class="uid-row">
+                        <span class="uid-region">{{ region }}</span>
+                        <span class="uid-value">{{ uid }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
         </template>
       </Card>
 
@@ -195,13 +224,7 @@ onMounted(() => {
         <form @submit.prevent="handleAdd" class="profile-form">
           <div class="field">
             <label for="addLtUid">HoYoLAB UID</label>
-            <InputText
-              id="addLtUid"
-              v-model="addForm.ltUid"
-              type="number"
-              required
-              class="w-full"
-            />
+            <InputText id="addLtUid" v-model="addForm.ltUid" type="text" inputmode="numeric" pattern="\d+" title="Numeric ID" placeholder="e.g. 123456789" required class="w-full" />
           </div>
           <div class="field">
             <label for="addLToken">LToken</label>
@@ -223,25 +246,14 @@ onMounted(() => {
           <div class="form-actions">
             <a href="/#/docs" target="_blank" class="docs-link">Need help? Read the docs</a>
             <div class="flex gap-2">
-              <Button
-                type="button"
-                label="Cancel"
-                severity="secondary"
-                outlined
-                @click="showAddModal = false"
-              />
+              <Button type="button" label="Cancel" severity="secondary" outlined @click="showAddModal = false" />
               <Button type="submit" label="Add" :loading="profilesLoading" />
             </div>
           </div>
         </form>
       </Dialog>
 
-      <Dialog
-        v-model:visible="showEditModal"
-        header="Edit Profile"
-        modal
-        :style="{ width: '28rem' }"
-      >
+      <Dialog v-model:visible="showEditModal" header="Edit Profile" modal :style="{ width: '28rem' }">
         <form @submit.prevent="handleEdit" class="profile-form">
           <div class="field">
             <label>HoYoLAB UID</label>
@@ -264,13 +276,7 @@ onMounted(() => {
             />
           </div>
           <div class="form-actions">
-            <Button
-              type="button"
-              label="Cancel"
-              severity="secondary"
-              outlined
-              @click="showEditModal = false"
-            />
+            <Button type="button" label="Cancel" severity="secondary" outlined @click="showEditModal = false" />
             <Button type="submit" label="Save" :loading="profilesLoading" />
           </div>
         </form>
@@ -281,8 +287,12 @@ onMounted(() => {
 
 <style scoped>
 .dashboard-container {
-  max-width: 800px;
+  max-width: 80rem;
   margin: 0 auto;
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
 }
 
 .state-box {
@@ -292,45 +302,66 @@ onMounted(() => {
 }
 
 .dashboard-header {
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .page-title {
-  font-size: 1.75rem;
+  font-size: 1.875rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.025em;
 }
 
-.profile-card {
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+.dashboard-card {
   background: var(--card-surface) !important;
   border: 1px solid var(--card-border) !important;
-  border-radius: 0.75rem !important;
-  margin-bottom: 1rem;
+  border-radius: 0.875rem !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
 }
 
-.profile-row {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-primary);
+.dark .dashboard-card {
+  box-shadow: none !important;
 }
 
-.profile-info {
+.profile-panel :deep(.p-card-content) {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
+  padding: 1.5rem;
   gap: 1rem;
 }
 
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .profile-avatar {
-  width: 3rem;
-  height: 3rem;
+  width: 4rem;
+  height: 4rem;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--border-primary);
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .profile-name {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -339,66 +370,52 @@ onMounted(() => {
   font-size: 0.8125rem;
   color: var(--text-muted);
   font-family: ui-monospace, SFMono-Regular, monospace;
+  margin-top: 0.125rem;
 }
 
-.profile-fields {
+.profile-badges {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.field-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.field-label {
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.perms-card {
-  background: var(--card-surface) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 0.75rem !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .card-title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
 }
 
-.perm-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.card-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
 }
 
-.profiles-card {
-  background: var(--card-surface) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 0.75rem !important;
-  margin-bottom: 1rem;
+.profiles-panel :deep(.p-card-content) {
+  padding: 1.25rem;
 }
 
 .profiles-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
-.profiles-header .card-title {
-  margin-bottom: 0;
+@media (min-width: 640px) {
+  .profiles-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
 }
 
 .profiles-actions {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .profiles-loading {
@@ -407,10 +424,19 @@ onMounted(() => {
   padding: 2rem;
 }
 
-.no-profiles {
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
   color: var(--text-muted);
-  font-size: 0.875rem;
-  margin: 0;
+  border: 1px dashed var(--border-secondary);
+  border-radius: 0.75rem;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  display: block;
+  color: var(--text-secondary);
 }
 
 .docs-link {
@@ -436,21 +462,37 @@ onMounted(() => {
   font-size: 0.8125rem;
 }
 
-.game-uid-row {
-  display: flex;
-  gap: 1.5rem;
-  padding: 0.375rem 0;
+.profiles-table :deep(th) {
+  background: var(--bg-surface-raised) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
 }
 
-.game-uid-row + .game-uid-row {
-  border-top: 1px solid var(--border-primary);
-}
-
-.game-uid-left {
+.game-uids-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-width: 8rem;
+  gap: 0.75rem;
+}
+
+.game-uid-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.game-uid-block + .game-uid-block {
+  border-top: 1px solid var(--border-primary);
+  padding-top: 0.75rem;
+}
+
+.game-uid-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .game-uid-name {
@@ -461,32 +503,85 @@ onMounted(() => {
 
 .last-used-tag {
   font-size: 0.6875rem !important;
-  width: fit-content;
 }
 
-.uid-table {
-  border-collapse: collapse;
+.uid-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
 }
 
-.uid-table td {
-  padding: 0.125rem 0.5rem;
+.uid-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
   font-size: 0.8125rem;
 }
 
 .uid-region {
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .uid-value {
   font-family: ui-monospace, SFMono-Regular, monospace;
   color: var(--text-primary);
+  line-height: 1;
 }
 
 .row-actions {
   display: flex;
   gap: 0.25rem;
   justify-content: flex-end;
+}
+
+.profile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-card-mobile {
+  background: var(--card-surface) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 0.75rem !important;
+}
+
+.profile-card-mobile :deep(.p-card-content) {
+  padding: 1rem;
+}
+
+.profile-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.profile-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.profile-card-uids {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-card-uids .game-uid-block + .game-uid-block {
+  border-top: 1px solid var(--border-primary);
+  padding-top: 0.75rem;
 }
 
 .profile-form .field {
@@ -511,21 +606,16 @@ onMounted(() => {
 
 .form-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-top: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .page-title {
-    font-size: 1.5rem;
-  }
-
-  .profiles-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+@media (min-width: 640px) {
+  .form-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 }
 </style>

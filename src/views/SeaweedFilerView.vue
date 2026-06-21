@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import Button from "primevue/button";
+import Card from "primevue/card";
 
 const props = defineProps({
   userInfo: {
@@ -23,69 +24,60 @@ const openFiler = () => {
 </script>
 
 <template>
-  <div class="seaweed-page">
-    <header class="seaweed-header">
-      <h1 class="text-4xl font-bold mb-3">Seaweed Filer</h1>
-      <p class="seaweed-subtitle">
-        Open the filer UI in a new tab through the authenticated dashboard proxy.
-      </p>
+  <div class="management-page space-y-6">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Seaweed Filer</h1>
+        <p class="page-subtitle">Open the filer UI in a new tab through the authenticated dashboard proxy.</p>
+      </div>
     </header>
 
-    <div v-if="!userInfo.isSuperAdmin" class="seaweed-warning">
-      This page is only available to superadmin users.
+    <div v-if="!userInfo.isSuperAdmin" class="warning-box">
+      This page is only available to super admin users.
     </div>
 
-    <div v-else class="seaweed-card">
-      <p>
-        You are signed in as <strong>{{ userInfo.username }}</strong> with superadmin access.
-      </p>
-      <Button @click="openFiler" :disabled="!filerUrl"> Open Seaweed Filer UI </Button>
-      <p v-if="!filerUrl" class="seaweed-error">
-        Backend URL is not configured. Set <code>VITE_APP_BACKEND_URL</code>.
-      </p>
-    </div>
+    <Card v-else class="card-elevated">
+      <template #content>
+        <div class="flex flex-col gap-4">
+          <p class="text-[var(--text-secondary)]">
+            You are signed in as <strong class="text-[var(--text-primary)]">{{ userInfo.username }}</strong> with super admin access.
+          </p>
+          <Button icon="pi pi-external-link" label="Open Seaweed Filer UI" @click="openFiler" :disabled="!filerUrl" />
+          <p v-if="!filerUrl" class="error-text">
+            Backend URL is not configured. Set <code>VITE_APP_BACKEND_URL</code>.
+          </p>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
 <style scoped>
-.seaweed-page {
-  max-width: 900px;
+.management-page {
+  max-width: 50rem;
   margin: 0 auto;
-  text-align: left;
 }
 
-.seaweed-header {
-  margin-bottom: 1.5rem;
+.page-header {
+  margin-bottom: 0.5rem;
 }
 
-.seaweed-header h1 {
-  margin: 0;
-}
-
-.seaweed-subtitle {
-  color: var(--text-secondary);
-  margin-top: 0.5rem;
-}
-
-.seaweed-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 12px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-}
-
-.seaweed-warning {
-  border: 1px solid #8f7a00;
-  background: rgba(143, 122, 0, 0.15);
-  color: #ffd65a;
-  border-radius: 10px;
+.warning-box {
+  border: 1px solid var(--p-orange-500);
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--p-orange-500);
+  border-radius: 0.75rem;
   padding: 1rem;
 }
 
-.seaweed-error {
-  color: #ff7d7d;
+.error-text {
+  color: var(--p-red-500);
+  font-size: 0.875rem;
+}
+
+.error-text code {
+  background: var(--bg-surface-raised);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
 }
 </style>
