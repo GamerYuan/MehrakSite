@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { useApi } from "../useApi";
 
-export function useCommandExecution(config, activeTab, initialServer) {
+export function useCommandExecution(config, activeTab) {
   const { showErrorToast, buildError, apiFetch } = useApi();
 
   const loading = ref({});
