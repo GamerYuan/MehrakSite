@@ -32,7 +32,7 @@ const formatStat = (value) => {
     <template #title>Manage Characters</template>
     <template #content>
       <div class="flex flex-col gap-4">
-        <div class="flex gap-2">
+        <div v-if="gv.canManage" class="flex gap-2">
           <InputText
             v-model="gv.newCharacterName"
             placeholder="New Character Name"
@@ -45,7 +45,7 @@ const formatStat = (value) => {
         <div class="flex flex-col gap-2">
           <InputText v-model="gv.manageSearchQuery" placeholder="Search characters..." fluid />
         </div>
-        <div v-if="gv.config.hasStatEdit" class="flex items-center align-middle gap-2">
+        <div v-if="gv.config.hasStatEdit && gv.canManage" class="flex items-center align-middle gap-2">
           <Checkbox
             v-model="gv.showOnlyMissingAscension"
             binary
@@ -63,14 +63,14 @@ const formatStat = (value) => {
           >
             <div class="flex flex-col gap-1 text-left">
               <span>{{ item.name }}</span>
-              <div v-if="gv.config.hasStatEdit" class="flex gap-2 text-xs text-gray-500">
+              <div v-if="gv.config.hasStatEdit && gv.canManage" class="flex gap-2 text-xs text-gray-500">
                 <span>Base: {{ formatStat(item.baseVal) }}</span>
                 <span>Max Asc: {{ formatStat(item.maxAscVal) }}</span>
               </div>
             </div>
             <div class="flex gap-2">
               <Button
-                v-if="gv.config.hasStatEdit"
+                v-if="gv.config.hasStatEdit && gv.canManage"
                 icon="pi pi-pencil"
                 severity="info"
                 text
@@ -87,6 +87,7 @@ const formatStat = (value) => {
                 :loading="gv.manageLoading"
               />
               <Button
+                v-if="gv.canManage"
                 icon="pi pi-trash"
                 severity="danger"
                 text

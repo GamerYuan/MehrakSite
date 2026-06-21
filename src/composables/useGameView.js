@@ -28,8 +28,8 @@ export function useGameView(config) {
 
   const tabs = computed(() => {
     const t = [...config.tabs];
+    t.push({ id: "manage", name: "Manage Characters" });
     if (canManage) {
-      t.push({ id: "manage", name: "Manage Characters" });
       t.push({ id: "aliases", name: "Manage Aliases" });
       if (config.hasCodesManagement) {
         t.push({ id: "codes", name: "Manage Codes" });

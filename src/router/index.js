@@ -85,7 +85,7 @@ const router = createRouter({
               return { name: "dashboard-home" };
             }
           },
-          meta: { requireGamePermission: true },
+          meta: { requireAuth: true },
         },
         {
           path: "seaweed-filer",

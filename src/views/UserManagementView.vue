@@ -49,7 +49,6 @@ const formatPermission = (str) => {
 };
 
 const formData = ref({
-  username: "",
   discordUserId: "",
   isSuperAdmin: false,
   isActive: true,
@@ -101,7 +100,6 @@ const filteredUsers = computed(() => {
 
 const resetForm = () => {
   formData.value = {
-    username: "",
     discordUserId: "",
     isSuperAdmin: false,
     isActive: true,
@@ -128,7 +126,6 @@ const openUpdateModal = (user) => {
   });
 
   formData.value = {
-    username: user.username,
     discordUserId: user.discordUserId || "",
     isSuperAdmin: user.isSuperAdmin,
     isActive: true,
@@ -176,7 +173,6 @@ const handleAddUser = async () => {
     }
 
     const payload = {
-      username: formData.value.username,
       discordUserId: discordId,
       isSuperAdmin: formData.value.isSuperAdmin,
       gameWritePermissions: getSelectedPermissions(),
@@ -220,7 +216,6 @@ const handleUpdateUser = async () => {
     }
 
     const payload = {
-      username: formData.value.username,
       discordUserId: discordId,
       isSuperAdmin: formData.value.isSuperAdmin,
       isActive: formData.value.isActive,
@@ -309,7 +304,6 @@ const permissionOptions = computed(() => {
     </div>
 
     <DataTable :value="filteredUsers" :loading="loading" responsiveLayout="scroll">
-      <Column field="username" header="Username"></Column>
       <Column field="discordUserId" header="Discord ID"></Column>
       <Column header="Role">
         <template #body="slotProps">
@@ -360,16 +354,6 @@ const permissionOptions = computed(() => {
     <Dialog v-model:visible="showAddModal" modal header="Add New User" :style="{ width: '25rem' }">
       <form @submit.prevent="handleAddUser">
         <div class="flex flex-col gap-4 mb-4">
-          <div class="flex flex-col gap-2">
-            <label for="username" class="font-semibold w-24">Username</label>
-            <InputText
-              id="username"
-              v-model="formData.username"
-              class="flex-auto"
-              autocomplete="off"
-              required
-            />
-          </div>
           <div class="flex flex-col gap-2">
             <label for="discordId" class="font-semibold w-24">Discord ID</label>
             <InputText
@@ -429,16 +413,6 @@ const permissionOptions = computed(() => {
     >
       <form @submit.prevent="handleUpdateUser">
         <div class="flex flex-col gap-4 mb-4">
-          <div class="flex flex-col gap-2">
-            <label for="edit-username" class="font-semibold w-24">Username</label>
-            <InputText
-              id="edit-username"
-              v-model="formData.username"
-              class="flex-auto"
-              autocomplete="off"
-              required
-            />
-          </div>
           <div class="flex flex-col gap-2">
             <label for="edit-discordId" class="font-semibold w-24">Discord ID</label>
             <InputText

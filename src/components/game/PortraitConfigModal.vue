@@ -28,6 +28,7 @@ const bgLoaded = ref(false);
 const portraitLoaded = ref(false);
 let renderRaf = 0;
 let portraitLoadToken = 0;
+const pendingUserRender = ref(false);
 
 const activeModalTab = ref("default");
 
@@ -59,6 +60,7 @@ const cleanupPortrait = () => {
   portraitImage.value = null;
   portraitError.value = false;
   portraitLoaded.value = false;
+  pendingUserRender.value = false;
 };
 
 const previewConfig = computed(() => previewConfigs[gv.config.id] ?? null);
@@ -182,6 +184,10 @@ const loadUserPortraitImage = async (id) => {
     portraitImage.value.onload = () => {
       if (token !== portraitLoadToken) return;
       portraitLoaded.value = true;
+      if (gv.userPortraitConfigFetching) {
+        pendingUserRender.value = true;
+        return;
+      }
       syncLocalState();
       renderPreview();
     };
@@ -373,6 +379,17 @@ watch(
 );
 
 watch(
+  () => gv.userPortraitConfigFetching,
+  (fetching) => {
+    if (!fetching && pendingUserRender.value) {
+      pendingUserRender.value = false;
+      syncLocalState();
+      renderPreview();
+    }
+  },
+);
+
+watch(
   () => gv.userPortraitId,
   (newId, oldId) => {
     if (activeModalTab.value !== "user") return;
@@ -382,7 +399,7 @@ watch(
       return;
     }
     loadUserPortraitImage(newId);
-    if (oldId != null && oldId !== newId) {
+    if (oldId !== newId) {
       gv.fetchUserPortraitConfig(newId);
     }
   },
@@ -457,7 +474,7 @@ const isFetching = computed(() => {
   if (activeModalTab.value === "default") {
     return gv.portraitConfigFetching || portraitLoading.value;
   }
-  return gv.userPortraitConfigFetching || portraitLoading.value;
+  return gv.userPortraitConfigFetching || portraitLoading.value || pendingUserRender.value;
 });
 const isSaving = computed(() => gv.portraitConfigSaving || gv.userPortraitConfigSaving);
 
@@ -471,6 +488,18 @@ const onSetActiveUserPortrait = async () => {
   if (!gv.userPortraitId) return;
   try {
     await gv.setActiveUserPortrait(gv.userPortraitId);
+  } catch (err) {
+    if (err._redirected) return;
+    showErrorToast(err.message, err.status);
+  }
+};
+
+const onSetInactiveUserPortrait = async () => {
+  if (!gv.userPortraitId) return;
+  try {
+    await apiFetch(`/user-portraits/${gv.userPortraitId}/inactive`, { method: "PATCH" });
+    await gv.fetchUserPortraits(gv.portraitConfigCharacter);
+    showSuccessToast("Portrait set inactive");
   } catch (err) {
     if (err._redirected) return;
     showErrorToast(err.message, err.status);
@@ -555,13 +584,6 @@ onUnmounted(() => {
     class="portrait-config-dialog"
   >
     <div class="relative">
-      <div
-        v-if="isFetching"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/20"
-      >
-        <i class="pi pi-spin pi-spinner text-xl"></i>
-      </div>
-
       <div class="flex flex-col lg:flex-row gap-6">
         <div class="flex flex-col gap-3 w-full lg:w-90 lg:shrink-0">
           <div class="flex flex-col gap-2">
@@ -629,12 +651,23 @@ onUnmounted(() => {
                         @click="onDeleteUserPortrait"
                       />
                       <Button
+                        v-if="isPortraitActive"
+                        type="button"
+                        icon="pi pi-minus-circle"
+                        severity="warn"
+                        outlined
+                        class="shrink-0"
+                        :disabled="!gv.userPortraitId"
+                        @click="onSetInactiveUserPortrait"
+                      />
+                      <Button
+                        v-else
                         type="button"
                         icon="pi pi-check"
                         severity="success"
                         outlined
                         class="shrink-0"
-                        :disabled="!gv.userPortraitId || isPortraitActive"
+                        :disabled="!gv.userPortraitId"
                         @click="onSetActiveUserPortrait"
                       />
                     </div>
@@ -695,12 +728,23 @@ onUnmounted(() => {
                   @click="onDeleteUserPortrait"
                 />
                 <Button
+                  v-if="isPortraitActive"
+                  type="button"
+                  icon="pi pi-minus-circle"
+                  severity="warn"
+                  outlined
+                  class="shrink-0"
+                  :disabled="!gv.userPortraitId"
+                  @click="onSetInactiveUserPortrait"
+                />
+                <Button
+                  v-else
                   type="button"
                   icon="pi pi-check"
                   severity="success"
                   outlined
                   class="shrink-0"
-                  :disabled="!gv.userPortraitId || isPortraitActive"
+                  :disabled="!gv.userPortraitId"
                   @click="onSetActiveUserPortrait"
                 />
               </div>
@@ -752,8 +796,14 @@ onUnmounted(() => {
         <div class="flex-1 min-w-0 min-h-0 flex flex-col gap-2 overflow-y-auto">
           <label class="text-sm text-gray-500">Preview</label>
           <div
-            class="flex border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[55vh] items-center justify-center"
+            class="relative flex border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[55vh] items-center justify-center"
           >
+            <div
+              v-if="isFetching"
+              class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/20"
+            >
+              <i class="pi pi-spin pi-spinner text-xl"></i>
+            </div>
             <canvas
               ref="canvasRef"
               class="max-w-full max-h-full object-contain touch-none"
