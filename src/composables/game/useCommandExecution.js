@@ -15,7 +15,7 @@ export function useCommandExecution(config, activeTab) {
   const authError = ref("");
 
   const profileId = ref(1);
-  const server = ref(initialServer || config.servers[0]?.value || "America");
+  const server = ref(config.servers[0]?.value || "America");
   const characterName = ref("");
   const floor = ref(config.tabs.find((t) => t.hasFloorInput)?.floorMin || 12);
 
