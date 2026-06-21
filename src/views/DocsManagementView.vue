@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../composables/useApi";
+import Card from "primevue/card";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Button from "primevue/button";
@@ -171,70 +172,85 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="docs-management">
-    <div class="header">
-      <h1 class="text-4xl font-bold mb-3">Documentation Management</h1>
+  <div class="management-page">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Documentation Management</h1>
+        <p class="page-subtitle">Create and edit command docs for each supported game.</p>
+      </div>
       <Button label="Add Documentation" icon="pi pi-plus" @click="openAddModal" />
-    </div>
+    </header>
 
-    <div class="controls flex flex-col sm:flex-row gap-4 mb-4">
-      <InputText v-model="searchQuery" placeholder="Search by name..." class="flex-1" fluid />
-      <Select
-        v-model="filterGame"
-        :options="gameFilterOptions"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Filter by game"
-        class="w-full sm:w-64 items-center"
-      />
-    </div>
+    <Card class="card-elevated filters-card">
+      <template #content>
+        <div class="filters-row">
+          <InputText v-model="searchQuery" placeholder="Search by name..." fluid />
+          <Select
+            v-model="filterGame"
+            :options="gameFilterOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Filter by game"
+            class="game-filter"
+          />
+        </div>
+      </template>
+    </Card>
 
-    <DataTable :value="filteredDocuments" :loading="loading" responsiveLayout="scroll">
-      <Column field="name" header="Name">
-        <template #body="slotProps">
-          <span class="font-semibold">{{ slotProps.data.name }}</span>
-        </template>
-      </Column>
-      <Column field="description" header="Description">
-        <template #body="slotProps">
-          <span class="text-gray-600 dark:text-gray-400">{{ slotProps.data.description }}</span>
-        </template>
-      </Column>
-      <Column field="game" header="Game">
-        <template #body="slotProps">
-          <GameTag :game="slotProps.data.game" size="small" />
-        </template>
-      </Column>
-      <Column field="updatedAt" header="Last Updated">
-        <template #body="slotProps">
-          <span class="text-gray-600 dark:text-gray-400">{{
-            formatDate(slotProps.data.updatedAt)
-          }}</span>
-        </template>
-      </Column>
-      <Column header="Actions">
-        <template #body="slotProps">
-          <div class="flex gap-2">
-            <Button
-              icon="pi pi-pencil"
-              severity="secondary"
-              text
-              rounded
-              aria-label="Edit"
-              @click="openEditModal(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              rounded
-              aria-label="Delete"
-              @click="confirmDelete(slotProps.data)"
-            />
-          </div>
-        </template>
-      </Column>
-    </DataTable>
+    <Card class="card-elevated table-card">
+      <template #content>
+        <DataTable
+          :value="filteredDocuments"
+          :loading="loading"
+          responsiveLayout="scroll"
+          class="docs-table"
+          size="small"
+        >
+          <Column field="name" header="Name">
+            <template #body="slotProps">
+              <span class="font-medium">{{ slotProps.data.name }}</span>
+            </template>
+          </Column>
+          <Column field="description" header="Description">
+            <template #body="slotProps">
+              <span class="description-cell">{{ slotProps.data.description }}</span>
+            </template>
+          </Column>
+          <Column field="game" header="Game" style="width: 7rem">
+            <template #body="slotProps">
+              <GameTag :game="slotProps.data.game" size="small" />
+            </template>
+          </Column>
+          <Column field="updatedAt" header="Last Updated" style="width: 9rem">
+            <template #body="slotProps">
+              <span class="date-cell">{{ formatDate(slotProps.data.updatedAt) }}</span>
+            </template>
+          </Column>
+          <Column header="Actions" style="width: 7rem">
+            <template #body="slotProps">
+              <div class="row-actions">
+                <Button
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  text
+                  rounded
+                  aria-label="Edit"
+                  @click="openEditModal(slotProps.data)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  rounded
+                  aria-label="Delete"
+                  @click="confirmDelete(slotProps.data)"
+                />
+              </div>
+            </template>
+          </Column>
+        </DataTable>
+      </template>
+    </Card>
 
     <DocFormModal
       v-model:visible="showModal"
@@ -247,10 +263,87 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.header {
+.management-page {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.filters-card {
+  margin-bottom: 1rem;
+}
+
+.filters-card :deep(.p-card-content) {
+  padding: 1rem;
+}
+
+.filters-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .filters-row {
+    flex-direction: row;
+  }
+
+  .game-filter {
+    width: 16rem;
+    flex-shrink: 0;
+  }
+}
+
+.table-card :deep(.p-card-content) {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.docs-table :deep(th) {
+  background: var(--bg-surface-raised) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+}
+
+.font-medium {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.description-cell {
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.date-cell {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
 }
 </style>

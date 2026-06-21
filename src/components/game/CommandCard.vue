@@ -15,7 +15,7 @@ const gv = useGameViewInject();
 </script>
 
 <template>
-  <Card class="command-card">
+  <Card class="game-card">
     <template #content>
       <form @submit.prevent="gv.executeCommand()">
         <div class="flex flex-col gap-4">

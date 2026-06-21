@@ -53,7 +53,7 @@ onMounted(async () => {
 
 .dashboard-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 260px;
   padding: 2rem;
   background-color: var(--bg-page);
   overflow-y: auto;

@@ -5,6 +5,8 @@ export function usePortraitConfig(config) {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const showPortraitConfigModal = ref(false);
+  const showMissingServerIdModal = ref(false);
+  const missingServerIdCharacter = ref("");
   const portraitConfigCharacter = ref("");
   const portraitConfigServerIds = ref([]);
   const portraitConfigServerId = ref(null);
@@ -49,7 +51,6 @@ export function usePortraitConfig(config) {
     portraitConfigOffsetY.value = 0;
     portraitConfigTargetScale.value = null;
     portraitConfigFlipX.value = false;
-    showPortraitConfigModal.value = true;
     portraitConfigFetching.value = true;
 
     try {
@@ -60,9 +61,14 @@ export function usePortraitConfig(config) {
         portraitConfigServerIds.value = await listResponse.json();
       }
 
-      if (portraitConfigServerIds.value.length > 0) {
-        await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
+      if (portraitConfigServerIds.value.length === 0) {
+        missingServerIdCharacter.value = char;
+        showMissingServerIdModal.value = true;
+        return;
       }
+
+      showPortraitConfigModal.value = true;
+      await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
     } catch (err) {
       if (err._redirected) return;
       showErrorToast(err.message, err.status);
@@ -109,6 +115,8 @@ export function usePortraitConfig(config) {
 
   return {
     showPortraitConfigModal,
+    showMissingServerIdModal,
+    missingServerIdCharacter,
     portraitConfigCharacter,
     portraitConfigServerIds,
     portraitConfigServerId,

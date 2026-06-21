@@ -1,6 +1,7 @@
 export const gameConfigs = {
   genshin: {
     id: "Genshin",
+    logo: "/genshin.webp",
     permission: "genshin",
     endpoint: "/genshin",
     title: "Genshin Impact",
@@ -37,6 +38,7 @@ export const gameConfigs = {
 
   hsr: {
     id: "HonkaiStarRail",
+    logo: "/hsr.webp",
     permission: "hsr",
     endpoint: "/hsr",
     title: "Honkai: Star Rail",
@@ -67,6 +69,7 @@ export const gameConfigs = {
 
   zzz: {
     id: "ZenlessZoneZero",
+    logo: "/zzz.webp",
     permission: "zzz",
     endpoint: "/zzz",
     title: "Zenless Zone Zero",
@@ -94,6 +97,7 @@ export const gameConfigs = {
 
   hi3: {
     id: "HonkaiImpact3",
+    logo: "/hi3.webp",
     permission: "hi3",
     endpoint: "/hi3",
     title: "Honkai Impact 3rd",

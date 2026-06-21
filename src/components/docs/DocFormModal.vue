@@ -126,12 +126,12 @@ const canEditGame = computed(() => {
     <form @submit.prevent="handleSubmit" class="flex flex-col">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Command Name</label>
+          <label class="font-semibold text-[var(--text-primary)]">Command Name</label>
           <InputText v-model="form.name" placeholder="e.g., build" required />
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Description</label>
+          <label class="font-semibold text-[var(--text-primary)]">Description</label>
           <Textarea
             v-model="form.description"
             placeholder="Brief description of what this command does"
@@ -141,7 +141,7 @@ const canEditGame = computed(() => {
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Game</label>
+          <label class="font-semibold text-[var(--text-primary)]">Game</label>
           <Select
             v-model="form.game"
             :options="gameOptions"
@@ -154,9 +154,9 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Parameters</label>
+          <label class="font-semibold text-[var(--text-primary)]">Parameters</label>
           <div
-            class="flex gap-2 items-start flex-wrap p-3 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
+            class="flex gap-2 items-start flex-wrap p-3 bg-[var(--bg-surface-raised)] rounded-md border border-[var(--border-primary)]"
           >
             <div class="flex flex-col gap-2 flex-1 min-w-0">
               <div class="flex gap-2 items-center flex-wrap w-full">
@@ -173,7 +173,7 @@ const canEditGame = computed(() => {
                 />
                 <div class="flex items-center gap-2 px-2">
                   <Checkbox v-model="newParam.required" binary inputId="param-required" />
-                  <label for="param-required" class="text-sm text-zinc-700 dark:text-zinc-300"
+                  <label for="param-required" class="text-sm text-[var(--text-secondary)]"
                     >Required</label
                   >
                 </div>
@@ -193,13 +193,13 @@ const canEditGame = computed(() => {
             <div
               v-for="(param, index) in form.parameters"
               :key="index"
-              class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
+              class="flex items-center gap-2 px-3 py-2 bg-[var(--bg-surface-raised)] rounded-md border border-[var(--border-primary)]"
             >
-              <span class="font-semibold font-mono text-zinc-900 dark:text-white">{{
+              <span class="font-semibold font-mono text-[var(--text-primary)]">{{
                 param.name
               }}</span>
               <span
-                class="text-xs px-1.5 py-0.5 bg-emerald-500/20 text-emerald-200 rounded font-mono"
+                class="text-xs px-1.5 py-0.5 bg-[rgba(var(--accent-rgb),0.15)] text-[var(--accent)] rounded font-mono"
                 >{{ param.type }}</span
               >
               <span
@@ -209,7 +209,7 @@ const canEditGame = computed(() => {
               >
               <span
                 v-if="param.description"
-                class="flex-1 text-zinc-500 dark:text-zinc-400 text-sm"
+                class="flex-1 text-[var(--text-muted)] text-sm"
                 >{{ param.description }}</span
               >
               <Button
@@ -227,7 +227,7 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-zinc-800 dark:text-zinc-200">Examples</label>
+          <label class="font-semibold text-[var(--text-primary)]">Examples</label>
           <div class="flex gap-2 items-center">
             <InputText
               v-model="newExample"
@@ -247,9 +247,9 @@ const canEditGame = computed(() => {
             <div
               v-for="(example, index) in form.examples"
               :key="index"
-              class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 rounded-md border border-zinc-200 dark:border-white/10"
+              class="flex items-center gap-2 px-3 py-2 bg-[var(--bg-surface-raised)] rounded-md border border-[var(--border-primary)]"
             >
-              <code class="flex-1 font-mono text-sm text-emerald-300/80">{{ example }}</code>
+              <code class="flex-1 font-mono text-sm text-[var(--accent)]">{{ example }}</code>
               <Button
                 type="button"
                 icon="pi pi-times"
