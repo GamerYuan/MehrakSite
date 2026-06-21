@@ -1,10 +1,36 @@
 <script setup>
+import { onMounted } from "vue";
 import { useAuth } from "../composables/useAuth";
+import { useProfileManagement } from "../composables/useProfileManagement";
+import { gameConfigs } from "../configs/gameConfigs";
 import Card from "primevue/card";
 import Tag from "primevue/tag";
 import Message from "primevue/message";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
+import Password from "primevue/password";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import ProgressSpinner from "primevue/progressspinner";
 
 const { user, loading, error } = useAuth();
+const {
+  profiles,
+  loading: profilesLoading,
+  showAddModal,
+  showEditModal,
+  selectedProfile,
+  addForm,
+  editForm,
+  fetchProfiles,
+  openAddModal,
+  handleAdd,
+  openEditModal,
+  handleEdit,
+  confirmDelete,
+  confirmDeleteAll,
+} = useProfileManagement();
 
 const toTitleCase = (str) => {
   if (!str) return "";
@@ -13,6 +39,12 @@ const toTitleCase = (str) => {
     (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
   );
 };
+
+const gameIdToTitle = Object.fromEntries(Object.values(gameConfigs).map((c) => [c.id, c.title]));
+
+onMounted(() => {
+  fetchProfiles();
+});
 </script>
 
 <template>
@@ -73,6 +105,176 @@ const toTitleCase = (str) => {
           </div>
         </template>
       </Card>
+
+      <Card class="profiles-card">
+        <template #content>
+          <div class="profiles-header">
+            <h3 class="card-title">Manage Profiles</h3>
+            <div class="profiles-actions">
+              <Button label="Add Profile" icon="pi pi-plus" size="small" @click="openAddModal" />
+              <Button
+                v-if="profiles.length"
+                label="Delete All"
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                outlined
+                @click="confirmDeleteAll"
+              />
+            </div>
+          </div>
+
+          <div v-if="profilesLoading" class="profiles-loading">
+            <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
+          </div>
+
+          <p v-else-if="!profiles.length" class="no-profiles">
+            No profiles yet. Add one to get started.
+            <a href="/#/docs" target="_blank" class="docs-link">Read the docs</a>
+          </p>
+
+          <DataTable v-else :value="profiles" size="small" stripedRows>
+            <Column header="Profile" style="width: 6rem">
+              <template #body="{ data }">
+                <Tag :value="`#${data.profileId}`" severity="secondary" />
+              </template>
+            </Column>
+            <Column field="ltUid" header="HoYoLAB UID" style="width: 10rem">
+              <template #body="{ data }">
+                <span class="mono-text">{{ data.ltUid }}</span>
+              </template>
+            </Column>
+            <Column header="Game UIDs">
+              <template #body="{ data }">
+                <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-row">
+                  <div class="game-uid-left">
+                    <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
+                    <Tag
+                      v-if="data.lastUsedRegions?.[game]"
+                      :value="`Last Used: ${data.lastUsedRegions[game]}`"
+                      severity="secondary"
+                      class="last-used-tag"
+                    />
+                  </div>
+                  <table class="uid-table">
+                    <tr v-for="(uid, region) in regions" :key="region">
+                      <td class="uid-region">{{ region }}</td>
+                      <td class="uid-value">{{ uid }}</td>
+                    </tr>
+                  </table>
+                </div>
+                <span v-if="!Object.keys(data.gameUids || {}).length" class="muted-text">—</span>
+              </template>
+            </Column>
+            <Column header="" style="width: 9rem">
+              <template #body="{ data }">
+                <div class="row-actions">
+                  <Button
+                    icon="pi pi-pencil"
+                    size="small"
+                    text
+                    rounded
+                    @click="openEditModal(data)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    size="small"
+                    text
+                    rounded
+                    severity="danger"
+                    @click="confirmDelete(data)"
+                  />
+                </div>
+              </template>
+            </Column>
+          </DataTable>
+        </template>
+      </Card>
+
+      <Dialog v-model:visible="showAddModal" header="Add Profile" modal :style="{ width: '28rem' }">
+        <form @submit.prevent="handleAdd" class="profile-form">
+          <div class="field">
+            <label for="addLtUid">HoYoLAB UID</label>
+            <InputText
+              id="addLtUid"
+              v-model="addForm.ltUid"
+              type="number"
+              required
+              class="w-full"
+            />
+          </div>
+          <div class="field">
+            <label for="addLToken">LToken</label>
+            <InputText id="addLToken" v-model="addForm.lToken" required class="w-full" />
+          </div>
+          <div class="field">
+            <label for="addPassphrase">Passphrase</label>
+            <Password
+              id="addPassphrase"
+              toggleMask
+              v-model="addForm.passphrase"
+              :feedback="false"
+              :maxlength="64"
+              required
+              class="w-full"
+              inputClass="w-full"
+            />
+          </div>
+          <div class="form-actions">
+            <a href="/#/docs" target="_blank" class="docs-link">Need help? Read the docs</a>
+            <div class="flex gap-2">
+              <Button
+                type="button"
+                label="Cancel"
+                severity="secondary"
+                outlined
+                @click="showAddModal = false"
+              />
+              <Button type="submit" label="Add" :loading="profilesLoading" />
+            </div>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog
+        v-model:visible="showEditModal"
+        header="Edit Profile"
+        modal
+        :style="{ width: '28rem' }"
+      >
+        <form @submit.prevent="handleEdit" class="profile-form">
+          <div class="field">
+            <label>HoYoLAB UID</label>
+            <div class="mono-text readonly-field">{{ selectedProfile?.ltUid }}</div>
+          </div>
+          <div class="field">
+            <label for="editLToken">New LToken</label>
+            <InputText id="editLToken" v-model="editForm.lToken" required class="w-full" />
+          </div>
+          <div class="field">
+            <label for="editPassphrase">New Passphrase</label>
+            <Password
+              id="editPassphrase"
+              v-model="editForm.passphrase"
+              :feedback="false"
+              :maxlength="64"
+              required
+              class="w-full"
+              inputClass="w-full"
+            />
+          </div>
+          <div class="form-actions">
+            <Button
+              type="button"
+              label="Cancel"
+              severity="secondary"
+              outlined
+              @click="showEditModal = false"
+            />
+            <Button type="submit" label="Save" :loading="profilesLoading" />
+          </div>
+        </form>
+      </Dialog>
     </div>
   </div>
 </template>
@@ -176,15 +378,154 @@ const toTitleCase = (str) => {
   gap: 0.5rem;
 }
 
-.no-perms {
+.profiles-card {
+  background: var(--card-surface) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 0.75rem !important;
+  margin-bottom: 1rem;
+}
+
+.profiles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.profiles-header .card-title {
+  margin-bottom: 0;
+}
+
+.profiles-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.profiles-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.no-profiles {
   color: var(--text-muted);
   font-size: 0.875rem;
   margin: 0;
 }
 
+.docs-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--p-primary-color);
+  text-decoration: none;
+}
+
+.docs-link:hover {
+  text-decoration: underline;
+}
+
+.mono-text {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.muted-text {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.game-uid-row {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.375rem 0;
+}
+
+.game-uid-row + .game-uid-row {
+  border-top: 1px solid var(--border-primary);
+}
+
+.game-uid-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 8rem;
+}
+
+.game-uid-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.last-used-tag {
+  font-size: 0.6875rem !important;
+  width: fit-content;
+}
+
+.uid-table {
+  border-collapse: collapse;
+}
+
+.uid-table td {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.uid-region {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.uid-value {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  color: var(--text-primary);
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.profile-form .field {
+  margin-bottom: 1.25rem;
+}
+
+.profile-form label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.readonly-field {
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-page);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
 @media (max-width: 768px) {
   .page-title {
     font-size: 1.5rem;
+  }
+
+  .profiles-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 }
 </style>

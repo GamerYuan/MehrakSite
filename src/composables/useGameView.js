@@ -6,9 +6,12 @@ import { useAliasManagement } from "./game/useAliasManagement";
 import { useCodesManagement } from "./game/useCodesManagement";
 import { usePortraitConfig } from "./game/usePortraitConfig";
 import { useUserPortraits } from "./game/useUserPortraits";
+import { useProfileManagement } from "./useProfileManagement";
 
 export function useGameView(config) {
   const activeTab = ref(config.tabs[0]?.id || "character");
+
+  const { profiles, fetchProfiles } = useProfileManagement();
 
   const command = useCommandExecution(config, activeTab);
   const characters = useCharacterManagement(config, activeTab);
@@ -35,10 +38,28 @@ export function useGameView(config) {
     return t;
   });
 
+  let serverManuallyChanged = false;
+  watch(() => command.server.value, (newRegion) => {
+    serverManuallyChanged = true;
+    const p = profiles.value?.[0];
+    if (p && newRegion) {
+      p.lastUsedRegions = { ...p.lastUsedRegions, [config.id]: newRegion };
+    }
+  });
+
   onMounted(() => {
+    fetchProfiles();
     characters.fetchCharacters();
     if (config.hasStatEdit) {
       characters.fetchCharacterStats();
+    }
+  });
+
+  watch(profiles, (newProfiles) => {
+    if (serverManuallyChanged) return;
+    const region = newProfiles?.[0]?.lastUsedRegions?.[config.id];
+    if (region) {
+      command.server.value = region;
     }
   });
 
@@ -66,6 +87,7 @@ export function useGameView(config) {
     activeTab,
     tabs,
     canManage,
+    profiles,
 
     ...command,
     ...characters,
