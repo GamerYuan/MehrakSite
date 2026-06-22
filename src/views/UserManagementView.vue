@@ -3,25 +3,19 @@ import { ref, computed, onMounted } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../composables/useApi";
 import { availablePermissions, permissionLabels } from "../configs/gameMeta";
+import Card from "primevue/card";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Dialog from "primevue/dialog";
 import Checkbox from "primevue/checkbox";
-import ToggleButton from "primevue/togglebutton";
 import Tag from "primevue/tag";
 import Select from "primevue/select";
 import Message from "primevue/message";
 
 const confirm = useConfirm();
-const {
-  apiFetch,
-  apiFetchJson,
-  showErrorToast,
-  showSuccessToast,
-  showWarnToast,
-} = useApi();
+const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast } = useApi();
 
 const props = defineProps({
   userInfo: {
@@ -55,7 +49,6 @@ const formatPermission = (str) => {
 };
 
 const formData = ref({
-  username: "",
   discordUserId: "",
   isSuperAdmin: false,
   isActive: true,
@@ -67,7 +60,15 @@ const fetchUsers = async () => {
   try {
     const { ok, data, status } = await apiFetchJson("/users/list");
     if (ok) {
-      users.value = data;
+      users.value = data.map((u) => ({
+        ...u,
+        userId: u.userId || u.UserId || u.id || "",
+        username: u.username || u.Username || "",
+        discordUserId: u.discordUserId || u.DiscordUserId || "",
+        isSuperAdmin: u.isSuperAdmin ?? u.IsSuperAdmin ?? false,
+        isRootUser: u.isRootUser ?? u.IsRootUser ?? false,
+        gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
+      }));
     } else {
       error.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
@@ -82,13 +83,12 @@ const fetchUsers = async () => {
 
 const filteredUsers = computed(() => {
   return users.value.filter((user) => {
-    const matchesSearch = user.username
+    const matchesSearch = (user.username || "")
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
 
     if (filterPermission.value === "All") return matchesSearch;
-    if (filterPermission.value === "SuperAdmin")
-      return matchesSearch && user.isSuperAdmin;
+    if (filterPermission.value === "SuperAdmin") return matchesSearch && user.isSuperAdmin;
 
     return (
       matchesSearch &&
@@ -100,13 +100,10 @@ const filteredUsers = computed(() => {
 
 const resetForm = () => {
   formData.value = {
-    username: "",
     discordUserId: "",
     isSuperAdmin: false,
     isActive: true,
-    permissions: Object.fromEntries(
-      availablePermissions.map((p) => [p, false]),
-    ),
+    permissions: Object.fromEntries(availablePermissions.map((p) => [p, false])),
   };
 };
 
@@ -121,20 +118,17 @@ const openUpdateModal = (user) => {
     return;
   }
   selectedUser.value = user;
-  const userPerms = (user.gameWritePermissions || []).map((p) =>
-    p.toLowerCase(),
-  );
+  const userPerms = new Set((user.gameWritePermissions || []).map((p) => p.toLowerCase()));
 
   const newPermissions = {};
   availablePermissions.forEach((perm) => {
-    newPermissions[perm] = userPerms.includes(perm);
+    newPermissions[perm] = userPerms.has(perm);
   });
 
   formData.value = {
-    username: user.username,
     discordUserId: user.discordUserId || "",
     isSuperAdmin: user.isSuperAdmin,
-    isActive: true,
+    isActive: user.isActive ?? true,
     permissions: newPermissions,
   };
   showUpdateModal.value = true;
@@ -162,28 +156,6 @@ const confirmDelete = (user) => {
   });
 };
 
-const confirmReset = (user) => {
-  if (isRootUser(user)) {
-    blockRootAction();
-    return;
-  }
-  confirm.require({
-    message: `Force password reset for ${user.username}?`,
-    header: "Confirm Password Reset",
-    icon: "pi pi-exclamation-triangle",
-    rejectProps: {
-      label: "Cancel",
-      severity: "secondary",
-      outlined: true,
-    },
-    acceptProps: {
-      label: "Confirm",
-      severity: "primary",
-    },
-    accept: () => handleResetPassword(user),
-  });
-};
-
 const getSelectedPermissions = () => {
   return Object.entries(formData.value.permissions)
     .filter(([_, value]) => value)
@@ -201,7 +173,6 @@ const handleAddUser = async () => {
     }
 
     const payload = {
-      username: formData.value.username,
       discordUserId: discordId,
       isSuperAdmin: formData.value.isSuperAdmin,
       gameWritePermissions: getSelectedPermissions(),
@@ -245,7 +216,6 @@ const handleUpdateUser = async () => {
     }
 
     const payload = {
-      username: formData.value.username,
       discordUserId: discordId,
       isSuperAdmin: formData.value.isSuperAdmin,
       isActive: formData.value.isActive,
@@ -295,29 +265,6 @@ const handleDeleteUser = async (user) => {
   }
 };
 
-const handleResetPassword = async (user) => {
-  if (isRootUser(user)) {
-    blockRootAction();
-    return;
-  }
-  try {
-    const response = await apiFetch(
-      `/users/${user.userId}/password/require-reset`,
-      { method: "POST" },
-    );
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || "Failed to reset password");
-    }
-
-    showSuccessToast("Password reset required for user.", "Success");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
-  }
-};
-
 onMounted(() => {
   fetchUsers();
 });
@@ -335,293 +282,338 @@ const permissionOptions = computed(() => {
 </script>
 
 <template>
-  <div class="user-management">
-    <div class="header">
-      <h1 class="text-4xl font-bold mb-3">User Management</h1>
-      <Button label="Add User" icon="pi pi-plus" @click="openAddModal" />
-    </div>
-
-    <Message v-if="error" severity="error" class="mb-4">{{ error }}</Message>
-
-    <div class="controls flex gap-4 mb-4">
-      <InputText
-        v-model="searchQuery"
-        placeholder="Search by username..."
-        class="flex-1"
-        fluid
-      />
-
-      <Select
-        v-model="filterPermission"
-        :options="permissionOptions"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Filter Permissions"
-        class="w-1/3 items-center"
-      />
-    </div>
-
-    <DataTable
-      :value="filteredUsers"
-      :loading="loading"
-      tableStyle="min-width: 50rem"
-    >
-      <Column field="username" header="Username"></Column>
-      <Column field="discordUserId" header="Discord ID"></Column>
-      <Column header="Role">
-        <template #body="slotProps">
-          <Tag
-            v-if="slotProps.data.isRootUser"
-            severity="danger"
-            value="Root User"
-          />
-          <Tag
-            v-else-if="slotProps.data.isSuperAdmin"
-            severity="success"
-            value="Super Admin"
-          />
-          <Tag v-else severity="secondary" value="User" />
-        </template>
-      </Column>
-      <Column header="Permissions">
-        <template #body="slotProps">
-          <div class="flex flex-wrap gap-2">
-            <Tag
-              v-for="perm in slotProps.data.gameWritePermissions"
-              :key="perm"
-              :value="formatPermission(perm)"
-              severity="info"
-            />
-          </div>
-        </template>
-      </Column>
-      <Column header="Actions">
-        <template #body="slotProps">
-          <div class="flex gap-2">
-            <Button
-              icon="pi pi-pencil"
-              severity="secondary"
-              text
-              rounded
-              aria-label="Edit"
-              :disabled="slotProps.data.isRootUser"
-              @click="openUpdateModal(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-lock"
-              severity="warn"
-              text
-              rounded
-              aria-label="Reset Password"
-              :disabled="slotProps.data.isRootUser"
-              @click="confirmReset(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              rounded
-              aria-label="Delete"
-              :disabled="slotProps.data.isRootUser"
-              @click="confirmDelete(slotProps.data)"
-            />
-          </div>
-        </template>
-      </Column>
-    </DataTable>
-
-    <!-- Add/Update Modal -->
-    <Dialog
-      v-model:visible="showAddModal"
-      modal
-      header="Add New User"
-      :style="{ width: '25rem' }"
-    >
-      <form @submit.prevent="handleAddUser">
-        <div class="flex flex-col gap-4 mb-4">
-          <div class="flex flex-col gap-2">
-            <label for="username" class="font-semibold w-24">Username</label>
-            <InputText
-              id="username"
-              v-model="formData.username"
-              class="flex-auto"
-              autocomplete="off"
-              required
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label for="discordId" class="font-semibold w-24">Discord ID</label>
-            <InputText
-              id="discordId"
-              v-model="formData.discordUserId"
-              class="flex-auto"
-              autocomplete="off"
-              required
-              pattern="\d+"
-              title="Numeric ID"
-            />
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="formData.isSuperAdmin"
-              binary
-              inputId="isSuperAdmin"
-            />
-            <label for="isSuperAdmin" class="font-semibold">Super Admin</label>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="font-semibold">Game Write Permissions</label>
-            <div class="flex flex-col gap-2">
-              <ToggleButton
-                v-for="perm in availablePermissions"
-                :key="perm"
-                v-model="formData.permissions[perm]"
-                :onLabel="formatPermission(perm)"
-                :offLabel="formatPermission(perm)"
-                class="w-full"
-                :pt="{
-                  root: ({ props }) => ({
-                    class: [
-                      props.modelValue
-                        ? '!bg-green-500 !border-green-500 !text-white hover:!bg-green-600'
-                        : '',
-                    ],
-                  }),
-                }"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="flex justify-end gap-2">
-          <Button
-            type="button"
-            label="Cancel"
-            severity="secondary"
-            @click="showAddModal = false"
-          ></Button>
-          <Button type="submit" label="Save"></Button>
-        </div>
-      </form>
-    </Dialog>
-
-    <Dialog
-      v-model:visible="showUpdateModal"
-      modal
-      header="Update User"
-      :style="{ width: '25rem' }"
-    >
-      <form @submit.prevent="handleUpdateUser">
-        <div class="flex flex-col gap-4 mb-4">
-          <div class="flex flex-col gap-2">
-            <label for="edit-username" class="font-semibold w-24"
-              >Username</label
-            >
-            <InputText
-              id="edit-username"
-              v-model="formData.username"
-              class="flex-auto"
-              autocomplete="off"
-              required
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label for="edit-discordId" class="font-semibold w-24"
-              >Discord ID</label
-            >
-            <InputText
-              id="edit-discordId"
-              v-model="formData.discordUserId"
-              class="flex-auto"
-              autocomplete="off"
-              required
-              pattern="\d+"
-              title="Numeric ID"
-            />
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="formData.isSuperAdmin"
-              binary
-              inputId="edit-isSuperAdmin"
-            />
-            <label for="edit-isSuperAdmin" class="font-semibold"
-              >Super Admin</label
-            >
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="font-semibold">Game Write Permissions</label>
-            <div class="flex flex-col gap-2">
-              <ToggleButton
-                v-for="perm in availablePermissions"
-                :key="perm"
-                v-model="formData.permissions[perm]"
-                :onLabel="formatPermission(perm)"
-                :offLabel="formatPermission(perm)"
-                class="w-full"
-                :pt="{
-                  root: ({ props }) => ({
-                    class: [
-                      props.modelValue
-                        ? '!bg-green-500 !border-green-500 !text-white hover:!bg-green-600'
-                        : '',
-                    ],
-                  }),
-                }"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="flex justify-end gap-2">
-          <Button
-            type="button"
-            label="Cancel"
-            severity="secondary"
-            @click="showUpdateModal = false"
-          ></Button>
-          <Button type="submit" label="Save"></Button>
-        </div>
-      </form>
-    </Dialog>
-
-    <Dialog
-      v-model:visible="showTempPasswordModal"
-      modal
-      header="User Created"
-      :style="{ width: '25rem' }"
-    >
-      <p class="mb-4">Temporary Password:</p>
-      <div class="code-block select-all">
-        {{ tempPassword }}
+  <div class="management-page">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">User Management</h1>
+        <p class="page-subtitle">Invite users, set permissions, and manage access.</p>
       </div>
-      <p class="text-orange-500 mb-4">
-        Please copy this password. It will not be shown again.
-      </p>
-      <div class="flex justify-end">
-        <Button label="Close" @click="showTempPasswordModal = false"></Button>
+      <Button label="Add User" icon="pi pi-plus" @click="openAddModal" />
+    </header>
+
+    <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+
+    <Card class="card-elevated filters-card">
+      <template #content>
+        <div class="filters-row">
+          <InputText v-model="searchQuery" placeholder="Search users..." fluid />
+          <Select
+            v-model="filterPermission"
+            :options="permissionOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Filter Permissions"
+            class="permission-filter"
+          />
+        </div>
+      </template>
+    </Card>
+
+    <Card class="card-elevated table-card">
+      <template #content>
+        <DataTable
+          :value="filteredUsers"
+          :loading="loading"
+          responsiveLayout="scroll"
+          class="user-table"
+          size="small"
+        >
+          <Column field="discordUserId" header="Discord ID">
+            <template #body="slotProps">
+              <span class="mono-text">{{ slotProps.data.discordUserId }}</span>
+            </template>
+          </Column>
+          <Column header="Role" style="width: 8rem">
+            <template #body="slotProps">
+              <Tag
+                v-if="slotProps.data.isRootUser"
+                severity="danger"
+                icon="pi pi-star-fill"
+                value="Root User"
+              />
+              <Tag
+                v-else-if="slotProps.data.isSuperAdmin"
+                severity="success"
+                icon="pi pi-shield"
+                value="Super Admin"
+              />
+              <Tag v-else severity="secondary" value="User" />
+            </template>
+          </Column>
+          <Column header="Permissions">
+            <template #body="slotProps">
+              <div class="perm-tags">
+                <Tag
+                  v-for="perm in slotProps.data.gameWritePermissions"
+                  :key="perm"
+                  :value="formatPermission(perm)"
+                  severity="info"
+                />
+              </div>
+            </template>
+          </Column>
+          <Column header="Actions" style="width: 7rem">
+            <template #body="slotProps">
+              <div class="row-actions">
+                <Button
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  text
+                  rounded
+                  aria-label="Edit"
+                  :disabled="slotProps.data.isRootUser"
+                  @click="openUpdateModal(slotProps.data)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  rounded
+                  aria-label="Delete"
+                  :disabled="slotProps.data.isRootUser"
+                  @click="confirmDelete(slotProps.data)"
+                />
+              </div>
+            </template>
+          </Column>
+        </DataTable>
+      </template>
+    </Card>
+
+    <Dialog v-model:visible="showAddModal" modal header="Add New User" :style="{ width: '25rem' }">
+      <form @submit.prevent="handleAddUser" class="user-form">
+        <div class="field">
+          <label for="discordId">Discord ID</label>
+          <InputText
+            id="discordId"
+            v-model="formData.discordUserId"
+            autocomplete="off"
+            required
+            pattern="\d+"
+            title="Numeric ID"
+            class="w-full"
+            inputClass="w-full"
+          />
+        </div>
+
+        <div class="field checkbox-field">
+          <Checkbox v-model="formData.isSuperAdmin" binary inputId="isSuperAdmin" />
+          <label for="isSuperAdmin" class="checkbox-label">Super Admin</label>
+        </div>
+
+        <div class="field">
+          <label>Game Write Permissions</label>
+          <div class="permission-grid">
+            <div v-for="perm in availablePermissions" :key="perm" class="permission-item">
+              <Checkbox v-model="formData.permissions[perm]" binary :inputId="`add-perm-${perm}`" />
+              <label :for="`add-perm-${perm}`" class="checkbox-label">{{ formatPermission(perm) }}</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <Button type="button" label="Cancel" severity="secondary" outlined @click="showAddModal = false" />
+          <Button type="submit" label="Save" />
+        </div>
+      </form>
+    </Dialog>
+
+    <Dialog v-model:visible="showUpdateModal" modal header="Update User" :style="{ width: '25rem' }">
+      <form @submit.prevent="handleUpdateUser" class="user-form">
+        <div class="field">
+          <label for="edit-discordId">Discord ID</label>
+          <InputText
+            id="edit-discordId"
+            v-model="formData.discordUserId"
+            autocomplete="off"
+            required
+            pattern="\d+"
+            title="Numeric ID"
+            class="w-full"
+            inputClass="w-full"
+          />
+        </div>
+
+        <div class="field checkbox-field">
+          <Checkbox v-model="formData.isSuperAdmin" binary inputId="edit-isSuperAdmin" />
+          <label for="edit-isSuperAdmin" class="checkbox-label">Super Admin</label>
+        </div>
+
+        <div class="field">
+          <label>Game Write Permissions</label>
+          <div class="permission-grid">
+            <div v-for="perm in availablePermissions" :key="perm" class="permission-item">
+              <Checkbox v-model="formData.permissions[perm]" binary :inputId="`edit-perm-${perm}`" />
+              <label :for="`edit-perm-${perm}`" class="checkbox-label">{{ formatPermission(perm) }}</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <Button type="button" label="Cancel" severity="secondary" outlined @click="showUpdateModal = false" />
+          <Button type="submit" label="Save" />
+        </div>
+      </form>
+    </Dialog>
+
+    <Dialog v-model:visible="showTempPasswordModal" modal header="User Created" :style="{ width: '25rem' }">
+      <div class="temp-password">
+        <p class="mb-2">Temporary Password:</p>
+        <div class="code-block select-all">
+          {{ tempPassword }}
+        </div>
+        <p class="warning-text">Please copy this password. It will not be shown again.</p>
+        <div class="flex justify-end">
+          <Button label="Close" @click="showTempPasswordModal = false" />
+        </div>
       </div>
     </Dialog>
   </div>
 </template>
 
 <style scoped>
-.header {
+.management-page {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.page-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.filters-card {
+  margin-bottom: 1rem;
+}
+
+.filters-card :deep(.p-card-content) {
+  padding: 1rem;
+}
+
+.filters-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .filters-row {
+    flex-direction: row;
+  }
+
+  .permission-filter {
+    width: 16rem;
+    flex-shrink: 0;
+  }
+}
+
+.table-card :deep(.p-card-content) {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.user-table :deep(th) {
+  background: var(--bg-surface-raised) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+}
+
+.mono-text {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.font-medium {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.perm-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.user-form .field {
+  margin-bottom: 1.25rem;
+}
+
+.user-form label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.checkbox-field,
+.permission-item {
+  display: flex;
   align-items: center;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+}
+
+.user-form .checkbox-field label,
+.permission-item label {
+  margin-bottom: 0;
+}
+
+.permission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.temp-password {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .code-block {
-  background: var(--bg-surface);
+  background: var(--bg-surface-raised);
   border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  padding: 1rem;
-  font-family: monospace;
-  font-size: 1.1rem;
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.9375rem;
   word-break: break-all;
+  color: var(--text-primary);
 }
 
-.text-orange-500 {
+.warning-text {
   color: var(--p-orange-500);
+  font-size: 0.875rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
 }
 </style>

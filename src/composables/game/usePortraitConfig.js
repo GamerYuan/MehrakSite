@@ -2,23 +2,18 @@ import { ref } from "vue";
 import { useApi } from "../useApi";
 
 export function usePortraitConfig(config) {
-  const {
-    showErrorToast,
-    showSuccessToast,
-    buildError,
-    apiFetch,
-    apiFetchJson,
-  } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const showPortraitConfigModal = ref(false);
+  const showMissingServerIdModal = ref(false);
+  const missingServerIdCharacter = ref("");
   const portraitConfigCharacter = ref("");
   const portraitConfigServerIds = ref([]);
   const portraitConfigServerId = ref(null);
   const portraitConfigOffsetX = ref(null);
   const portraitConfigOffsetY = ref(null);
   const portraitConfigTargetScale = ref(null);
-  const portraitConfigEnableFade = ref(null);
-  const portraitConfigFadeStart = ref(null);
+  const portraitConfigFlipX = ref(false);
   const portraitConfigFetching = ref(false);
   const portraitConfigSaving = ref(false);
 
@@ -27,8 +22,7 @@ export function usePortraitConfig(config) {
     portraitConfigOffsetX.value = null;
     portraitConfigOffsetY.value = null;
     portraitConfigTargetScale.value = null;
-    portraitConfigEnableFade.value = null;
-    portraitConfigFadeStart.value = null;
+    portraitConfigFlipX.value = false;
     portraitConfigFetching.value = true;
 
     try {
@@ -39,8 +33,7 @@ export function usePortraitConfig(config) {
         portraitConfigOffsetX.value = data.offsetX ?? 0;
         portraitConfigOffsetY.value = data.offsetY ?? 0;
         portraitConfigTargetScale.value = data.targetScale ?? null;
-        portraitConfigEnableFade.value = data.enableGradientFade ?? false;
-        portraitConfigFadeStart.value = data.gradientFadeStart ?? 0.75;
+        portraitConfigFlipX.value = data.flipX ?? false;
       }
     } catch (err) {
       if (err._redirected) return;
@@ -57,22 +50,28 @@ export function usePortraitConfig(config) {
     portraitConfigOffsetX.value = 0;
     portraitConfigOffsetY.value = 0;
     portraitConfigTargetScale.value = null;
-    portraitConfigEnableFade.value = false;
-    portraitConfigFadeStart.value = 0.75;
-    showPortraitConfigModal.value = true;
+    portraitConfigFlipX.value = false;
     portraitConfigFetching.value = true;
 
     try {
       const listResponse = await apiFetch(
         `/portraits/list?game=${config.id}&character=${encodeURIComponent(char)}`,
       );
-      if (listResponse.ok) {
-        portraitConfigServerIds.value = await listResponse.json();
+      if (!listResponse.ok) {
+        const data = await listResponse.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to fetch portrait list (${listResponse.status})`);
       }
 
-      if (portraitConfigServerIds.value.length > 0) {
-        await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
+      portraitConfigServerIds.value = await listResponse.json();
+
+      if (portraitConfigServerIds.value.length === 0) {
+        missingServerIdCharacter.value = char;
+        showMissingServerIdModal.value = true;
+        return;
       }
+
+      showPortraitConfigModal.value = true;
+      await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
     } catch (err) {
       if (err._redirected) return;
       showErrorToast(err.message, err.status);
@@ -83,10 +82,7 @@ export function usePortraitConfig(config) {
 
   const handlePortraitConfigSubmit = async () => {
     if (!portraitConfigServerId.value) {
-      showErrorToast(
-        "No portrait selected. Please select a portrait first.",
-        400,
-      );
+      showErrorToast("No portrait selected. Please select a portrait first.", 400);
       return;
     }
     portraitConfigSaving.value = true;
@@ -97,21 +93,17 @@ export function usePortraitConfig(config) {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            offsetX: portraitConfigOffsetX.value,
-            offsetY: portraitConfigOffsetY.value,
+            offsetX: Math.round(portraitConfigOffsetX.value),
+            offsetY: Math.round(portraitConfigOffsetY.value),
             targetScale: portraitConfigTargetScale.value,
-            enableGradientFade: portraitConfigEnableFade.value,
-            gradientFadeStart: portraitConfigFadeStart.value,
+            flipX: portraitConfigFlipX.value,
           }),
         },
       );
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw buildError(
-          data.error || "Failed to update portrait config",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to update portrait config", response.status);
       }
 
       showPortraitConfigModal.value = false;
@@ -126,14 +118,15 @@ export function usePortraitConfig(config) {
 
   return {
     showPortraitConfigModal,
+    showMissingServerIdModal,
+    missingServerIdCharacter,
     portraitConfigCharacter,
     portraitConfigServerIds,
     portraitConfigServerId,
     portraitConfigOffsetX,
     portraitConfigOffsetY,
     portraitConfigTargetScale,
-    portraitConfigEnableFade,
-    portraitConfigFadeStart,
+    portraitConfigFlipX,
     portraitConfigFetching,
     portraitConfigSaving,
     openPortraitConfigModal,

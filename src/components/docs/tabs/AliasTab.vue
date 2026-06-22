@@ -25,7 +25,8 @@ const filteredAliases = computed(() => {
   if (!searchQuery.value) return current;
   const q = searchQuery.value.toLowerCase();
   return current.filter(
-    (item) => item.name.toLowerCase().includes(q) || item.aliases.some((a) => a.toLowerCase().includes(q)),
+    (item) =>
+      item.name.toLowerCase().includes(q) || item.aliases.some((a) => a.toLowerCase().includes(q)),
   );
 });
 </script>
@@ -53,7 +54,7 @@ const filteredAliases = computed(() => {
     </div>
 
     <div v-if="loading" class="alias-state">
-      <ProgressSpinner style="width:36px;height:36px" strokeWidth="3" />
+      <ProgressSpinner style="width: 36px; height: 36px" strokeWidth="3" />
       <span>Loading aliases...</span>
     </div>
 
@@ -69,11 +70,13 @@ const filteredAliases = computed(() => {
         <TabPanels>
           <TabPanel v-for="game in games" :key="game.id" :value="game.id">
             <div v-if="!aliases[game.id] || aliases[game.id].length === 0" class="alias-empty">
-              <i class="pi pi-inbox" style="font-size:1.5rem;opacity:0.3"></i>
+              <i class="pi pi-inbox" style="font-size: 1.5rem; opacity: 0.3"></i>
               <p>No aliases for this game yet.</p>
             </div>
             <div v-else-if="filteredAliases.length === 0" class="alias-empty">
-              <Message severity="warn" :closable="false" icon="pi pi-search">No results found for '{{ searchQuery }}'.</Message>
+              <Message severity="warn" :closable="false" icon="pi pi-search"
+                >No results found for '{{ searchQuery }}'.</Message
+              >
             </div>
             <DataTable
               v-else
@@ -89,7 +92,7 @@ const filteredAliases = computed(() => {
                 row: { class: 'table-body-row' },
               }"
             >
-              <Column field="name" header="Character Name" sortable style="width:30%">
+              <Column field="name" header="Character Name" sortable style="width: 30%">
                 <template #body="{ data }">
                   <span class="char-name">{{ data.name }}</span>
                 </template>
@@ -97,7 +100,13 @@ const filteredAliases = computed(() => {
               <Column header="Aliases">
                 <template #body="{ data }">
                   <div class="alias-tags">
-                    <Tag v-for="alias in data.aliases" :key="alias" :value="alias" severity="secondary" class="alias-tag" />
+                    <Tag
+                      v-for="alias in data.aliases"
+                      :key="alias"
+                      :value="alias"
+                      severity="secondary"
+                      class="alias-tag"
+                    />
                   </div>
                 </template>
               </Column>
@@ -179,7 +188,7 @@ const filteredAliases = computed(() => {
 
 .alias-search:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(34,197,94,0.08);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.08);
 }
 
 .alias-search::placeholder {

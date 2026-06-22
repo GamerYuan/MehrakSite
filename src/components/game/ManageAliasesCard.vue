@@ -12,28 +12,15 @@ const gv = useGameViewInject();
 </script>
 
 <template>
-  <Card>
+  <Card class="game-card">
     <template #title>Manage Aliases</template>
     <template #content>
       <div class="flex flex-col gap-4">
-        <div class="flex flex-row gap-4">
-          <InputText
-            v-model="gv.aliasSearchQuery"
-            placeholder="Search aliases..."
-            fluid
-          />
-          <Button
-            label="Add"
-            @click="gv.openAddAliasModal"
-            :loading="gv.manageLoading"
-          />
+        <div class="flex flex-col sm:flex-row gap-4">
+          <InputText v-model="gv.aliasSearchQuery" placeholder="Search aliases..." fluid />
+          <Button label="Add" @click="gv.openAddAliasModal" :loading="gv.manageLoading" />
         </div>
-        <DataTable
-          :value="gv.filteredAliases"
-          paginator
-          :rows="10"
-          tableStyle="min-width: 50rem"
-        >
+        <DataTable :value="gv.filteredAliases" paginator :rows="10" responsiveLayout="scroll">
           <Column field="name" header="Character Name" sortable></Column>
           <Column header="Aliases">
             <template #body="slotProps">

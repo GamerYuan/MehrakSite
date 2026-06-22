@@ -12,12 +12,57 @@ const emit = defineEmits(["click"]);
       <span
         class="card-badge"
         :style="{
-          color: doc.game === 'Genshin' ? '#B8860B' : doc.game === 'HonkaiStarRail' ? '#0077A8' : doc.game === 'ZenlessZoneZero' ? '#C45200' : doc.game === 'HonkaiImpact3' ? '#CC3388' : doc.game === 'TearsOfThemis' ? '#8B6B8B' : '#666',
-          background: doc.game === 'Genshin' ? 'rgba(184,134,11,0.12)' : doc.game === 'HonkaiStarRail' ? 'rgba(0,119,168,0.12)' : doc.game === 'ZenlessZoneZero' ? 'rgba(196,82,0,0.12)' : doc.game === 'HonkaiImpact3' ? 'rgba(204,51,136,0.12)' : doc.game === 'TearsOfThemis' ? 'rgba(139,107,139,0.12)' : 'rgba(102,102,102,0.12)',
-          borderColor: doc.game === 'Genshin' ? 'rgba(184,134,11,0.3)' : doc.game === 'HonkaiStarRail' ? 'rgba(0,119,168,0.3)' : doc.game === 'ZenlessZoneZero' ? 'rgba(196,82,0,0.3)' : doc.game === 'HonkaiImpact3' ? 'rgba(204,51,136,0.3)' : doc.game === 'TearsOfThemis' ? 'rgba(139,107,139,0.3)' : 'rgba(102,102,102,0.3)',
+          color:
+            doc.game === 'Genshin'
+              ? '#B8860B'
+              : doc.game === 'HonkaiStarRail'
+                ? '#0077A8'
+                : doc.game === 'ZenlessZoneZero'
+                  ? '#C45200'
+                  : doc.game === 'HonkaiImpact3'
+                    ? '#CC3388'
+                    : doc.game === 'TearsOfThemis'
+                      ? '#8B6B8B'
+                      : '#666',
+          background:
+            doc.game === 'Genshin'
+              ? 'rgba(184,134,11,0.12)'
+              : doc.game === 'HonkaiStarRail'
+                ? 'rgba(0,119,168,0.12)'
+                : doc.game === 'ZenlessZoneZero'
+                  ? 'rgba(196,82,0,0.12)'
+                  : doc.game === 'HonkaiImpact3'
+                    ? 'rgba(204,51,136,0.12)'
+                    : doc.game === 'TearsOfThemis'
+                      ? 'rgba(139,107,139,0.12)'
+                      : 'rgba(102,102,102,0.12)',
+          borderColor:
+            doc.game === 'Genshin'
+              ? 'rgba(184,134,11,0.3)'
+              : doc.game === 'HonkaiStarRail'
+                ? 'rgba(0,119,168,0.3)'
+                : doc.game === 'ZenlessZoneZero'
+                  ? 'rgba(196,82,0,0.3)'
+                  : doc.game === 'HonkaiImpact3'
+                    ? 'rgba(204,51,136,0.3)'
+                    : doc.game === 'TearsOfThemis'
+                      ? 'rgba(139,107,139,0.3)'
+                      : 'rgba(102,102,102,0.3)',
         }"
       >
-        {{ doc.game === 'HonkaiStarRail' ? 'HSR' : doc.game === 'ZenlessZoneZero' ? 'ZZZ' : doc.game === 'HonkaiImpact3' ? 'HI3' : doc.game === 'TearsOfThemis' ? 'ToT' : doc.game === 'Genshin' ? 'GI' : 'Misc' }}
+        {{
+          doc.game === "HonkaiStarRail"
+            ? "HSR"
+            : doc.game === "ZenlessZoneZero"
+              ? "ZZZ"
+              : doc.game === "HonkaiImpact3"
+                ? "HI3"
+                : doc.game === "TearsOfThemis"
+                  ? "ToT"
+                  : doc.game === "Genshin"
+                    ? "GI"
+                    : "Misc"
+        }}
       </span>
     </div>
     <p class="card-desc">{{ doc.description }}</p>
@@ -43,17 +88,17 @@ const emit = defineEmits(["click"]);
 }
 
 .doc-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(34,197,94,0.04) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.04) 0%, transparent 50%);
   opacity: 0;
   transition: opacity 0.12s ease;
 }
 
 .doc-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(34,197,94,0.08);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.08);
 }
 
 .doc-card:hover::before {

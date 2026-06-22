@@ -23,16 +23,19 @@ const faqItems = [
   },
   {
     question: "How can I remove my user data on Mehrak?",
-    answer: "When you remove your last available profile, Mehrak will automatically remove all stored user data you have with Mehrak, including your Discord ID, HoYoLAB UID and Cookies, except for the collected usage metrics. The usage metrics only contains the commands that you have executed when you use Mehrak.",
+    answer:
+      "When you remove your last available profile, Mehrak will automatically remove all stored user data you have with Mehrak, including your Discord ID, HoYoLAB UID and Cookies, except for the collected usage metrics. The usage metrics only contains the commands that you have executed when you use Mehrak.",
   },
   {
     question: "How do I use Mehrak outside of my Discord server?",
-    answer: "By installing Mehrak to your user profile as a User Application, you can use Mehrak in any servers with External Applications enabled, or in DMs. You may refer to ",
+    answer:
+      "By installing Mehrak to your user profile as a User Application, you can use Mehrak in any servers with External Applications enabled, or in DMs. You may refer to ",
     link: { text: "Getting Started", route: "/docs?tab=getting-started" },
   },
   {
     question: "Is Mehrak safe?",
-    answer: "Mehrak is committed to provide maximum security for our users. You can read more about this under the ",
+    answer:
+      "Mehrak is committed to provide maximum security for our users. You can read more about this under the ",
     link: { text: "About HoYoLAB Cookies", route: "/docs?tab=appendix&section=cookies" },
     answerEnd: " page.",
   },
@@ -62,17 +65,18 @@ const faqItems = [
           <AccordionHeader>{{ item.question }}</AccordionHeader>
           <AccordionContent>
             <p class="faq-answer">
-              {{ item.answer }}<RouterLink
-                v-if="item.link?.route"
-                :to="item.link.route"
-                class="faq-link"
-              >{{ item.link.text }}</RouterLink><a
+              {{ item.answer
+              }}<RouterLink v-if="item.link?.route" :to="item.link.route" class="faq-link">{{
+                item.link.text
+              }}</RouterLink
+              ><a
                 v-else-if="item.link?.href"
                 :href="item.link.href"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="faq-link"
-              >{{ item.link.text }}</a>{{ item.answerEnd || "" }}
+                >{{ item.link.text }}</a
+              >{{ item.answerEnd || "" }}
             </p>
           </AccordionContent>
         </AccordionPanel>

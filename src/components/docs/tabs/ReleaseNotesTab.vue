@@ -10,7 +10,7 @@ const loading = ref(true);
 const error = ref(null);
 const selectedVersion = ref("");
 
-const getTypeOrder = (type) => ({ feature: 0, improvement: 1, fix: 2 }[type] ?? 3);
+const getTypeOrder = (type) => ({ feature: 0, improvement: 1, fix: 2 })[type] ?? 3;
 
 const sortedReleases = computed(() =>
   releases.value.map((r) => ({
@@ -24,7 +24,7 @@ const sortedReleases = computed(() =>
         })
         .map((n) => ({ ...n, parts: parseNote(n.text) })),
     })),
-  }))
+  })),
 );
 
 const parseNote = (text) => {
@@ -43,11 +43,12 @@ const parseNote = (text) => {
   return hasCmd ? parts : [{ type: "text", text }];
 };
 
-const typeStyle = (t) => ({
-  feature: { label: "Feature", cls: "tp-feat" },
-  improvement: { label: "Improvement", cls: "tp-imp" },
-  fix: { label: "Fix", cls: "tp-fix" },
-}[t] || { label: t, cls: "tp-def" });
+const typeStyle = (t) =>
+  ({
+    feature: { label: "Feature", cls: "tp-feat" },
+    improvement: { label: "Improvement", cls: "tp-imp" },
+    fix: { label: "Fix", cls: "tp-fix" },
+  })[t] || { label: t, cls: "tp-def" };
 
 const scrollToVersion = (v) => {
   selectedVersion.value = v;
@@ -78,13 +79,20 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-if="loading" class="rn-state"><ProgressSpinner style="width:32px;height:32px" strokeWidth="3" /></div>
+    <div v-if="loading" class="rn-state">
+      <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="3" />
+    </div>
     <div v-else-if="error" class="rn-state">{{ error }}</div>
     <div v-else-if="!sortedReleases.length" class="rn-state">No release notes available.</div>
 
     <div v-else class="rn-layout">
       <div class="rn-list">
-        <article v-for="release in sortedReleases" :key="release.version" :id="'release-' + release.version" class="rn-card">
+        <article
+          v-for="release in sortedReleases"
+          :key="release.version"
+          :id="'release-' + release.version"
+          class="rn-card"
+        >
           <div class="rn-card-head">
             <span class="rn-ver">{{ release.version }}</span>
             <span v-if="release.date" class="rn-date">{{ release.date }}</span>
@@ -95,7 +103,9 @@ onMounted(async () => {
             <ul class="rn-notes">
               <li v-for="(note, i) in section.notes" :key="i" class="rn-note">
                 <div class="rn-note-meta">
-                  <span :class="['rn-type', typeStyle(note.type).cls]">{{ typeStyle(note.type).label }}</span>
+                  <span :class="['rn-type', typeStyle(note.type).cls]">{{
+                    typeStyle(note.type).label
+                  }}</span>
                   <template v-for="(part, pi) in note.parts" :key="pi">
                     <span v-if="part.type === 'cmd'" class="rn-cmd">{{ part.text }}</span>
                   </template>
@@ -115,7 +125,13 @@ onMounted(async () => {
         <div class="rn-versions-card">
           <h4 class="rn-versions-label">Versions</h4>
           <nav class="rn-versions-nav">
-            <button v-for="r in sortedReleases" :key="r.version" type="button" :class="['rn-ver-btn', { active: selectedVersion === r.version }]" @click="scrollToVersion(r.version)">
+            <button
+              v-for="r in sortedReleases"
+              :key="r.version"
+              type="button"
+              :class="['rn-ver-btn', { active: selectedVersion === r.version }]"
+              @click="scrollToVersion(r.version)"
+            >
               {{ r.version }}
             </button>
           </nav>
@@ -260,17 +276,29 @@ onMounted(async () => {
   letter-spacing: 0.02em;
 }
 
-.tp-feat { background: rgba(34,197,94,0.12); color: var(--accent); }
-.tp-imp { background: rgba(59,130,246,0.12); color: #3b82f6; }
-.tp-fix { background: rgba(249,115,22,0.12); color: #f97316; }
-.tp-def { background: var(--bg-surface); color: var(--text-muted); }
+.tp-feat {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--accent);
+}
+.tp-imp {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.tp-fix {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+}
+.tp-def {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
 
 .rn-cmd {
   font-size: 0.625rem;
   font-weight: 700;
   padding: 0.0625rem 0.375rem;
   border-radius: 0.1875rem;
-  background: rgba(139,92,246,0.12);
+  background: rgba(139, 92, 246, 0.12);
   color: #8b5cf6;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
@@ -334,18 +362,24 @@ onMounted(async () => {
 
 .rn-ver-btn.active {
   color: var(--accent);
-  background: rgba(34,197,94,0.08);
+  background: rgba(34, 197, 94, 0.08);
 }
 
 @media (max-width: 1024px) {
-  .rn-layout { grid-template-columns: 1fr; }
-  .rn-versions { position: static; }
+  .rn-layout {
+    grid-template-columns: 1fr;
+  }
+  .rn-versions {
+    position: static;
+  }
   .rn-versions-nav {
     flex-direction: row;
     overflow-x: auto;
     max-height: none;
     gap: 0.25rem;
   }
-  .rn-ver-btn { white-space: nowrap; }
+  .rn-ver-btn {
+    white-space: nowrap;
+  }
 }
 </style>

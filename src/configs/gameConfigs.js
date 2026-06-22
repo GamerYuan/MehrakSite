@@ -1,6 +1,7 @@
 export const gameConfigs = {
   genshin: {
     id: "Genshin",
+    logo: "/genshin.webp",
     permission: "genshin",
     endpoint: "/genshin",
     title: "Genshin Impact",
@@ -31,10 +32,13 @@ export const gameConfigs = {
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
     portraitDefaultWidth: 1400,
+    fadeX: 1000,
+    fadeWidth: 150,
   },
 
   hsr: {
     id: "HonkaiStarRail",
+    logo: "/hsr.webp",
     permission: "hsr",
     endpoint: "/hsr",
     title: "Honkai: Star Rail",
@@ -59,10 +63,13 @@ export const gameConfigs = {
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
     portraitDefaultWidth: 1000,
+    fadeX: 0,
+    fadeWidth: 0,
   },
 
   zzz: {
     id: "ZenlessZoneZero",
+    logo: "/zzz.webp",
     permission: "zzz",
     endpoint: "/zzz",
     title: "Zenless Zone Zero",
@@ -84,10 +91,13 @@ export const gameConfigs = {
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.25,
     portraitDefaultWidth: 2000,
+    fadeX: 0,
+    fadeWidth: 0,
   },
 
   hi3: {
     id: "HonkaiImpact3",
+    logo: "/hi3.webp",
     permission: "hi3",
     endpoint: "/hi3",
     title: "Honkai Impact 3rd",
@@ -113,5 +123,7 @@ export const gameConfigs = {
     portraitAlignY: 425,
     portraitAnchorX: 0.5,
     portraitAnchorY: 0.5,
+    fadeX: 650,
+    fadeWidth: 100,
   },
 };

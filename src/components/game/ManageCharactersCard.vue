@@ -4,6 +4,7 @@ import { useGameViewInject } from "../../composables/game/injectKey";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import Dialog from "primevue/dialog";
 import Message from "primevue/message";
 import Checkbox from "primevue/checkbox";
 
@@ -28,46 +29,30 @@ const formatStat = (value) => {
 </script>
 
 <template>
-  <Card>
+  <Card class="game-card">
     <template #title>Manage Characters</template>
     <template #content>
       <div class="flex flex-col gap-4">
-        <div class="flex gap-2">
+        <div v-if="gv.canManage" class="flex gap-2">
           <InputText
             v-model="gv.newCharacterName"
             placeholder="New Character Name"
             fluid
             class="flex-1"
           />
-          <Button
-            label="Add"
-            @click="gv.addCharacter"
-            :loading="gv.manageLoading"
-          />
+          <Button label="Add" @click="gv.addCharacter" :loading="gv.manageLoading" />
         </div>
-        <Message v-if="gv.manageError" severity="error">{{
-          gv.manageError
-        }}</Message>
+        <Message v-if="gv.manageError" severity="error">{{ gv.manageError }}</Message>
         <div class="flex flex-col gap-2">
-          <InputText
-            v-model="gv.manageSearchQuery"
-            placeholder="Search characters..."
-            fluid
-          />
+          <InputText v-model="gv.manageSearchQuery" placeholder="Search characters..." fluid />
         </div>
-        <div
-          v-if="gv.config.hasStatEdit"
-          class="flex items-center align-middle gap-2"
-        >
+        <div v-if="gv.config.hasStatEdit && gv.canManage" class="flex items-center align-middle gap-2">
           <Checkbox
             v-model="gv.showOnlyMissingAscension"
             binary
             inputId="missing-ascension-filter"
           />
-          <label
-            for="missing-ascension-filter"
-            class="text-sm text-gray-500 mb-0!"
-          >
+          <label for="missing-ascension-filter" class="text-sm text-gray-500 mb-0!">
             Only show characters without max ascension value
           </label>
         </div>
@@ -79,17 +64,14 @@ const formatStat = (value) => {
           >
             <div class="flex flex-col gap-1 text-left">
               <span>{{ item.name }}</span>
-              <div
-                v-if="gv.config.hasStatEdit"
-                class="flex gap-2 text-xs text-gray-500"
-              >
+              <div v-if="gv.config.hasStatEdit && gv.canManage" class="flex gap-2 text-xs text-gray-500">
                 <span>Base: {{ formatStat(item.baseVal) }}</span>
                 <span>Max Asc: {{ formatStat(item.maxAscVal) }}</span>
               </div>
             </div>
             <div class="flex gap-2">
               <Button
-                v-if="gv.config.hasStatEdit"
+                v-if="gv.config.hasStatEdit && gv.canManage"
                 icon="pi pi-pencil"
                 severity="info"
                 text
@@ -106,6 +88,7 @@ const formatStat = (value) => {
                 :loading="gv.manageLoading"
               />
               <Button
+                v-if="gv.canManage"
                 icon="pi pi-trash"
                 severity="danger"
                 text
@@ -118,4 +101,24 @@ const formatStat = (value) => {
       </div>
     </template>
   </Card>
+
+  <Dialog
+    v-model:visible="gv.showMissingServerIdModal"
+    modal
+    header="Portrait Not Found"
+    :style="{ width: '24rem' }"
+  >
+    <div class="flex flex-col gap-4">
+      <p class="text-(--text-secondary)">
+        Server ID not found for character <strong class="text-(--text-primary)">{{ gv.missingServerIdCharacter }}</strong>.
+      </p>
+      <div class="flex justify-end">
+        <Button
+          label="OK"
+          severity="secondary"
+          @click="gv.showMissingServerIdModal = false"
+        />
+      </div>
+    </div>
+  </Dialog>
 </template>

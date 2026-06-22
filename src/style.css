@@ -8,10 +8,16 @@
   --accent-rgb: 34, 197, 94;
   --accent-soft: #bbf7d0;
 
+  /* Per-game brand colors — surfaced as CSS variables for safe Tailwind usage */
+  --game-genshin: #ffd700;
+  --game-hsr: #00d4ff;
+  --game-zzz: #ff6b00;
+  --game-hi3: #ff69b4;
+
   /* Semantic tokens — light theme */
-  --bg-page: #ffffff;
-  --bg-surface: #f4f4f5;
-  --bg-surface-raised: #ffffff;
+  --bg-page: #f8f8fb;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #f4f4f5;
   --bg-overlay: rgba(255, 255, 255, 0.85);
   --text-primary: #18181b;
   --text-secondary: #52525b;
@@ -29,8 +35,8 @@
 .dark {
   /* Semantic tokens — dark theme */
   --bg-page: #08080c;
-  --bg-surface: #18181b;
-  --bg-surface-raised: #27272a;
+  --bg-surface: #0f0f13;
+  --bg-surface-raised: #18181b;
   --bg-overlay: rgba(8, 8, 12, 0.85);
   --text-primary: #f4f4f5;
   --text-secondary: #a1a1aa;
@@ -40,8 +46,8 @@
   --code-bg: rgba(0, 0, 0, 0.4);
   --navbar-bg: rgba(8, 8, 12, 0.85);
   --footer-bg: rgba(0, 0, 0, 0.3);
-  --card-surface: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(255, 255, 255, 0.1);
+  --card-surface: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
   --page-gradient: linear-gradient(to bottom, #0a0a0f, #111118);
 }
 
@@ -59,4 +65,57 @@ body {
   font-size: 14px;
   background-color: var(--bg-page);
   color: var(--text-primary);
+}
+
+/* Shared reusable helpers */
+.card-elevated {
+  background: var(--card-surface) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 0.875rem !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+.dark .card-elevated {
+  box-shadow: none !important;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-secondary);
+  border-radius: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .p-dialog {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+    margin: 1rem;
+  }
+
+  .p-dialog-content {
+    overflow-x: auto;
+  }
 }

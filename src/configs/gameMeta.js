@@ -4,6 +4,7 @@ export const gameMeta = {
   Genshin: {
     label: "Genshin Impact",
     shortLabel: "Genshin",
+    logo: "/genshin.webp",
     color: "#FFD700",
     bgColor: "rgba(255, 215, 0, 0.15)",
     borderColor: "rgba(255, 215, 0, 0.4)",
@@ -16,6 +17,7 @@ export const gameMeta = {
   HonkaiStarRail: {
     label: "Honkai: Star Rail",
     shortLabel: "HSR",
+    logo: "/hsr.webp",
     color: "#00D4FF",
     bgColor: "rgba(0, 212, 255, 0.15)",
     borderColor: "rgba(0, 212, 255, 0.4)",
@@ -28,6 +30,7 @@ export const gameMeta = {
   ZenlessZoneZero: {
     label: "Zenless Zone Zero",
     shortLabel: "ZZZ",
+    logo: "/zzz.webp",
     color: "#FF6B00",
     bgColor: "rgba(255, 107, 0, 0.15)",
     borderColor: "rgba(255, 107, 0, 0.4)",
@@ -40,6 +43,7 @@ export const gameMeta = {
   HonkaiImpact3: {
     label: "Honkai Impact 3rd",
     shortLabel: "HI3",
+    logo: "/hi3.webp",
     color: "#FF69B4",
     bgColor: "rgba(255, 105, 180, 0.15)",
     borderColor: "rgba(255, 105, 180, 0.4)",
@@ -80,10 +84,7 @@ export const gameOptions = Object.entries(gameMeta)
   .map(([value, meta]) => ({ label: meta.label, value }))
   .concat([{ label: "Miscellaneous", value: "Unsupported" }]);
 
-export const gameFilterOptions = [
-  { label: "All Games", value: "All" },
-  ...gameOptions,
-];
+export const gameFilterOptions = [{ label: "All Games", value: "All" }, ...gameOptions];
 
 export const permissionLabels = Object.fromEntries(
   Object.values(gameMeta)

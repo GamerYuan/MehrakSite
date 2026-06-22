@@ -18,10 +18,7 @@ export function useReleaseNotes() {
       body: JSON.stringify(data),
     });
     if (!result.ok) {
-      showErrorToast(
-        result.data?.error || "Failed to create release version",
-        result.status
-      );
+      showErrorToast(result.data?.error || "Failed to create release version", result.status);
       return false;
     }
     showSuccessToast("Release version created successfully");
@@ -35,10 +32,7 @@ export function useReleaseNotes() {
       body: JSON.stringify(data),
     });
     if (!result.ok) {
-      showErrorToast(
-        result.data?.error || "Failed to update release version",
-        result.status
-      );
+      showErrorToast(result.data?.error || "Failed to update release version", result.status);
       return false;
     }
     showSuccessToast("Release version updated successfully");
@@ -50,10 +44,7 @@ export function useReleaseNotes() {
       method: "DELETE",
     });
     if (!result.ok) {
-      showErrorToast(
-        result.data?.error || "Failed to delete release version",
-        result.status
-      );
+      showErrorToast(result.data?.error || "Failed to delete release version", result.status);
       return false;
     }
     showSuccessToast("Release version deleted successfully");

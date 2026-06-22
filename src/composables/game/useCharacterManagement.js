@@ -3,13 +3,7 @@ import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../useApi";
 
 export function useCharacterManagement(config, activeTab) {
-  const {
-    showErrorToast,
-    showSuccessToast,
-    buildError,
-    apiFetch,
-    apiFetchJson,
-  } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
   const confirm = useConfirm();
 
   const allCharacters = ref([]);
@@ -30,9 +24,7 @@ export function useCharacterManagement(config, activeTab) {
 
   const fetchCharacters = async () => {
     try {
-      const { ok, data, status } = await apiFetchJson(
-        `/characters/list?game=${config.id}`,
-      );
+      const { ok, data, status } = await apiFetchJson(`/characters/list?game=${config.id}`);
       if (ok) {
         allCharacters.value = data.sort();
       } else {
@@ -48,9 +40,7 @@ export function useCharacterManagement(config, activeTab) {
     if (!config.hasStatEdit) return;
 
     try {
-      const { ok, data, status } = await apiFetchJson(
-        `/characters/stat?game=${config.id}`,
-      );
+      const { ok, data, status } = await apiFetchJson(`/characters/stat?game=${config.id}`);
       if (ok) {
         const normalizedStats = Object.fromEntries(
           Object.entries(data || {}).map(([name, stat]) => [
@@ -120,10 +110,7 @@ export function useCharacterManagement(config, activeTab) {
       });
       if (!response.ok) {
         const data = await response.json();
-        throw buildError(
-          data.error || "Failed to add character",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to add character", response.status);
       }
       const addedCharacterName = newCharacterName.value;
       newCharacterName.value = "";
@@ -168,10 +155,7 @@ export function useCharacterManagement(config, activeTab) {
       );
       if (!response.ok) {
         const data = await response.json();
-        throw buildError(
-          data.error || "Failed to delete character",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to delete character", response.status);
       }
       await fetchCharacters();
       if (config.hasStatEdit) {
@@ -239,10 +223,7 @@ export function useCharacterManagement(config, activeTab) {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw buildError(
-          data.error || "Failed to update character stats",
-          response.status,
-        );
+        throw buildError(data.error || "Failed to update character stats", response.status);
       }
 
       showEditStatModal.value = false;

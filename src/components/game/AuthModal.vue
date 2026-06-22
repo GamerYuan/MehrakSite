@@ -30,18 +30,10 @@ const handleVisibleUpdate = (value) => {
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
           <label>Passphrase</label>
-          <Password
-            v-model="gv.authPassphrase"
-            required
-            :feedback="false"
-            toggleMask
-            fluid
-          />
+          <Password v-model="gv.authPassphrase" required :feedback="false" toggleMask fluid />
         </div>
 
-        <Message v-if="gv.authError" severity="error">{{
-          gv.authError
-        }}</Message>
+        <Message v-if="gv.authError" severity="error">{{ gv.authError }}</Message>
 
         <div class="flex justify-end gap-2">
           <Button

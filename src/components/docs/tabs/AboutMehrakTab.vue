@@ -1,5 +1,4 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
   <div class="about">
@@ -14,7 +13,10 @@
     </div>
 
     <section class="about-card">
-      <p class="about-lead">Mehrak is committed to provide the best user experience to all our users through convenient commands and powerful utilities.</p>
+      <p class="about-lead">
+        Mehrak is committed to provide the best user experience to all our users through convenient
+        commands and powerful utilities.
+      </p>
     </section>
 
     <section class="about-card">
@@ -25,7 +27,11 @@
           <div class="feature-icon-wrap"><i class="pi pi-user"></i></div>
           <div>
             <h3 class="feature-title">User-First Approach</h3>
-            <p class="feature-desc">Users are our main concern when developing Mehrak. The development thus far has been based on user feedback. We are committed to improve our services through user feedback and suggestions.</p>
+            <p class="feature-desc">
+              Users are our main concern when developing Mehrak. The development thus far has been
+              based on user feedback. We are committed to improve our services through user feedback
+              and suggestions.
+            </p>
           </div>
         </div>
 
@@ -33,7 +39,11 @@
           <div class="feature-icon-wrap"><i class="pi pi-shield"></i></div>
           <div>
             <h3 class="feature-title">Security</h3>
-            <p class="feature-desc">Mehrak is one of the only few HoYoverse games Discord bots that offers zero-knowledge encryption and security for your cookies information. Your information is safe with us.</p>
+            <p class="feature-desc">
+              Mehrak is one of the only few HoYoverse games Discord bots that offers zero-knowledge
+              encryption and security for your cookies information. Your information is safe with
+              us.
+            </p>
           </div>
         </div>
 
@@ -41,7 +51,10 @@
           <div class="feature-icon-wrap"><i class="pi pi-dollar"></i></div>
           <div>
             <h3 class="feature-title">Free</h3>
-            <p class="feature-desc">All Mehrak services are provided for free. We are committed to keeping all our services free in the future, with no paywalls or premium benefits.</p>
+            <p class="feature-desc">
+              All Mehrak services are provided for free. We are committed to keeping all our
+              services free in the future, with no paywalls or premium benefits.
+            </p>
           </div>
         </div>
 
@@ -49,7 +62,10 @@
           <div class="feature-icon-wrap"><i class="pi pi-star"></i></div>
           <div>
             <h3 class="feature-title">Features</h3>
-            <p class="feature-desc">Our vision is to be the most fully featured HoYoverse games Discord bot that covers all HoYoverse titles. You can be part of our journey by using Mehrak services.</p>
+            <p class="feature-desc">
+              Our vision is to be the most fully featured HoYoverse games Discord bot that covers
+              all HoYoverse titles. You can be part of our journey by using Mehrak services.
+            </p>
           </div>
         </div>
 
@@ -57,7 +73,10 @@
           <div class="feature-icon-wrap"><i class="pi pi-code"></i></div>
           <div>
             <h3 class="feature-title">Open Source</h3>
-            <p class="feature-desc">Mehrak is fully open-source. This allows you to see how your data is being used. You may audit the source code at any given time and voice your concerns.</p>
+            <p class="feature-desc">
+              Mehrak is fully open-source. This allows you to see how your data is being used. You
+              may audit the source code at any given time and voice your concerns.
+            </p>
           </div>
         </div>
       </div>
@@ -65,8 +84,24 @@
 
     <section class="about-card">
       <h2 class="about-card-title">Self-Hosting</h2>
-      <p class="about-text">We will not provide any instructions to self-host Mehrak. However, with the source code available, with enough technical expertise you can technically self-host Mehrak if you wish to. You must comply to our <a href="https://github.com/GamerYuan/MehrakBot/blob/master/LICENSE.txt" target="_blank" rel="noopener noreferrer" class="about-link">license</a> to self-host.</p>
-      <p class="about-text">Self-hosted Mehrak instances have no affiliation with the official Mehrak Bot. The Mehrak developers do not have control over what modifications have been made with self-hosted Mehrak instances.</p>
+      <p class="about-text">
+        We will not provide any instructions to self-host Mehrak. However, with the source code
+        available, with enough technical expertise you can technically self-host Mehrak if you wish
+        to. You must comply to our
+        <a
+          href="https://github.com/GamerYuan/MehrakBot/blob/master/LICENSE.txt"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="about-link"
+          >license</a
+        >
+        to self-host.
+      </p>
+      <p class="about-text">
+        Self-hosted Mehrak instances have no affiliation with the official Mehrak Bot. The Mehrak
+        developers do not have control over what modifications have been made with self-hosted
+        Mehrak instances.
+      </p>
     </section>
   </div>
 </template>
@@ -177,7 +212,7 @@
   display: grid;
   place-items: center;
   border-radius: 0.5rem;
-  background: rgba(34,197,94,0.08);
+  background: rgba(34, 197, 94, 0.08);
   color: var(--accent);
   font-size: 0.875rem;
   flex-shrink: 0;

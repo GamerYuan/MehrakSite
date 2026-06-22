@@ -86,7 +86,7 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
 
 .search-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(34,197,94,0.08);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.08);
 }
 
 .search-input::placeholder {

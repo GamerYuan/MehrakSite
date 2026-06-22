@@ -32,9 +32,7 @@ export function useCommandExecution(config, activeTab) {
         server: server.value,
       };
 
-      const currentTabConfig = config.tabs.find(
-        (t) => t.id === currentTab,
-      );
+      const currentTabConfig = config.tabs.find((t) => t.id === currentTab);
       if (currentTabConfig?.hasCharacterInput) {
         if (config.id === "HonkaiImpact3") {
           payload.battlesuit = characterName.value;
@@ -67,8 +65,7 @@ export function useCommandExecution(config, activeTab) {
 
       if (data.storageFileName) {
         const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
-        resultImages.value[currentTab] =
-          `${backendUrl}/attachments/${data.storageFileName}`;
+        resultImages.value[currentTab] = `${backendUrl}/attachments/${data.storageFileName}`;
       }
     } catch (err) {
       if (err._redirected) return;
@@ -96,10 +93,7 @@ export function useCommandExecution(config, activeTab) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw buildError(
-          data.error || "Authentication failed",
-          response.status,
-        );
+        throw buildError(data.error || "Authentication failed", response.status);
       }
 
       showAuthModal.value = false;

@@ -22,9 +22,21 @@ const cookieActions = [
 ];
 
 const faqItems = [
-  { question: "Does HoYoLAB Cookies expire?", answer: "Yes. They expire after 1 year after its initial creation, which is when you login to HoYoLAB." },
-  { question: "Can I manually invalidate my HoYoLAB Cookies?", answer: "Yes, changing your HoYoverse account password will immediately invalidate all HoYoLAB Cookies." },
-  { question: "How are you using my HoYoLAB Cookies?", answer: "We use the public API provided by HoYoLAB to access your information. These public API requires your HoYoLAB Cookies, alongside your HoYoLAB UID, as they require you to be logged in when accessing the data." },
+  {
+    question: "Does HoYoLAB Cookies expire?",
+    answer:
+      "Yes. They expire after 1 year after its initial creation, which is when you login to HoYoLAB.",
+  },
+  {
+    question: "Can I manually invalidate my HoYoLAB Cookies?",
+    answer:
+      "Yes, changing your HoYoverse account password will immediately invalidate all HoYoLAB Cookies.",
+  },
+  {
+    question: "How are you using my HoYoLAB Cookies?",
+    answer:
+      "We use the public API provided by HoYoLAB to access your information. These public API requires your HoYoLAB Cookies, alongside your HoYoLAB UID, as they require you to be logged in when accessing the data.",
+  },
 ];
 </script>
 
@@ -42,28 +54,57 @@ const faqItems = [
 
     <section class="cookies-card">
       <h2 class="cookies-card-title">Disclaimer</h2>
-      <p class="cookies-text">Mehrak does not force its users to provide their HoYoLAB Cookies without consent. While many features of Mehrak requires the use of HoYoLAB Cookies, it is on the user's choice to provide their HoYoLAB Cookies with consent.</p>
-      <p class="cookies-text">Should the user choose to withdraw their consent and wish to remove their information from Mehrak's database, please refer to FAQ and Privacy Policy on how this could be done.</p>
-      <p class="cookies-text">By providing your HoYoLAB Cookies, you consent to our <a href="#" @click.prevent="router.push('/privacy')" class="cookies-link">Privacy Policy</a>.</p>
+      <p class="cookies-text">
+        Mehrak does not force its users to provide their HoYoLAB Cookies without consent. While many
+        features of Mehrak requires the use of HoYoLAB Cookies, it is on the user's choice to
+        provide their HoYoLAB Cookies with consent.
+      </p>
+      <p class="cookies-text">
+        Should the user choose to withdraw their consent and wish to remove their information from
+        Mehrak's database, please refer to FAQ and Privacy Policy on how this could be done.
+      </p>
+      <p class="cookies-text">
+        By providing your HoYoLAB Cookies, you consent to our
+        <a href="#" @click.prevent="router.push('/privacy')" class="cookies-link">Privacy Policy</a
+        >.
+      </p>
     </section>
 
     <section class="cookies-card">
       <h2 class="cookies-card-title">What are cookies?</h2>
-      <p class="cookies-text">Cookies are traces of information left on your browser when you access online services. They generally contain information about your login session, your preferences, or other temporary information related to you.</p>
+      <p class="cookies-text">
+        Cookies are traces of information left on your browser when you access online services. They
+        generally contain information about your login session, your preferences, or other temporary
+        information related to you.
+      </p>
       <div class="cookies-analogy">
-        <p>Imagine you have a stamp book. When you visit a store, the storekeeper gave you a stamp. This stamp helps the storekeeper remember you and what you like to buy from their store. The next time you visit the store, the storekeeper can immediately recognise you.</p>
-        <p>Your browser is the stamp book, and cookies are the stamps. Most websites leave cookies on your browser to help them remember that you've been here before.</p>
+        <p>
+          Imagine you have a stamp book. When you visit a store, the storekeeper gave you a stamp.
+          This stamp helps the storekeeper remember you and what you like to buy from their store.
+          The next time you visit the store, the storekeeper can immediately recognise you.
+        </p>
+        <p>
+          Your browser is the stamp book, and cookies are the stamps. Most websites leave cookies on
+          your browser to help them remember that you've been here before.
+        </p>
       </div>
-      <p class="cookies-text">In our case, HoYoLAB Cookies contain your session information. This is what kept you logged in to HoYoLAB. Mehrak requires this cookie as it uses services provided by HoYoLAB for its services.</p>
+      <p class="cookies-text">
+        In our case, HoYoLAB Cookies contain your session information. This is what kept you logged
+        in to HoYoLAB. Mehrak requires this cookie as it uses services provided by HoYoLAB for its
+        services.
+      </p>
     </section>
 
     <section class="cookies-card">
       <h2 class="cookies-card-title">What can HoYoLAB Cookies do?</h2>
-      <p class="cookies-text">The HoYoLAB Cookies Mehrak requires contains your login session. These are the things that you can and cannot do with said HoYoLAB Cookies:</p>
+      <p class="cookies-text">
+        The HoYoLAB Cookies Mehrak requires contains your login session. These are the things that
+        you can and cannot do with said HoYoLAB Cookies:
+      </p>
 
       <DataTable :value="cookieActions" class="cookies-table">
         <Column field="action" header="Actions"></Column>
-        <Column field="canDo" header="" style="width:4rem">
+        <Column field="canDo" header="" style="width: 4rem">
           <template #body="{ data }">
             <span v-if="data.canDo" class="icon-ok"><i class="pi pi-check-circle"></i></span>
             <span v-else class="icon-no"><i class="pi pi-times-circle"></i></span>
@@ -71,21 +112,57 @@ const faqItems = [
         </Column>
       </DataTable>
 
-      <p class="cookies-text">In short, the cookies provided can only be used to access services provided by HoYoLAB, and cannot be used for other services provided by HoYoverse.</p>
+      <p class="cookies-text">
+        In short, the cookies provided can only be used to access services provided by HoYoLAB, and
+        cannot be used for other services provided by HoYoverse.
+      </p>
     </section>
 
     <section class="cookies-card">
       <h2 class="cookies-card-title">How are my Cookies stored?</h2>
-      <p class="cookies-text">The official Mehrak bot runs on a Virtual Private Server (VPS) hosted by Hetzner. Several best practices has been done to ensure that the VPS instance is kept secure from unauthorised access.</p>
-      <p class="cookies-text">All your information are stored in a database hosted on the same VPS. Before being stored in the database, your provided passphrase is used to generate a AES-256 key to encrypt your cookie, ensuring that all cookies are securely stored with minimal risk of being cracked.</p>
-      <p class="cookies-text">After authenticating your passphrase for command execution, your cookies will be stored in a password-protected Redis instance. This allows you to use multiple commands within the same 5 minutes without requiring to type in your passphrase again.</p>
-      <p class="cookies-text">In the case of a data breach, your encrypted cookies might be obtained, but will be nearly uncrackable if you follow the best practices when creating a passphrase.</p>
+      <p class="cookies-text">
+        The official Mehrak bot runs on a Virtual Private Server (VPS) hosted by Hetzner. Several
+        best practices has been done to ensure that the VPS instance is kept secure from
+        unauthorised access.
+      </p>
+      <p class="cookies-text">
+        All your information are stored in a database hosted on the same VPS. Before being stored in
+        the database, your provided passphrase is used to generate a AES-256 key to encrypt your
+        cookie, ensuring that all cookies are securely stored with minimal risk of being cracked.
+      </p>
+      <p class="cookies-text">
+        After authenticating your passphrase for command execution, your cookies will be stored in a
+        password-protected Redis instance. This allows you to use multiple commands within the same
+        5 minutes without requiring to type in your passphrase again.
+      </p>
+      <p class="cookies-text">
+        In the case of a data breach, your encrypted cookies might be obtained, but will be nearly
+        uncrackable if you follow the best practices when creating a passphrase.
+      </p>
     </section>
 
     <section class="cookies-card">
       <h2 class="cookies-card-title">Our commitment</h2>
-      <p class="cookies-text">We, as the developer team, is committed to providing users with secure and convenient services. Should there be an identified security breach, we will make an announcement to all users in our Official Discord Server.</p>
-      <p class="cookies-text">For security purposes, the official Mehrak developer team will not release more convenient methods of providing your HoYoLAB Cookies, as these convenient methods often involves executing proprietary scripts or logging into HoYoLAB with your real account username and password. If any individual approaches you to offer "convenient" ways to provide HoYoLAB Cookies to Mehrak, we advise you to block communications with said individual and report said incident in our <a href="https://discord.gg/3GYvRD4u9a" target="_blank" rel="noopener noreferrer" class="cookies-link">Official Discord Server</a>.</p>
+      <p class="cookies-text">
+        We, as the developer team, is committed to providing users with secure and convenient
+        services. Should there be an identified security breach, we will make an announcement to all
+        users in our Official Discord Server.
+      </p>
+      <p class="cookies-text">
+        For security purposes, the official Mehrak developer team will not release more convenient
+        methods of providing your HoYoLAB Cookies, as these convenient methods often involves
+        executing proprietary scripts or logging into HoYoLAB with your real account username and
+        password. If any individual approaches you to offer "convenient" ways to provide HoYoLAB
+        Cookies to Mehrak, we advise you to block communications with said individual and report
+        said incident in our
+        <a
+          href="https://discord.gg/3GYvRD4u9a"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cookies-link"
+          >Official Discord Server</a
+        >.
+      </p>
     </section>
 
     <section class="cookies-card">

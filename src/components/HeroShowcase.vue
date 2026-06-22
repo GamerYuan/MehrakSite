@@ -179,12 +179,10 @@ const stack = props.images.slice(0, 3);
   @keyframes float-card-3 {
     0%,
     100% {
-      transform: translate(-40px, 45px) rotateY(-18deg) rotateX(3deg)
-        scale(0.84);
+      transform: translate(-40px, 45px) rotateY(-18deg) rotateX(3deg) scale(0.84);
     }
     50% {
-      transform: translate(-40px, 25px) rotateY(-18deg) rotateX(3deg)
-        scale(0.84);
+      transform: translate(-40px, 25px) rotateY(-18deg) rotateX(3deg) scale(0.84);
     }
   }
 }

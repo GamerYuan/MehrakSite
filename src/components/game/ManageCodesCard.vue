@@ -10,11 +10,11 @@ const gv = useGameViewInject();
 </script>
 
 <template>
-  <Card>
+  <Card class="game-card">
     <template #title>Manage Codes</template>
     <template #content>
       <div class="flex flex-col gap-4">
-        <div class="flex gap-2">
+        <div class="flex flex-col sm:flex-row gap-2">
           <InputText
             v-model="gv.newCodesInput"
             placeholder="New Codes (comma-separated)"
@@ -29,7 +29,7 @@ const gv = useGameViewInject();
           />
         </div>
 
-        <div class="flex justify-between gap-2">
+        <div class="flex flex-col sm:flex-row sm:justify-between gap-2">
           <InputText
             v-model="gv.codesSearchQuery"
             placeholder="Search codes..."
@@ -51,7 +51,7 @@ const gv = useGameViewInject();
           dataKey="code"
           paginator
           :rows="10"
-          tableStyle="min-width: 50rem"
+          responsiveLayout="scroll"
         >
           <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
           <Column field="code" header="Code" sortable></Column>
