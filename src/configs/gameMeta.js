@@ -11,7 +11,6 @@ export const gameMeta = {
     lightColor: "#B8860B",
     lightBgColor: "rgba(184, 134, 11, 0.15)",
     lightBorderColor: "rgba(184, 134, 11, 0.4)",
-    permission: "genshin",
     routeKey: "genshin",
   },
   HonkaiStarRail: {
@@ -24,7 +23,6 @@ export const gameMeta = {
     lightColor: "#0077A8",
     lightBgColor: "rgba(0, 119, 168, 0.15)",
     lightBorderColor: "rgba(0, 119, 168, 0.4)",
-    permission: "hsr",
     routeKey: "hsr",
   },
   ZenlessZoneZero: {
@@ -37,7 +35,6 @@ export const gameMeta = {
     lightColor: "#C45200",
     lightBgColor: "rgba(196, 82, 0, 0.15)",
     lightBorderColor: "rgba(196, 82, 0, 0.4)",
-    permission: "zzz",
     routeKey: "zzz",
   },
   HonkaiImpact3: {
@@ -50,7 +47,6 @@ export const gameMeta = {
     lightColor: "#CC3388",
     lightBgColor: "rgba(204, 51, 136, 0.15)",
     lightBorderColor: "rgba(204, 51, 136, 0.4)",
-    permission: "hi3",
     routeKey: "hi3",
   },
   TearsOfThemis: {
@@ -62,7 +58,6 @@ export const gameMeta = {
     lightColor: "#8B6B8B",
     lightBgColor: "rgba(139, 107, 139, 0.15)",
     lightBorderColor: "rgba(139, 107, 139, 0.4)",
-    permission: "tot",
     routeKey: null,
   },
   Unsupported: {
@@ -74,7 +69,6 @@ export const gameMeta = {
     lightColor: "#555555",
     lightBgColor: "rgba(85, 85, 85, 0.15)",
     lightBorderColor: "rgba(85, 85, 85, 0.4)",
-    permission: null,
     routeKey: null,
   },
 };
@@ -87,9 +81,9 @@ export const gameOptions = Object.entries(gameMeta)
 export const gameFilterOptions = [{ label: "All Games", value: "All" }, ...gameOptions];
 
 export const permissionLabels = Object.fromEntries(
-  Object.values(gameMeta)
-    .filter((m) => m.permission)
-    .map((m) => [m.permission, m.label]),
+  Object.entries(gameMeta)
+    .filter(([key]) => key !== "Unsupported")
+    .map(([key, meta]) => [key, meta.label]),
 );
 
 export const availablePermissions = Object.keys(permissionLabels);
