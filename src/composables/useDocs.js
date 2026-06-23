@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useApi } from "./useApi";
 import { gameMeta } from "../configs/gameMeta";
 
@@ -36,9 +36,9 @@ export function useDocs() {
       } else {
         error.value = data.error || "Failed to fetch documentation";
       }
-    } catch (err) {
-      if (err._redirected) return;
-      error.value = err.message;
+    } catch (error) {
+      if (error._redirected) return;
+      error.value = error.message;
     } finally {
       loading.value = false;
     }
@@ -54,8 +54,8 @@ export function useDocs() {
         throw new Error(data.error || "Failed to fetch documentation details");
       }
       return await response.json();
-    } catch (err) {
-      throw err;
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -87,7 +87,7 @@ export function useDocs() {
 
   const toggleGame = (game) => {
     const index = selectedGames.value.indexOf(game);
-    if (index > -1) {
+    if (index !== -1) {
       if (selectedGames.value.length > 1) {
         selectedGames.value.splice(index, 1);
       }

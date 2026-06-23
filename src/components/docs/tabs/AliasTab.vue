@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAlias } from "../../../composables/useAlias";
 import { gameConfigs } from "../../../configs/gameConfigs";
 import Tabs from "primevue/tabs";

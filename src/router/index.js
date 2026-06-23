@@ -13,12 +13,12 @@ import TermsOfServiceView from "../views/TermsOfServiceView.vue";
 import { gameMeta } from "../configs/gameMeta";
 import { getUser, setUserCache } from "../composables/authStore";
 
-const validGameKeys = Object.values(gameMeta)
+const validGameKeys = new Set(Object.values(gameMeta)
   .map((m) => m.routeKey)
-  .filter(Boolean);
+  .filter(Boolean));
 
 function validateGameParam(game) {
-  if (!validGameKeys.includes(game)) {
+  if (!validGameKeys.has(game)) {
     return { name: "dashboard-home" };
   }
 }
@@ -104,7 +104,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
-  const meta = to.meta;
+  const {meta} = to;
   if (
     !meta.requireAuth &&
     !meta.requireSuperAdmin &&
@@ -131,8 +131,8 @@ router.beforeEach(async (to) => {
       const normalized = normalizeUser(data);
       setUserCache(normalized);
       setAuthState(normalized);
-    } catch (err) {
-      if (err.status === 401) {
+    } catch (error) {
+      if (error.status === 401) {
         window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
       }
       return false;
@@ -146,7 +146,7 @@ router.beforeEach(async (to) => {
   }
 
   if (meta.requireGamePermission) {
-    const game = to.params.game;
+    const {game} = to.params;
     if (!user.isSuperAdmin && !user.gameWritePermissions?.includes(game)) {
       return { name: "dashboard-home" };
     }

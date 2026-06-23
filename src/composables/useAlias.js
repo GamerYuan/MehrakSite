@@ -38,9 +38,9 @@ export function useAlias() {
         });
       });
       aliases.value = newAliases;
-    } catch (err) {
-      if (err._redirected) return;
-      error.value = err.message || "Failed to fetch aliases";
+    } catch (error) {
+      if (error._redirected) return;
+      error.value = error.message || "Failed to fetch aliases";
     } finally {
       loading.value = false;
     }

@@ -59,9 +59,9 @@ const appendixTabs = [
 ];
 
 const syncFromUrl = () => {
-  const tab = route.query.tab;
-  const section = route.query.section;
-  const hash = route.hash;
+  const {tab} = route.query;
+  const {section} = route.query;
+  const {hash} = route;
   if (tab) {
     activeTab.value = tab;
     if (tab === "appendix" && section) appendixTab.value = section;
@@ -82,8 +82,8 @@ const handleDocClick = async (doc) => {
   selectedDoc.value = { ...doc, parameters: [], examples: [] };
   try {
     selectedDoc.value = await fetchDocumentDetail(doc.id);
-  } catch (err) {
-    console.error("Failed to fetch document details:", err);
+  } catch (error) {
+    console.error("Failed to fetch document details:", error);
   } finally {
     loadingDetail.value = false;
   }

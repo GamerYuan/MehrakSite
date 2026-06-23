@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../useApi";
 
@@ -34,9 +34,9 @@ export function useCodesManagement(config, activeTab) {
       } else {
         showErrorToast(data.error || "Failed to fetch codes", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     }
   };
 
@@ -78,9 +78,9 @@ export function useCodesManagement(config, activeTab) {
       newCodesInput.value = "";
       await fetchCodes();
       showSuccessToast("Codes added successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       codesLoading.value = false;
     }
@@ -122,9 +122,9 @@ export function useCodesManagement(config, activeTab) {
       selectedCodes.value = [];
       await fetchCodes();
       showSuccessToast("Codes deleted successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       codesLoading.value = false;
     }

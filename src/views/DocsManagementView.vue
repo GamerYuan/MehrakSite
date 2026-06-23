@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../composables/useApi";
 import Card from "primevue/card";
@@ -46,21 +46,21 @@ const fetchDocuments = async () => {
     } else {
       showErrorToast(data.error || "Failed to fetch documentation", status);
     }
-  } catch (err) {
-    if (err._redirected) return;
+  } catch (error) {
+    if (error._redirected) return;
   } finally {
     loading.value = false;
   }
 };
 
-const filteredDocuments = computed(() => {
-  return documents.value.filter((doc) => {
+const filteredDocuments = computed(() => 
+  documents.value.filter((doc) => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.value.toLowerCase());
 
     if (filterGame.value === "All") return matchesSearch;
     return matchesSearch && doc.game === filterGame.value;
-  });
-});
+  })
+);
 
 const openAddModal = () => {
   selectedDoc.value = null;
@@ -82,9 +82,9 @@ const openEditModal = async (doc) => {
     selectedDoc.value = await response.json();
     isEditing.value = true;
     showModal.value = true;
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 
@@ -124,9 +124,9 @@ const handleDelete = async (doc) => {
 
     fetchDocuments();
     showSuccessToast("Documentation deleted successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 
@@ -151,9 +151,9 @@ const handleSave = async (formData) => {
     showSuccessToast(
       isEditing.value ? "Documentation updated successfully" : "Documentation created successfully",
     );
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 

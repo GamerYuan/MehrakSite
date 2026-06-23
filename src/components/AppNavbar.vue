@@ -1,6 +1,6 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import { ref, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { onMounted, onUnmounted, ref } from "vue";
 import Button from "primevue/button";
 import ThemeToggle from "./ThemeToggle.vue";
 import { useAuth } from "../composables/useAuth";

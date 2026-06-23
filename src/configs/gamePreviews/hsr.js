@@ -1,6 +1,6 @@
 import { renderPortrait } from "./renderPortrait.js";
 
-// ponytail: module-level canvas avoids allocation per render call
+// Ponytail: module-level canvas avoids allocation per render call
 const blurCanvas = document.createElement("canvas");
 const blurCtx = blurCanvas.getContext("2d");
 

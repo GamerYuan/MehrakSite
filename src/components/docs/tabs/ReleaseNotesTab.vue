@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ProgressSpinner from "primevue/progressspinner";
 import { useReleaseNotes } from "../../../composables/useReleaseNotes";
 
@@ -18,7 +18,7 @@ const sortedReleases = computed(() =>
     sections: r.sections.map((s) => ({
       ...s,
       notes: [...s.notes]
-        .sort((a, b) => {
+        .toSorted((a, b) => {
           const d = getTypeOrder(a.type) - getTypeOrder(b.type);
           return d !== 0 ? d : a.text.localeCompare(b.text);
         })
@@ -52,14 +52,14 @@ const typeStyle = (t) =>
 
 const scrollToVersion = (v) => {
   selectedVersion.value = v;
-  document.getElementById("release-" + v)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById(`release-${  v}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 onMounted(async () => {
   try {
     releases.value = await fetchAll();
     if (releases.value.length) selectedVersion.value = releases.value[0].version;
-  } catch (e) {
+  } catch {
     error.value = "Failed to load release notes.";
   } finally {
     loading.value = false;

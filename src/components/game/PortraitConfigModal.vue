@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onUnmounted } from "vue";
+import { computed, onUnmounted, ref, watch } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 import { useApi } from "../../composables/useApi";
 import Dialog from "primevue/dialog";
@@ -65,9 +65,9 @@ const cleanupPortrait = () => {
 
 const previewConfig = computed(() => previewConfigs[gv.config.id] ?? null);
 
-const bgUrl = computed(() => {
-  return previewConfig.value?.background ?? "";
-});
+const bgUrl = computed(() => 
+  previewConfig.value?.background ?? ""
+);
 
 const serverIdOptions = computed(() =>
   (gv.portraitConfigServerIds || []).map((id) => ({
@@ -154,8 +154,8 @@ const loadDefaultPortrait = async () => {
       portraitError.value = true;
     };
     portraitImage.value.src = portraitBlobUrl.value;
-  } catch (err) {
-    if (err._redirected) return;
+  } catch (error) {
+    if (error._redirected) return;
     if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
@@ -196,8 +196,8 @@ const loadUserPortraitImage = async (id) => {
       portraitError.value = true;
     };
     portraitImage.value.src = portraitBlobUrl.value;
-  } catch (err) {
-    if (err._redirected) return;
+  } catch (error) {
+    if (error._redirected) return;
     if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
@@ -488,9 +488,9 @@ const onSetActiveUserPortrait = async () => {
   if (!gv.userPortraitId) return;
   try {
     await gv.setActiveUserPortrait(gv.userPortraitId);
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 
@@ -500,9 +500,9 @@ const onSetInactiveUserPortrait = async () => {
     await apiFetch(`/user-portraits/${gv.userPortraitId}/inactive`, { method: "PATCH" });
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
     showSuccessToast("Portrait set inactive");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 const isSaveDisabled = computed(() => {
@@ -537,17 +537,17 @@ const onUpload = async (file) => {
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
     showSuccessToast("Portrait uploaded successfully");
     showUploadModal.value = false;
-  } catch (err) {
-    if (err._redirected) return;
-    const data = err.data || {};
-    if (err.status === 422) {
+  } catch (error) {
+    if (error._redirected) return;
+    const data = error.data || {};
+    if (error.status === 422) {
       showErrorToast("Potential NSFW image detected", 422);
-    } else if (err.status === 429) {
+    } else if (error.status === 429) {
       showErrorToast(`Rate limited. ${data.remaining ?? 0} upload(s) remaining.`, 429);
-    } else if (err.status === 502) {
+    } else if (error.status === 502) {
       showErrorToast("Classification service unavailable. Try again later.", 502);
     } else {
-      showErrorToast(err.message, err.status);
+      showErrorToast(error.message, error.status);
     }
   } finally {
     uploadLoading.value = false;
@@ -563,9 +563,9 @@ const onDeleteUserPortrait = async () => {
     gv.userPortraitId = null;
     cleanupPortrait();
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onUnmounted } from "vue";
+import { onUnmounted, ref, watch } from "vue";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import Message from "primevue/message";
@@ -71,9 +71,9 @@ const loadNsfwModel = async () => {
   try {
     const nsfwjs = await import("nsfwjs");
     nsfwModel = await nsfwjs.load();
-  } catch (err) {
+  } catch (error) {
     nsfwModel = null;
-    throw err;
+    throw error;
   } finally {
     modelLoading.value = false;
   }
@@ -141,8 +141,8 @@ const onFileChange = async (event) => {
       revokePreview();
       selectedFile.value = null;
     }
-  } catch (err) {
-    nsfwError.value = `Could not verify image content: ${err.message || "Unknown error"}. Please try again.`;
+  } catch (error) {
+    nsfwError.value = `Could not verify image content: ${error.message || "Unknown error"}. Please try again.`;
   } finally {
     classifying.value = false;
   }

@@ -1,8 +1,8 @@
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 
 const STORAGE_KEY = "theme";
 
-const theme = ref(null); // null = not yet initialized
+const theme = ref(null); // Null = not yet initialized
 
 function resolveInitial() {
   const stored = localStorage.getItem(STORAGE_KEY);

@@ -46,7 +46,10 @@ const formatStat = (value) => {
         <div class="flex flex-col gap-2">
           <InputText v-model="gv.manageSearchQuery" placeholder="Search characters..." fluid />
         </div>
-        <div v-if="gv.config.hasStatEdit && gv.canManage" class="flex items-center align-middle gap-2">
+        <div
+          v-if="gv.config.hasStatEdit && gv.canManage"
+          class="flex items-center align-middle gap-2"
+        >
           <Checkbox
             v-model="gv.showOnlyMissingAscension"
             binary
@@ -64,7 +67,10 @@ const formatStat = (value) => {
           >
             <div class="flex flex-col gap-1 text-left">
               <span>{{ item.name }}</span>
-              <div v-if="gv.config.hasStatEdit && gv.canManage" class="flex gap-2 text-xs text-gray-500">
+              <div
+                v-if="gv.config.hasStatEdit && gv.canManage"
+                class="flex gap-2 text-xs text-gray-500"
+              >
                 <span>Base: {{ formatStat(item.baseVal) }}</span>
                 <span>Max Asc: {{ formatStat(item.maxAscVal) }}</span>
               </div>
@@ -110,14 +116,12 @@ const formatStat = (value) => {
   >
     <div class="flex flex-col gap-4">
       <p class="text-(--text-secondary)">
-        Server ID not found for character <strong class="text-(--text-primary)">{{ gv.missingServerIdCharacter }}</strong>.
+        Server ID not found for character
+        <strong class="text-(--text-primary)">{{ gv.missingServerIdCharacter }}</strong
+        >.
       </p>
       <div class="flex justify-end">
-        <Button
-          label="OK"
-          severity="secondary"
-          @click="gv.showMissingServerIdModal = false"
-        />
+        <Button label="OK" severity="secondary" @click="gv.showMissingServerIdModal = false" />
       </div>
     </div>
   </Dialog>

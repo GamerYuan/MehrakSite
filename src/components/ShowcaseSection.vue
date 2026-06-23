@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import CardDeckShowcase from "./CardDeckShowcase.vue";
 
 const props = defineProps({

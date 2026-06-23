@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { getUser } from "./authStore";
 import { useCommandExecution } from "./game/useCommandExecution";
 import { useCharacterManagement } from "./game/useCharacterManagement";
@@ -39,13 +39,16 @@ export function useGameView(config) {
   });
 
   let serverManuallyChanged = false;
-  watch(() => command.server.value, (newRegion) => {
-    serverManuallyChanged = true;
-    const p = profiles.value?.[0];
-    if (p && newRegion) {
-      p.lastUsedRegions = { ...p.lastUsedRegions, [config.id]: newRegion };
-    }
-  });
+  watch(
+    () => command.server.value,
+    (newRegion) => {
+      serverManuallyChanged = true;
+      const p = profiles.value?.[0];
+      if (p && newRegion) {
+        p.lastUsedRegions = { ...p.lastUsedRegions, [config.id]: newRegion };
+      }
+    },
+  );
 
   onMounted(() => {
     fetchProfiles();

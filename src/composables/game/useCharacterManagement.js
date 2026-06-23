@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../useApi";
 
@@ -26,13 +26,13 @@ export function useCharacterManagement(config, activeTab) {
     try {
       const { ok, data, status } = await apiFetchJson(`/characters/list?game=${config.id}`);
       if (ok) {
-        allCharacters.value = data.sort();
+        allCharacters.value = data.toSorted();
       } else {
         showErrorToast(data.error || "Failed to fetch characters", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     }
   };
 
@@ -55,9 +55,9 @@ export function useCharacterManagement(config, activeTab) {
       } else {
         showErrorToast(data.error || "Failed to fetch character stats", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     }
   };
 
@@ -118,10 +118,10 @@ export function useCharacterManagement(config, activeTab) {
       if (config.hasStatEdit) {
         characterStats.value[addedCharacterName] = { baseVal: 0, maxAscVal: 0 };
       }
-    } catch (err) {
-      if (err._redirected) return;
-      manageError.value = err.message;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      manageError.value = error.message;
+      showErrorToast(error.message, error.status);
     } finally {
       manageLoading.value = false;
     }
@@ -161,10 +161,10 @@ export function useCharacterManagement(config, activeTab) {
       if (config.hasStatEdit) {
         delete characterStats.value[name];
       }
-    } catch (err) {
-      if (err._redirected) return;
-      manageError.value = err.message;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      manageError.value = error.message;
+      showErrorToast(error.message, error.status);
     } finally {
       manageLoading.value = false;
     }
@@ -198,9 +198,9 @@ export function useCharacterManagement(config, activeTab) {
       } else {
         showErrorToast(data.error || "Failed to fetch character stats", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       editStatFetching.value = false;
     }
@@ -232,9 +232,9 @@ export function useCharacterManagement(config, activeTab) {
         maxAscVal: toStatNumber(editStatMax.value),
       };
       showSuccessToast("Character stats updated successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       editStatLoading.value = false;
     }

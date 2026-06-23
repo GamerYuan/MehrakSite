@@ -71,7 +71,14 @@ const clearResult = () => {
         <template #title>
           <div class="result-header">
             <span class="result-title">Result</span>
-            <Button icon="pi pi-times" text rounded size="small" aria-label="Clear result" @click="clearResult" />
+            <Button
+              icon="pi pi-times"
+              text
+              rounded
+              size="small"
+              aria-label="Clear result"
+              @click="clearResult"
+            />
           </div>
         </template>
         <template #content>

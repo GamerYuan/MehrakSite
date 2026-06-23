@@ -28,7 +28,9 @@ const openFiler = () => {
     <header class="page-header">
       <div>
         <h1 class="page-title">Seaweed Filer</h1>
-        <p class="page-subtitle">Open the filer UI in a new tab through the authenticated dashboard proxy.</p>
+        <p class="page-subtitle">
+          Open the filer UI in a new tab through the authenticated dashboard proxy.
+        </p>
       </div>
     </header>
 
@@ -40,9 +42,16 @@ const openFiler = () => {
       <template #content>
         <div class="flex flex-col gap-4">
           <p class="text-[var(--text-secondary)]">
-            You are signed in as <strong class="text-[var(--text-primary)]">{{ userInfo.username }}</strong> with super admin access.
+            You are signed in as
+            <strong class="text-[var(--text-primary)]">{{ userInfo.username }}</strong> with super
+            admin access.
           </p>
-          <Button icon="pi pi-external-link" label="Open Seaweed Filer UI" @click="openFiler" :disabled="!filerUrl" />
+          <Button
+            icon="pi pi-external-link"
+            label="Open Seaweed Filer UI"
+            @click="openFiler"
+            :disabled="!filerUrl"
+          />
           <p v-if="!filerUrl" class="error-text">
             Backend URL is not configured. Set <code>VITE_APP_BACKEND_URL</code>.
           </p>

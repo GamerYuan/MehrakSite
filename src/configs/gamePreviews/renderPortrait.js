@@ -24,7 +24,7 @@ export function renderPortrait(ctx, { portrait, x, y, w, h, flipX, fadeX, fadeWi
   if (fadeX > 0 && fadeWidth > 0) {
     const fadeStart = fadeX - x;
     const imageData = tempCtx.getImageData(0, 0, w, h);
-    const data = imageData.data;
+    const {data} = imageData;
 
     for (let px = 0; px < w; px++) {
       if (px < fadeStart) continue;

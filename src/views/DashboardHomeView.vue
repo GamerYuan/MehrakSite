@@ -32,15 +32,16 @@ const {
   confirmDeleteAll,
 } = useProfileManagement();
 
-const gameIdToTitle = Object.fromEntries(
-  Object.values(gameConfigs).map((c) => [c.id, c.title]),
-);
+const gameIdToTitle = Object.fromEntries(Object.values(gameConfigs).map((c) => [c.id, c.title]));
 
 const isMobile = ref(false);
 
 const toTitleCase = (str) => {
   if (!str) return "";
-  return str.replace(/\w\S*/g, (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase());
+  return str.replace(
+    /\w\S*/g,
+    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
+  );
 };
 
 const checkViewport = () => {
@@ -86,7 +87,12 @@ onUnmounted(() => {
 
           <div class="profile-badges">
             <Tag v-if="user.isRootUser" icon="pi pi-star-fill" value="Root" severity="warn" />
-            <Tag v-if="user.isSuperAdmin" icon="pi pi-shield" value="Super Admin" severity="success" />
+            <Tag
+              v-if="user.isSuperAdmin"
+              icon="pi pi-shield"
+              value="Super Admin"
+              severity="success"
+            />
             <Tag
               v-for="perm in user.gameWritePermissions || []"
               :key="perm"
@@ -126,7 +132,9 @@ onUnmounted(() => {
           <div v-else-if="!profiles.length" class="empty-state">
             <i class="pi pi-user-plus empty-icon"></i>
             <p>No profiles yet. Add one to get started.</p>
-            <a href="/#/docs" target="_blank" rel="noopener noreferrer" class="docs-link">Read the docs</a>
+            <a href="/#/docs" target="_blank" rel="noopener noreferrer" class="docs-link"
+              >Read the docs</a
+            >
           </div>
 
           <DataTable
@@ -174,8 +182,21 @@ onUnmounted(() => {
             <Column header="" style="width: 7rem">
               <template #body="{ data }">
                 <div class="row-actions">
-                  <Button icon="pi pi-pencil" size="small" text rounded @click="openEditModal(data)" />
-                  <Button icon="pi pi-trash" size="small" text rounded severity="danger" @click="confirmDelete(data)" />
+                  <Button
+                    icon="pi pi-pencil"
+                    size="small"
+                    text
+                    rounded
+                    @click="openEditModal(data)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    size="small"
+                    text
+                    rounded
+                    severity="danger"
+                    @click="confirmDelete(data)"
+                  />
                 </div>
               </template>
             </Column>
@@ -190,13 +211,32 @@ onUnmounted(() => {
                     <span class="mono-text">{{ profile.ltUid }}</span>
                   </div>
                   <div class="row-actions">
-                    <Button icon="pi pi-pencil" size="small" text rounded @click="openEditModal(profile)" />
-                    <Button icon="pi pi-trash" size="small" text rounded severity="danger" @click="confirmDelete(profile)" />
+                    <Button
+                      icon="pi pi-pencil"
+                      size="small"
+                      text
+                      rounded
+                      @click="openEditModal(profile)"
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      size="small"
+                      text
+                      rounded
+                      severity="danger"
+                      @click="confirmDelete(profile)"
+                    />
                   </div>
                 </div>
                 <div class="profile-card-uids">
-                  <div v-if="!Object.keys(profile.gameUids || {}).length" class="muted-text">No game UIDs</div>
-                  <div v-for="(regions, game) in profile.gameUids" :key="game" class="game-uid-block">
+                  <div v-if="!Object.keys(profile.gameUids || {}).length" class="muted-text">
+                    No game UIDs
+                  </div>
+                  <div
+                    v-for="(regions, game) in profile.gameUids"
+                    :key="game"
+                    class="game-uid-block"
+                  >
                     <div class="game-uid-header">
                       <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
                       <Tag
@@ -224,7 +264,17 @@ onUnmounted(() => {
         <form @submit.prevent="handleAdd" class="profile-form">
           <div class="field">
             <label for="addLtUid">HoYoLAB UID</label>
-            <InputText id="addLtUid" v-model="addForm.ltUid" type="text" inputmode="numeric" pattern="\d+" title="Numeric ID" placeholder="e.g. 123456789" required class="w-full" />
+            <InputText
+              id="addLtUid"
+              v-model="addForm.ltUid"
+              type="text"
+              inputmode="numeric"
+              pattern="\d+"
+              title="Numeric ID"
+              placeholder="e.g. 123456789"
+              required
+              class="w-full"
+            />
           </div>
           <div class="field">
             <label for="addLToken">LToken</label>
@@ -246,14 +296,25 @@ onUnmounted(() => {
           <div class="form-actions">
             <a href="/#/docs" target="_blank" class="docs-link">Need help? Read the docs</a>
             <div class="flex gap-2">
-              <Button type="button" label="Cancel" severity="secondary" outlined @click="showAddModal = false" />
+              <Button
+                type="button"
+                label="Cancel"
+                severity="secondary"
+                outlined
+                @click="showAddModal = false"
+              />
               <Button type="submit" label="Add" :loading="profilesLoading" />
             </div>
           </div>
         </form>
       </Dialog>
 
-      <Dialog v-model:visible="showEditModal" header="Edit Profile" modal :style="{ width: '28rem' }">
+      <Dialog
+        v-model:visible="showEditModal"
+        header="Edit Profile"
+        modal
+        :style="{ width: '28rem' }"
+      >
         <form @submit.prevent="handleEdit" class="profile-form">
           <div class="field">
             <label>HoYoLAB UID</label>
@@ -276,7 +337,13 @@ onUnmounted(() => {
             />
           </div>
           <div class="form-actions">
-            <Button type="button" label="Cancel" severity="secondary" outlined @click="showEditModal = false" />
+            <Button
+              type="button"
+              label="Cancel"
+              severity="secondary"
+              outlined
+              @click="showEditModal = false"
+            />
             <Button type="submit" label="Save" :loading="profilesLoading" />
           </div>
         </form>

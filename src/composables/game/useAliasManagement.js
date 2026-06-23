@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useApi } from "../useApi";
 
 export function useAliasManagement(config, activeTab) {
@@ -24,9 +24,9 @@ export function useAliasManagement(config, activeTab) {
       } else {
         showErrorToast(data.error || "Failed to fetch aliases", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     }
   };
 
@@ -121,9 +121,9 @@ export function useAliasManagement(config, activeTab) {
       showSuccessToast(
         isEditingAlias.value ? "Aliases updated successfully" : "Aliases added successfully",
       );
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       addAliasLoading.value = false;
     }

@@ -1,4 +1,4 @@
-import { ref, computed, readonly } from "vue";
+import { computed, readonly, ref } from "vue";
 import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
 import { setUserCache } from "./authStore";
 
@@ -32,9 +32,9 @@ const setAuthState = (userData) => {
 };
 
 export function useAuth() {
-  const isAuthenticated = computed(() => !!user.value);
-  const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin);
-  const isRootUser = computed(() => !!user.value?.isRootUser);
+  const isAuthenticated = computed(() => Boolean(user.value));
+  const isSuperAdmin = computed(() => Boolean(user.value?.isSuperAdmin));
+  const isRootUser = computed(() => Boolean(user.value?.isRootUser));
 
   const fetchUser = async () => {
     if (fetched) return user.value;
@@ -53,10 +53,10 @@ export function useAuth() {
           user.value = null;
           fetched = true;
         }
-      } catch (err) {
-        if (err._redirected) return null;
+      } catch (error) {
+        if (error._redirected) return null;
         user.value = null;
-        error.value = err.message || "Failed to fetch user";
+        error.value = error.message || "Failed to fetch user";
         fetched = true;
       } finally {
         loading.value = false;
@@ -79,7 +79,7 @@ export function useAuth() {
         skipAuthRedirect: true,
       });
     } catch {
-      // ignore
+      // Ignore
     } finally {
       user.value = null;
       fetched = false;
