@@ -19,10 +19,14 @@ const normalizeUser = (data) => ({
 
 const user = ref(null);
 const loading = ref(true);
-const error = ref("");
+const errorMsg = ref("");
 
 let fetched = false;
 let inflight = null;
+
+const login = () => {
+  globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+};
 
 const setAuthState = (userData) => {
   user.value = userData;
@@ -40,7 +44,7 @@ export function useAuth() {
     if (fetched) return user.value;
     if (inflight) return inflight;
     loading.value = true;
-    error.value = "";
+    errorMsg.value = "";
 
     inflight = (async () => {
       try {
@@ -56,7 +60,7 @@ export function useAuth() {
       } catch (error) {
         if (error._redirected) return null;
         user.value = null;
-        error.value = error.message || "Failed to fetch user";
+        errorMsg.value = error.message || "Failed to fetch user";
         fetched = true;
       } finally {
         loading.value = false;
@@ -66,10 +70,6 @@ export function useAuth() {
     })();
 
     return inflight;
-  };
-
-  const login = () => {
-    globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
   };
 
   const logout = async () => {
@@ -96,7 +96,7 @@ export function useAuth() {
   return {
     user: readonly(user),
     loading: readonly(loading),
-    error: readonly(error),
+    error: readonly(errorMsg),
     isAuthenticated,
     isSuperAdmin,
     isRootUser,

@@ -1,6 +1,6 @@
 import { ref } from "vue";
-import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "./useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 export function useProfileManagement() {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();

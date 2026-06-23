@@ -1,12 +1,12 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import Dialog from "primevue/dialog";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Textarea from "primevue/textarea";
-import Select from "primevue/select";
 import Checkbox from "primevue/checkbox";
+import Dialog from "primevue/dialog";
 import Divider from "primevue/divider";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
+import Textarea from "primevue/textarea";
 import { gameOptions } from "../../configs/gameMeta";
 
 const props = defineProps({

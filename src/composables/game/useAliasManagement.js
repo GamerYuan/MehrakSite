@@ -1,7 +1,7 @@
 import { computed, ref } from "vue";
 import { useApi } from "../useApi";
 
-export function useAliasManagement(config, activeTab) {
+export function useAliasManagement(config, _activeTab) {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const aliases = ref([]);
@@ -87,16 +87,18 @@ export function useAliasManagement(config, activeTab) {
           }
         }
 
-        for (const alias of removedAliases) {
-          const delRes = await apiFetch(
-            `/alias/delete?game=${config.id}&alias=${encodeURIComponent(alias)}`,
-            { method: "DELETE" },
-          );
-          if (!delRes.ok) {
-            const data = await delRes.json().catch(() => ({}));
-            throw buildError(data.error || `Failed to delete alias ${alias}`, delRes.status);
-          }
-        }
+        await Promise.all(
+          removedAliases.map(async (alias) => {
+            const delRes = await apiFetch(
+              `/alias/delete?game=${config.id}&alias=${encodeURIComponent(alias)}`,
+              { method: "DELETE" },
+            );
+            if (!delRes.ok) {
+              const data = await delRes.json().catch(() => ({}));
+              throw buildError(data.error || `Failed to delete alias ${alias}`, delRes.status);
+            }
+          }),
+        );
       } else {
         const response = await apiFetch(`/alias/add?game=${config.id}`, {
           method: "PATCH",

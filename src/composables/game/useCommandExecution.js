@@ -5,7 +5,7 @@ export function useCommandExecution(config, activeTab) {
   const { showErrorToast, buildError, apiFetch } = useApi();
 
   const loading = ref({});
-  const error = ref({});
+  const errorMsg = ref({});
   const resultImages = ref({});
 
   const showAuthModal = ref(false);
@@ -22,7 +22,7 @@ export function useCommandExecution(config, activeTab) {
   const executeCommand = async () => {
     const currentTab = activeTab.value;
     loading.value[currentTab] = true;
-    error.value[currentTab] = "";
+    errorMsg.value[currentTab] = "";
     resultImages.value[currentTab] = "";
 
     try {
@@ -69,7 +69,7 @@ export function useCommandExecution(config, activeTab) {
       }
     } catch (error) {
       if (error._redirected) return;
-      error.value[currentTab] = error.message;
+      errorMsg.value[currentTab] = error.message;
       showErrorToast(error.message, error.status);
     } finally {
       loading.value[currentTab] = false;
@@ -110,7 +110,7 @@ export function useCommandExecution(config, activeTab) {
 
   return {
     loading,
-    error,
+    error: errorMsg,
     resultImages,
     showAuthModal,
     authProfileId,

@@ -31,7 +31,13 @@ export function useUserPortraits(config) {
       if (ok && Array.isArray(data)) {
         userPortraits.value = data;
         const active = data.find((p) => p.isActive);
-        userPortraitId.value = active ? active.id : (data.length ? data[0].id : null);
+        if (active) {
+          userPortraitId.value = active.id;
+        } else if (data.length) {
+          userPortraitId.value = data[0].id;
+        } else {
+          userPortraitId.value = null;
+        }
       } else {
         userPortraits.value = [];
         userPortraitId.value = null;

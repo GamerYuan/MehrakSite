@@ -1,12 +1,12 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { getUser } from "./authStore";
-import { useCommandExecution } from "./game/useCommandExecution";
-import { useCharacterManagement } from "./game/useCharacterManagement";
 import { useAliasManagement } from "./game/useAliasManagement";
+import { useCharacterManagement } from "./game/useCharacterManagement";
 import { useCodesManagement } from "./game/useCodesManagement";
+import { useCommandExecution } from "./game/useCommandExecution";
 import { usePortraitConfig } from "./game/usePortraitConfig";
-import { useUserPortraits } from "./game/useUserPortraits";
 import { useProfileManagement } from "./useProfileManagement";
+import { useUserPortraits } from "./game/useUserPortraits";
 
 export function useGameView(config) {
   const activeTab = ref(config.tabs[0]?.id || "character");

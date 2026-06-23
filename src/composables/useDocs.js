@@ -1,6 +1,6 @@
 import { computed, onMounted, ref } from "vue";
-import { useApi } from "./useApi";
 import { gameMeta } from "../configs/gameMeta";
+import { useApi } from "./useApi";
 
 export const gameColors = Object.fromEntries(
   Object.entries(gameMeta).map(([key, meta]) => [
@@ -20,13 +20,13 @@ export function useDocs() {
 
   const documents = ref([]);
   const loading = ref(false);
-  const error = ref("");
+  const errorMsg = ref("");
   const searchQuery = ref("");
   const selectedGames = ref([...SUPPORTED_GAMES]);
 
   const fetchDocuments = async () => {
     loading.value = true;
-    error.value = "";
+    errorMsg.value = "";
     try {
       const { ok, data } = await apiFetchJson("/docs/list", {
         skipAuthRedirect: true,
@@ -34,29 +34,25 @@ export function useDocs() {
       if (ok) {
         documents.value = data;
       } else {
-        error.value = data.error || "Failed to fetch documentation";
+        errorMsg.value = data.error || "Failed to fetch documentation";
       }
     } catch (error) {
       if (error._redirected) return;
-      error.value = error.message;
+      errorMsg.value = error.message;
     } finally {
       loading.value = false;
     }
   };
 
   const fetchDocumentDetail = async (id) => {
-    try {
-      const response = await apiFetch(`/docs/${id}`, {
-        skipAuthRedirect: true,
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to fetch documentation details");
-      }
-      return await response.json();
-    } catch (error) {
-      throw error;
+    const response = await apiFetch(`/docs/${id}`, {
+      skipAuthRedirect: true,
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to fetch documentation details");
     }
+    return await response.json();
   };
 
   const filteredDocuments = computed(() => {
@@ -107,7 +103,7 @@ export function useDocs() {
   return {
     documents,
     loading,
-    error,
+    error: errorMsg,
     searchQuery,
     selectedGames,
     filteredDocuments,

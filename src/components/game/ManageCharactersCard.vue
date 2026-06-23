@@ -1,12 +1,12 @@
 <script setup>
-import { computed } from "vue";
-import { useGameViewInject } from "../../composables/game/injectKey";
-import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Card from "primevue/card";
-import Dialog from "primevue/dialog";
-import Message from "primevue/message";
 import Checkbox from "primevue/checkbox";
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
+import Message from "primevue/message";
+import { computed } from "vue";
+import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
 

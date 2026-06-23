@@ -1,23 +1,22 @@
 <script setup>
-import { computed } from "vue";
-import { useGameViewInject } from "../../composables/game/injectKey";
-import { gameMeta } from "../../configs/gameMeta";
-import Tabs from "primevue/tabs";
-import TabList from "primevue/tablist";
-import Tab from "primevue/tab";
-import TabPanels from "primevue/tabpanels";
-import TabPanel from "primevue/tabpanel";
-import Card from "primevue/card";
-import Image from "primevue/image";
-import Button from "primevue/button";
-
-import CommandCard from "./CommandCard.vue";
-import ManageCharactersCard from "./ManageCharactersCard.vue";
-import ManageAliasesCard from "./ManageAliasesCard.vue";
-import ManageCodesCard from "./ManageCodesCard.vue";
 import AuthModal from "./AuthModal.vue";
-import StatEditModal from "./StatEditModal.vue";
+import Button from "primevue/button";
+import Card from "primevue/card";
+import CommandCard from "./CommandCard.vue";
+import Image from "primevue/image";
+import ManageAliasesCard from "./ManageAliasesCard.vue";
+import ManageCharactersCard from "./ManageCharactersCard.vue";
+import ManageCodesCard from "./ManageCodesCard.vue";
 import PortraitConfigModal from "./PortraitConfigModal.vue";
+import StatEditModal from "./StatEditModal.vue";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanel from "primevue/tabpanel";
+import TabPanels from "primevue/tabpanels";
+import Tabs from "primevue/tabs";
+import { computed } from "vue";
+import { gameMeta } from "../../configs/gameMeta";
+import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
 

@@ -1,7 +1,7 @@
 <script setup>
-import { computed } from "vue";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import { computed } from "vue";
 
 const props = defineProps({
   userInfo: {

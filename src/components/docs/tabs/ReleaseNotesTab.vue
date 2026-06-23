@@ -22,22 +22,26 @@ const sortedReleases = computed(() =>
           const d = getTypeOrder(a.type) - getTypeOrder(b.type);
           return d !== 0 ? d : a.text.localeCompare(b.text);
         })
-        .map((n) => ({ ...n, parts: parseNote(n.text) })),
+        .map((n) => {
+          n.parts = parseNote(n.text);
+          return n;
+        }),
     })),
   })),
 );
 
 const parseNote = (text) => {
   const parts = [];
-  const re = /\[([^\]]+)\]/g;
+  const re = /\[(?<cmd>[^\]]+)\]/g;
   let last = 0;
-  let m;
+  let m = re.exec(text);
   let hasCmd = false;
-  while ((m = re.exec(text)) !== null) {
+  while (m !== null) {
     hasCmd = true;
     if (m.index > last) parts.push({ type: "text", text: text.slice(last, m.index) });
     parts.push({ type: "cmd", text: m[1] });
     last = m.index + m[0].length;
+    m = re.exec(text);
   }
   if (last < text.length) parts.push({ type: "text", text: text.slice(last) });
   return hasCmd ? parts : [{ type: "text", text }];

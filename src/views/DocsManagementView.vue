@@ -1,16 +1,16 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { useConfirm } from "primevue/useconfirm";
-import { useApi } from "../composables/useApi";
-import Card from "primevue/card";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
+import { gameFilterOptions, gameLabels } from "../configs/gameMeta";
 import Button from "primevue/button";
+import Card from "primevue/card";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import DocFormModal from "../components/docs/DocFormModal.vue";
+import GameTag from "../components/docs/GameTag.vue";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import GameTag from "../components/docs/GameTag.vue";
-import DocFormModal from "../components/docs/DocFormModal.vue";
-import { gameFilterOptions, gameLabels } from "../configs/gameMeta";
+import { useApi } from "../composables/useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
 const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast } = useApi();

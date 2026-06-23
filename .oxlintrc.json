@@ -17,7 +17,7 @@
     "no-await-in-loop": "warn",
     "func-style": "off",
     "curly": "off",
-    "sort-imports": "warn",
+    "sort-imports": "off",
     "unicorn/filename-case": "off",
     "unicorn/no-null": "off",
     "unicorn/catch-error-name": "warn"

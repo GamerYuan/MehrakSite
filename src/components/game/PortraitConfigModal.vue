@@ -1,20 +1,20 @@
 <script setup>
 import { computed, onUnmounted, ref, watch } from "vue";
-import { useGameViewInject } from "../../composables/game/injectKey";
-import { useApi } from "../../composables/useApi";
-import Dialog from "primevue/dialog";
+import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
+import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import Button from "primevue/button";
-import Tabs from "primevue/tabs";
-import TabList from "primevue/tablist";
 import Tab from "primevue/tab";
-import TabPanels from "primevue/tabpanels";
+import TabList from "primevue/tablist";
 import TabPanel from "primevue/tabpanel";
+import TabPanels from "primevue/tabpanels";
+import Tabs from "primevue/tabs";
 import UserPortraitUploadModal from "./UserPortraitUploadModal.vue";
 import { previewConfigs } from "../../configs/gamePreviews/index.js";
 import { renderPortrait } from "../../configs/gamePreviews/renderPortrait.js";
+import { useApi } from "../../composables/useApi";
+import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
 const { apiFetch, showErrorToast, showSuccessToast } = useApi();
@@ -96,17 +96,17 @@ const loadBackground = () => {
     return;
   }
   backgroundImage.value = new Image();
-  backgroundImage.value.onload = () => {
+  backgroundImage.value.addEventListener("load", () => {
     bgLoaded.value = true;
     initCanvas();
     renderPreview();
-  };
-  backgroundImage.value.onerror = () => {
+  }, { once: true });
+  backgroundImage.value.addEventListener("error", () => {
     backgroundImage.value = null;
     bgLoaded.value = true;
     initCanvas();
     drawBackgroundOnly();
-  };
+  }, { once: true });
   backgroundImage.value.src = bgUrl.value;
 };
 
@@ -143,16 +143,16 @@ const loadDefaultPortrait = async () => {
     if (token !== portraitLoadToken) return;
     portraitBlobUrl.value = URL.createObjectURL(blob);
     portraitImage.value = new Image();
-    portraitImage.value.onload = () => {
+    portraitImage.value.addEventListener("load", () => {
       if (token !== portraitLoadToken) return;
       portraitLoaded.value = true;
       syncLocalState();
       renderPreview();
-    };
-    portraitImage.value.onerror = () => {
+    }, { once: true });
+    portraitImage.value.addEventListener("error", () => {
       if (token !== portraitLoadToken) return;
       portraitError.value = true;
-    };
+    }, { once: true });
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (error) {
     if (error._redirected) return;
@@ -181,7 +181,7 @@ const loadUserPortraitImage = async (id) => {
     if (token !== portraitLoadToken) return;
     portraitBlobUrl.value = URL.createObjectURL(blob);
     portraitImage.value = new Image();
-    portraitImage.value.onload = () => {
+    portraitImage.value.addEventListener("load", () => {
       if (token !== portraitLoadToken) return;
       portraitLoaded.value = true;
       if (gv.userPortraitConfigFetching) {
@@ -190,11 +190,11 @@ const loadUserPortraitImage = async (id) => {
       }
       syncLocalState();
       renderPreview();
-    };
-    portraitImage.value.onerror = () => {
+    }, { once: true });
+    portraitImage.value.addEventListener("error", () => {
       if (token !== portraitLoadToken) return;
       portraitError.value = true;
-    };
+    }, { once: true });
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (error) {
     if (error._redirected) return;

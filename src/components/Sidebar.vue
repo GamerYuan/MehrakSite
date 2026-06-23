@@ -1,8 +1,8 @@
 <script setup>
 import { useRoute, useRouter } from "vue-router";
-import { useAuth } from "../composables/useAuth";
-import { gameMeta } from "../configs/gameMeta";
 import ThemeToggle from "./ThemeToggle.vue";
+import { gameMeta } from "../configs/gameMeta";
+import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();

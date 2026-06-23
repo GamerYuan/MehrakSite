@@ -1,8 +1,15 @@
 import { computed, ref } from "vue";
-import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../useApi";
+import { useConfirm } from "primevue/useconfirm";
 
-export function useCharacterManagement(config, activeTab) {
+const toStatNumber = (value) => {
+  if (typeof value === "number") return value;
+  if (value === null || value === undefined || value === "") return 0;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+export function useCharacterManagement(config, _activeTab) {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
   const confirm = useConfirm();
 
@@ -14,13 +21,6 @@ export function useCharacterManagement(config, activeTab) {
   const manageLoading = ref(false);
   const manageError = ref("");
   const characterStats = ref({});
-
-  const toStatNumber = (value) => {
-    if (typeof value === "number") return value;
-    if (value === null || value === undefined || value === "") return 0;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
 
   const fetchCharacters = async () => {
     try {

@@ -1,18 +1,18 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from "vue";
-import { useAuth } from "../composables/useAuth";
-import { useProfileManagement } from "../composables/useProfileManagement";
-import { gameConfigs } from "../configs/gameConfigs";
-import Card from "primevue/card";
-import Tag from "primevue/tag";
-import Message from "primevue/message";
 import Button from "primevue/button";
+import Card from "primevue/card";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
+import Message from "primevue/message";
 import Password from "primevue/password";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
 import ProgressSpinner from "primevue/progressspinner";
+import Tag from "primevue/tag";
+import { gameConfigs } from "../configs/gameConfigs";
+import { useAuth } from "../composables/useAuth";
+import { useProfileManagement } from "../composables/useProfileManagement";
 
 const { user, loading, error } = useAuth();
 const {

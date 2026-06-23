@@ -1,8 +1,8 @@
 import { computed, ref } from "vue";
-import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "../useApi";
+import { useConfirm } from "primevue/useconfirm";
 
-export function useCodesManagement(config, activeTab) {
+export function useCodesManagement(config, _activeTab) {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
   const confirm = useConfirm();
 

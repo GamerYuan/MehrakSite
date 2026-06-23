@@ -1,17 +1,17 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
-import { useConfirm } from "primevue/useconfirm";
-import { useApi } from "../composables/useApi";
 import { availablePermissions, permissionLabels } from "../configs/gameMeta";
-import Card from "primevue/card";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
+import { computed, onMounted, ref } from "vue";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Dialog from "primevue/dialog";
+import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
-import Tag from "primevue/tag";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
 import Message from "primevue/message";
+import Tag from "primevue/tag";
+import { useApi } from "../composables/useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
 const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast } = useApi();
@@ -32,7 +32,7 @@ const showAddModal = ref(false);
 const showUpdateModal = ref(false);
 
 const selectedUser = ref(null);
-const error = ref("");
+const errorMsg = ref("");
 
 const isRootUser = (user) => Boolean(user?.isRootUser);
 
@@ -65,15 +65,21 @@ const fetchUsers = async () => {
         gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
       }));
     } else {
-      error.value = "Failed to fetch users";
+      errorMsg.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
     }
   } catch (error) {
     if (error._redirected) return;
-    error.value = error.message;
+    errorMsg.value = error.message;
   } finally {
     loading.value = false;
   }
+};
+
+const getRole = (u) => {
+  if (u.isRootUser) return 0;
+  if (u.isSuperAdmin) return 1;
+  return 2;
 };
 
 const filteredUsers = computed(() => 
@@ -93,9 +99,8 @@ const filteredUsers = computed(() =>
       );
     })
     .sort((a, b) => {
-      const roleOrder = (u) => (u.isRootUser ? 0 : u.isSuperAdmin ? 1 : 2);
-      const ra = roleOrder(a);
-      const rb = roleOrder(b);
+      const ra = getRole(a);
+      const rb = getRole(b);
       if (ra !== rb) return ra - rb;
       return String(a.discordUserId).localeCompare(String(b.discordUserId), undefined, {
         numeric: true,
@@ -169,7 +174,7 @@ const getSelectedPermissions = () =>
 
 const handleAddUser = async () => {
   try {
-    let discordId;
+    let discordId = "";
     try {
       discordId = BigInt(formData.value.discordUserId).toString();
     } catch {
@@ -209,7 +214,7 @@ const handleUpdateUser = async () => {
     return;
   }
   try {
-    let discordId;
+    let discordId = "";
     try {
       discordId = BigInt(formData.value.discordUserId).toString();
     } catch {
@@ -282,7 +287,7 @@ onMounted(() => {
       <Button label="Add User" icon="pi pi-plus" @click="openAddModal" />
     </header>
 
-    <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+    <Message v-if="errorMsg" severity="error" :closable="false" class="mb-4">{{ errorMsg }}</Message>
 
     <Card class="card-elevated filters-card">
       <template #content>

@@ -1,10 +1,10 @@
 <script setup>
 import { provide, reactive } from "vue";
-import { useRoute } from "vue-router";
-import { useGameView } from "../composables/useGameView";
-import { gameConfigs } from "../configs/gameConfigs";
 import { GAME_VIEW_KEY } from "../composables/game/injectKey";
 import GameViewContainer from "../components/game/GameViewContainer.vue";
+import { gameConfigs } from "../configs/gameConfigs";
+import { useGameView } from "../composables/useGameView";
+import { useRoute } from "vue-router";
 
 const route = useRoute();
 

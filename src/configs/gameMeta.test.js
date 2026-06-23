@@ -2,7 +2,6 @@ import {
   availablePermissions,
   gameFilterOptions,
   gameLabels,
-  gameMeta,
   gameOptions,
   permissionLabels,
 } from "./gameMeta";

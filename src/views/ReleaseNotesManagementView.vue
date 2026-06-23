@@ -1,15 +1,15 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { useReleaseNotes } from "../composables/useReleaseNotes";
-import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
-import Select from "primevue/select";
+import Card from "primevue/card";
 import Dialog from "primevue/dialog";
+import InputNumber from "primevue/inputnumber";
+import InputText from "primevue/inputtext";
 import ProgressSpinner from "primevue/progressspinner";
+import Select from "primevue/select";
+import Textarea from "primevue/textarea";
 import { useConfirm } from "primevue/useconfirm";
+import { useReleaseNotes } from "../composables/useReleaseNotes";
 import { useToast } from "primevue/usetoast";
 
 const { fetchAll, createVersion, updateVersion, deleteVersion } = useReleaseNotes();
@@ -47,7 +47,7 @@ const noteTypes = [
 ];
 
 const sortedReleases = computed(() => 
-  [...releases.value].sort((a, b) => b.displayOrder - a.displayOrder)
+  [...releases.value].toSorted((a, b) => b.displayOrder - a.displayOrder)
 );
 
 const loadReleases = async () => {
@@ -147,12 +147,9 @@ const handleSave = async () => {
     return;
   }
 
-  let success;
-  if (isEditing.value) {
-    success = await updateVersion(editingId.value, payload);
-  } else {
-    success = await createVersion(payload);
-  }
+  const success = isEditing.value
+    ? await updateVersion(editingId.value, payload)
+    : await createVersion(payload);
 
   if (success) {
     showModal.value = false;

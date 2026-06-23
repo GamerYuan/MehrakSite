@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { ref } from "vue";
 
 const STORAGE_KEY = "theme";
 
@@ -10,7 +10,7 @@ function resolveInitial() {
     return stored;
   }
   // No stored preference — use system
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function applyTheme() {
@@ -20,7 +20,7 @@ function applyTheme() {
 let initialized = false;
 
 export function useTheme() {
-  if (!initialized && typeof window !== "undefined") {
+  if (!initialized && typeof globalThis !== "undefined") {
     theme.value = resolveInitial();
     applyTheme();
     initialized = true;
