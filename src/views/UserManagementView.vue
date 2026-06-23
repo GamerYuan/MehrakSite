@@ -118,7 +118,7 @@ const openUpdateModal = (user) => {
     return;
   }
   selectedUser.value = user;
-  const userPerms = new Set((user.gameWritePermissions || []).map((p) => p.toLowerCase()));
+  const userPerms = new Set(user.gameWritePermissions || []);
 
   const newPermissions = {};
   availablePermissions.forEach((perm) => {
