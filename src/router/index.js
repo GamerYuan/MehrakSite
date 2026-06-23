@@ -13,6 +13,16 @@ import TermsOfServiceView from "../views/TermsOfServiceView.vue";
 import { gameMeta } from "../configs/gameMeta";
 import { getUser, setUserCache } from "../composables/authStore";
 
+const validGameKeys = Object.values(gameMeta)
+  .map((m) => m.routeKey)
+  .filter(Boolean);
+
+function validateGameParam(game) {
+  if (!validGameKeys.includes(game)) {
+    return { name: "dashboard-home" };
+  }
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior(to, from, savedPosition) {
@@ -77,14 +87,7 @@ const router = createRouter({
           path: ":game",
           name: "game",
           component: GameView,
-          beforeEnter: (to) => {
-            const validGames = Object.values(gameMeta)
-              .map((m) => m.routeKey)
-              .filter(Boolean);
-            if (!validGames.includes(to.params.game)) {
-              return { name: "dashboard-home" };
-            }
-          },
+          beforeEnter: (to) => validateGameParam(to.params.game),
           meta: { requireAuth: true },
         },
         {
@@ -154,4 +157,5 @@ router.beforeEach(async (to) => {
   }
 });
 
+export { validateGameParam };
 export default router;
