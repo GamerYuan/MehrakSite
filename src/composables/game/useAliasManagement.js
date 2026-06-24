@@ -1,7 +1,7 @@
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useApi } from "../useApi";
 
-export function useAliasManagement(config, activeTab) {
+export function useAliasManagement(config, _activeTab) {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
 
   const aliases = ref([]);
@@ -24,9 +24,9 @@ export function useAliasManagement(config, activeTab) {
       } else {
         showErrorToast(data.error || "Failed to fetch aliases", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     }
   };
 
@@ -87,16 +87,18 @@ export function useAliasManagement(config, activeTab) {
           }
         }
 
-        for (const alias of removedAliases) {
-          const delRes = await apiFetch(
-            `/alias/delete?game=${config.id}&alias=${encodeURIComponent(alias)}`,
-            { method: "DELETE" },
-          );
-          if (!delRes.ok) {
-            const data = await delRes.json().catch(() => ({}));
-            throw buildError(data.error || `Failed to delete alias ${alias}`, delRes.status);
-          }
-        }
+        await Promise.all(
+          removedAliases.map(async (alias) => {
+            const delRes = await apiFetch(
+              `/alias/delete?game=${config.id}&alias=${encodeURIComponent(alias)}`,
+              { method: "DELETE" },
+            );
+            if (!delRes.ok) {
+              const data = await delRes.json().catch(() => ({}));
+              throw buildError(data.error || `Failed to delete alias ${alias}`, delRes.status);
+            }
+          }),
+        );
       } else {
         const response = await apiFetch(`/alias/add?game=${config.id}`, {
           method: "PATCH",
@@ -121,9 +123,9 @@ export function useAliasManagement(config, activeTab) {
       showSuccessToast(
         isEditingAlias.value ? "Aliases updated successfully" : "Aliases added successfully",
       );
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       addAliasLoading.value = false;
     }

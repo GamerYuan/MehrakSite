@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onUnmounted, nextTick } from "vue";
+import { computed, nextTick, onUnmounted, ref, watch } from "vue";
 
 const props = defineProps({
   images: { type: Array, required: true },

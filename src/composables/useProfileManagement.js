@@ -1,6 +1,6 @@
 import { ref } from "vue";
-import { useConfirm } from "primevue/useconfirm";
 import { useApi } from "./useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 export function useProfileManagement() {
   const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
@@ -24,9 +24,9 @@ export function useProfileManagement() {
       } else {
         showErrorToast(data.error || "Failed to fetch profiles", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       loading.value = false;
     }
@@ -58,9 +58,9 @@ export function useProfileManagement() {
       showAddModal.value = false;
       await fetchProfiles();
       showSuccessToast("Profile added successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       loading.value = false;
     }
@@ -92,9 +92,9 @@ export function useProfileManagement() {
       showEditModal.value = false;
       await fetchProfiles();
       showSuccessToast("Profile updated successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       loading.value = false;
     }
@@ -132,9 +132,9 @@ export function useProfileManagement() {
 
       await fetchProfiles();
       showSuccessToast("Profile deleted successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       loading.value = false;
     }
@@ -170,9 +170,9 @@ export function useProfileManagement() {
 
       await fetchProfiles();
       showSuccessToast("All profiles deleted");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       loading.value = false;
     }

@@ -1,10 +1,9 @@
 <script setup>
-import { useRouter } from "vue-router";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import Accordion from "primevue/accordion";
-import AccordionPanel from "primevue/accordionpanel";
-import AccordionHeader from "primevue/accordionheader";
 import AccordionContent from "primevue/accordioncontent";
+import AccordionHeader from "primevue/accordionheader";
+import AccordionPanel from "primevue/accordionpanel";
 
 const router = useRouter();
 

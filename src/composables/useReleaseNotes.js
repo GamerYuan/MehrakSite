@@ -1,7 +1,7 @@
 import { useApi } from "./useApi";
 
 export function useReleaseNotes() {
-  const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast } = useApi();
+  const { apiFetchJson, showErrorToast, showSuccessToast } = useApi();
 
   const fetchAll = async () => {
     const result = await apiFetchJson("/release-notes");

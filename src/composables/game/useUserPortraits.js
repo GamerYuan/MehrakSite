@@ -31,16 +31,22 @@ export function useUserPortraits(config) {
       if (ok && Array.isArray(data)) {
         userPortraits.value = data;
         const active = data.find((p) => p.isActive);
-        userPortraitId.value = active ? active.id : data.length ? data[0].id : null;
+        if (active) {
+          userPortraitId.value = active.id;
+        } else if (data.length) {
+          userPortraitId.value = data[0].id;
+        } else {
+          userPortraitId.value = null;
+        }
       } else {
         userPortraits.value = [];
         userPortraitId.value = null;
       }
-    } catch (err) {
-      if (err._redirected) return;
+    } catch (error) {
+      if (error._redirected) return;
       userPortraits.value = [];
       userPortraitId.value = null;
-      showErrorToast(err.message, err.status);
+      showErrorToast(error.message, error.status);
     } finally {
       userPortraitsLoading.value = false;
     }
@@ -65,9 +71,9 @@ export function useUserPortraits(config) {
         userPortraitConfigFlipX.value = cfg.flipX ?? false;
         userPortraitConfigArtistAttribution.value = cfg.artistAttribution ?? null;
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       userPortraitConfigFetching.value = false;
     }
@@ -118,9 +124,9 @@ export function useUserPortraits(config) {
       if (userPortraitsCharacter.value) {
         await fetchUserPortraits(userPortraitsCharacter.value);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     }
   };
 
@@ -149,9 +155,9 @@ export function useUserPortraits(config) {
       }
 
       showSuccessToast("Portrait config updated successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       userPortraitConfigSaving.value = false;
     }

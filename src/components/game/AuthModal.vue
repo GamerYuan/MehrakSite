@@ -1,9 +1,9 @@
 <script setup>
-import { useGameViewInject } from "../../composables/game/injectKey";
-import Dialog from "primevue/dialog";
-import Password from "primevue/password";
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import Message from "primevue/message";
+import Password from "primevue/password";
+import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
 

@@ -1,15 +1,15 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useReleaseNotes } from "../composables/useReleaseNotes";
-import Card from "primevue/card";
+import { computed, onMounted, ref } from "vue";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
-import Select from "primevue/select";
+import Card from "primevue/card";
 import Dialog from "primevue/dialog";
+import InputNumber from "primevue/inputnumber";
+import InputText from "primevue/inputtext";
 import ProgressSpinner from "primevue/progressspinner";
+import Select from "primevue/select";
+import Textarea from "primevue/textarea";
 import { useConfirm } from "primevue/useconfirm";
+import { useReleaseNotes } from "../composables/useReleaseNotes";
 import { useToast } from "primevue/usetoast";
 
 const { fetchAll, createVersion, updateVersion, deleteVersion } = useReleaseNotes();
@@ -46,9 +46,9 @@ const noteTypes = [
   { label: "Fix", value: "fix" },
 ];
 
-const sortedReleases = computed(() => {
-  return [...releases.value].sort((a, b) => b.displayOrder - a.displayOrder);
-});
+const sortedReleases = computed(() => 
+  [...releases.value].toSorted((a, b) => b.displayOrder - a.displayOrder)
+);
 
 const loadReleases = async () => {
   loading.value = true;
@@ -147,12 +147,9 @@ const handleSave = async () => {
     return;
   }
 
-  let success;
-  if (isEditing.value) {
-    success = await updateVersion(editingId.value, payload);
-  } else {
-    success = await createVersion(payload);
-  }
+  const success = isEditing.value
+    ? await updateVersion(editingId.value, payload)
+    : await createVersion(payload);
 
   if (success) {
     showModal.value = false;
@@ -186,12 +183,7 @@ onMounted(loadReleases);
             <h1 class="page-title">Release Notes Management</h1>
             <p class="page-subtitle">Add, edit, or remove release versions and their notes.</p>
           </div>
-          <Button
-            icon="pi pi-plus"
-            label="Add Version"
-            outlined
-            @click="openAddModal"
-          />
+          <Button icon="pi pi-plus" label="Add Version" outlined @click="openAddModal" />
         </div>
       </template>
     </Card>
@@ -212,7 +204,9 @@ onMounted(loadReleases);
       <aside class="h-fit">
         <Card class="card-elevated">
           <template #content>
-            <h4 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+            <h4
+              class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3"
+            >
               Versions
             </h4>
             <nav class="flex flex-col gap-1 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
@@ -224,7 +218,9 @@ onMounted(loadReleases);
                 @click="openEditModal(release)"
               >
                 <span class="font-mono text-xs">{{ release.version }}</span>
-                <span v-if="release.date" class="text-[var(--text-muted)] text-xs ml-2">{{ release.date }}</span>
+                <span v-if="release.date" class="text-[var(--text-muted)] text-xs ml-2">{{
+                  release.date
+                }}</span>
               </button>
             </nav>
           </template>
@@ -239,7 +235,9 @@ onMounted(loadReleases);
                 <h3 class="text-xl font-bold text-[var(--text-primary)] font-mono">
                   {{ release.version }}
                 </h3>
-                <span v-if="release.date" class="text-sm text-[var(--text-muted)]">{{ release.date }}</span>
+                <span v-if="release.date" class="text-sm text-[var(--text-muted)]">{{
+                  release.date
+                }}</span>
               </div>
               <div class="flex gap-2">
                 <Button
@@ -285,7 +283,9 @@ onMounted(loadReleases);
                   >
                     {{ note.type }}
                   </span>
-                  <span class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap">{{ note.text }}</span>
+                  <span class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap">{{
+                    note.text
+                  }}</span>
                 </li>
               </ul>
             </div>
@@ -401,4 +401,3 @@ onMounted(loadReleases);
     </Dialog>
   </div>
 </template>
-

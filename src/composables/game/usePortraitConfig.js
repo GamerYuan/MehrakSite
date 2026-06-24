@@ -35,9 +35,9 @@ export function usePortraitConfig(config) {
         portraitConfigTargetScale.value = data.targetScale ?? null;
         portraitConfigFlipX.value = data.flipX ?? false;
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       portraitConfigFetching.value = false;
     }
@@ -72,9 +72,9 @@ export function usePortraitConfig(config) {
 
       showPortraitConfigModal.value = true;
       await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       portraitConfigFetching.value = false;
     }
@@ -108,9 +108,9 @@ export function usePortraitConfig(config) {
 
       showPortraitConfigModal.value = false;
       showSuccessToast("Portrait config updated successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      if (error._redirected) return;
+      showErrorToast(error.message, error.status);
     } finally {
       portraitConfigSaving.value = false;
     }

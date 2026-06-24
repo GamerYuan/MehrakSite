@@ -1,4 +1,10 @@
-import { gameMeta, gameOptions, gameFilterOptions, permissionLabels, availablePermissions, gameLabels } from "./gameMeta";
+import {
+  availablePermissions,
+  gameFilterOptions,
+  gameLabels,
+  gameOptions,
+  permissionLabels,
+} from "./gameMeta";
 
 describe("gameMeta derived exports", () => {
   it("availablePermissions excludes Unsupported but includes TearsOfThemis", () => {

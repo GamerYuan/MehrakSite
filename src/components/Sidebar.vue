@@ -1,8 +1,8 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import { useAuth } from "../composables/useAuth";
-import { gameMeta } from "../configs/gameMeta";
+import { useRoute, useRouter } from "vue-router";
 import ThemeToggle from "./ThemeToggle.vue";
+import { gameMeta } from "../configs/gameMeta";
+import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
@@ -61,7 +61,12 @@ const isActive = (path) => route.path === path;
     <nav class="sidebar-nav">
       <div class="nav-group">
         <span class="nav-group-label">Account</span>
-        <router-link to="/dashboard" class="nav-item" :class="{ active: isActive('/dashboard') }" @click="close">
+        <router-link
+          to="/dashboard"
+          class="nav-item"
+          :class="{ active: isActive('/dashboard') }"
+          @click="close"
+        >
           <i class="pi pi-user nav-icon"></i>
           <span>Profile</span>
         </router-link>
@@ -78,16 +83,9 @@ const isActive = (path) => route.path === path;
           :data-game="g.key"
           @click="close"
         >
-          <img
-            :src="g.logo"
-            class="nav-game-logo"
-            :alt="g.label"
-          />
+          <img :src="g.logo" class="nav-game-logo" :alt="g.label" />
           <span>{{ g.label }}</span>
-          <span
-            class="game-dot"
-            :style="{ backgroundColor: gameMeta[g.metaKey].color }"
-          ></span>
+          <span class="game-dot" :style="{ backgroundColor: gameMeta[g.metaKey].color }"></span>
         </router-link>
       </div>
 
@@ -239,7 +237,9 @@ const isActive = (path) => route.path === path;
   border-radius: 8px;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
   position: relative;
 }
 

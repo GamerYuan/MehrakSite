@@ -1,17 +1,17 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useAlias } from "../../../composables/useAlias";
-import { gameConfigs } from "../../../configs/gameConfigs";
-import Tabs from "primevue/tabs";
-import TabList from "primevue/tablist";
-import Tab from "primevue/tab";
-import TabPanels from "primevue/tabpanels";
-import TabPanel from "primevue/tabpanel";
-import DataTable from "primevue/datatable";
+import { computed, onMounted, ref } from "vue";
 import Column from "primevue/column";
-import Tag from "primevue/tag";
-import ProgressSpinner from "primevue/progressspinner";
+import DataTable from "primevue/datatable";
 import Message from "primevue/message";
+import ProgressSpinner from "primevue/progressspinner";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanel from "primevue/tabpanel";
+import TabPanels from "primevue/tabpanels";
+import Tabs from "primevue/tabs";
+import Tag from "primevue/tag";
+import { gameConfigs } from "../../../configs/gameConfigs";
+import { useAlias } from "../../../composables/useAlias";
 
 const { aliases, loading, error, searchQuery, fetchAllAliases } = useAlias();
 

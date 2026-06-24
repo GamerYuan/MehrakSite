@@ -1,24 +1,24 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
-import DocsView from "../views/DocsView.vue";
-import DashboardLayout from "../layouts/DashboardLayout.vue";
-import DashboardHomeView from "../views/DashboardHomeView.vue";
-import UserManagementView from "../views/UserManagementView.vue";
-import DocsManagementView from "../views/DocsManagementView.vue";
-import GameView from "../views/GameView.vue";
-import SeaweedFilerView from "../views/SeaweedFilerView.vue";
-import ReleaseNotesManagementView from "../views/ReleaseNotesManagementView.vue";
-import PrivacyPolicyView from "../views/PrivacyPolicyView.vue";
-import TermsOfServiceView from "../views/TermsOfServiceView.vue";
-import { gameMeta } from "../configs/gameMeta";
 import { getUser, setUserCache } from "../composables/authStore";
+import DashboardHomeView from "../views/DashboardHomeView.vue";
+import DashboardLayout from "../layouts/DashboardLayout.vue";
+import DocsManagementView from "../views/DocsManagementView.vue";
+import DocsView from "../views/DocsView.vue";
+import GameView from "../views/GameView.vue";
+import HomeView from "../views/HomeView.vue";
+import PrivacyPolicyView from "../views/PrivacyPolicyView.vue";
+import ReleaseNotesManagementView from "../views/ReleaseNotesManagementView.vue";
+import SeaweedFilerView from "../views/SeaweedFilerView.vue";
+import TermsOfServiceView from "../views/TermsOfServiceView.vue";
+import UserManagementView from "../views/UserManagementView.vue";
+import { gameMeta } from "../configs/gameMeta";
 
-const validGameKeys = Object.values(gameMeta)
+const validGameKeys = new Set(Object.values(gameMeta)
   .map((m) => m.routeKey)
-  .filter(Boolean);
+  .filter(Boolean));
 
 function validateGameParam(game) {
-  if (!validGameKeys.includes(game)) {
+  if (!validGameKeys.has(game)) {
     return { name: "dashboard-home" };
   }
 }
@@ -104,7 +104,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
-  const meta = to.meta;
+  const {meta} = to;
   if (
     !meta.requireAuth &&
     !meta.requireSuperAdmin &&
@@ -123,7 +123,7 @@ router.beforeEach(async (to) => {
       });
       if (!ok) {
         if (status === 401) {
-          window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+          globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
           return false;
         }
         return { name: "home" };
@@ -131,9 +131,9 @@ router.beforeEach(async (to) => {
       const normalized = normalizeUser(data);
       setUserCache(normalized);
       setAuthState(normalized);
-    } catch (err) {
-      if (err.status === 401) {
-        window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+    } catch (error) {
+      if (error.status === 401) {
+        globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
       }
       return false;
     }
@@ -146,7 +146,7 @@ router.beforeEach(async (to) => {
   }
 
   if (meta.requireGamePermission) {
-    const game = to.params.game;
+    const {game} = to.params;
     if (!user.isSuperAdmin && !user.gameWritePermissions?.includes(game)) {
       return { name: "dashboard-home" };
     }

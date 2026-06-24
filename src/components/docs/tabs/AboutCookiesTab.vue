@@ -1,11 +1,11 @@
 <script setup>
-import { useRouter } from "vue-router";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
 import Accordion from "primevue/accordion";
-import AccordionPanel from "primevue/accordionpanel";
-import AccordionHeader from "primevue/accordionheader";
 import AccordionContent from "primevue/accordioncontent";
+import AccordionHeader from "primevue/accordionheader";
+import AccordionPanel from "primevue/accordionpanel";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 

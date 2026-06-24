@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ProgressSpinner from "primevue/progressspinner";
 import { useReleaseNotes } from "../../../composables/useReleaseNotes";
 
@@ -18,26 +18,30 @@ const sortedReleases = computed(() =>
     sections: r.sections.map((s) => ({
       ...s,
       notes: [...s.notes]
-        .sort((a, b) => {
+        .toSorted((a, b) => {
           const d = getTypeOrder(a.type) - getTypeOrder(b.type);
           return d !== 0 ? d : a.text.localeCompare(b.text);
         })
-        .map((n) => ({ ...n, parts: parseNote(n.text) })),
+        .map((n) => {
+          n.parts = parseNote(n.text);
+          return n;
+        }),
     })),
   })),
 );
 
 const parseNote = (text) => {
   const parts = [];
-  const re = /\[([^\]]+)\]/g;
+  const re = /\[(?<cmd>[^\]]+)\]/g;
   let last = 0;
-  let m;
+  let m = re.exec(text);
   let hasCmd = false;
-  while ((m = re.exec(text)) !== null) {
+  while (m !== null) {
     hasCmd = true;
     if (m.index > last) parts.push({ type: "text", text: text.slice(last, m.index) });
     parts.push({ type: "cmd", text: m[1] });
     last = m.index + m[0].length;
+    m = re.exec(text);
   }
   if (last < text.length) parts.push({ type: "text", text: text.slice(last) });
   return hasCmd ? parts : [{ type: "text", text }];
@@ -52,14 +56,14 @@ const typeStyle = (t) =>
 
 const scrollToVersion = (v) => {
   selectedVersion.value = v;
-  document.getElementById("release-" + v)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById(`release-${v}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 onMounted(async () => {
   try {
     releases.value = await fetchAll();
     if (releases.value.length) selectedVersion.value = releases.value[0].version;
-  } catch (e) {
+  } catch {
     error.value = "Failed to load release notes.";
   } finally {
     loading.value = false;

@@ -1,10 +1,10 @@
 <script setup>
-import { useRouter } from "vue-router";
-import Button from "primevue/button";
-import AppNavbar from "../components/AppNavbar.vue";
 import AppFooter from "../components/AppFooter.vue";
-import ShowcaseSection from "../components/ShowcaseSection.vue";
+import AppNavbar from "../components/AppNavbar.vue";
+import Button from "primevue/button";
 import HeroShowcase from "../components/HeroShowcase.vue";
+import ShowcaseSection from "../components/ShowcaseSection.vue";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 

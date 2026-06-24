@@ -1,17 +1,17 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useConfirm } from "primevue/useconfirm";
-import { useApi } from "../composables/useApi";
 import { availablePermissions, permissionLabels } from "../configs/gameMeta";
-import Card from "primevue/card";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
+import { computed, onMounted, ref } from "vue";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Dialog from "primevue/dialog";
+import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
-import Tag from "primevue/tag";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
 import Message from "primevue/message";
+import Tag from "primevue/tag";
+import { useApi } from "../composables/useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
 const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast } = useApi();
@@ -32,9 +32,9 @@ const showAddModal = ref(false);
 const showUpdateModal = ref(false);
 
 const selectedUser = ref(null);
-const error = ref("");
+const errorMsg = ref("");
 
-const isRootUser = (user) => !!user?.isRootUser;
+const isRootUser = (user) => Boolean(user?.isRootUser);
 
 const blockRootAction = () => {
   showWarnToast("Root users cannot be modified.");
@@ -65,27 +65,33 @@ const fetchUsers = async () => {
         gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
       }));
     } else {
-      error.value = "Failed to fetch users";
+      errorMsg.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
     }
-  } catch (err) {
-    if (err._redirected) return;
-    error.value = err.message;
+  } catch (error) {
+    if (error._redirected) return;
+    errorMsg.value = error.message;
+    showErrorToast(error.message, error.status);
   } finally {
     loading.value = false;
   }
 };
 
-const filteredUsers = computed(() => {
-  return users.value
+const getRole = (u) => {
+  if (u.isRootUser) return 0;
+  if (u.isSuperAdmin) return 1;
+  return 2;
+};
+
+const filteredUsers = computed(() => 
+  users.value
     .filter((user) => {
       const matchesSearch = (user.discordUserId || "")
         .toLowerCase()
         .includes(searchQuery.value.toLowerCase());
 
       if (filterPermissions.value.length === 0) return matchesSearch;
-      if (filterPermissions.value.includes("SuperAdmin"))
-        return matchesSearch && user.isSuperAdmin;
+      if (filterPermissions.value.includes("SuperAdmin")) return matchesSearch && user.isSuperAdmin;
 
       return (
         matchesSearch &&
@@ -94,13 +100,14 @@ const filteredUsers = computed(() => {
       );
     })
     .sort((a, b) => {
-      const roleOrder = (u) => (u.isRootUser ? 0 : u.isSuperAdmin ? 1 : 2);
-      const ra = roleOrder(a);
-      const rb = roleOrder(b);
+      const ra = getRole(a);
+      const rb = getRole(b);
       if (ra !== rb) return ra - rb;
-      return String(a.discordUserId).localeCompare(String(b.discordUserId), undefined, { numeric: true });
-    });
-});
+      return String(a.discordUserId).localeCompare(String(b.discordUserId), undefined, {
+        numeric: true,
+      });
+    })
+);
 
 const resetForm = () => {
   formData.value = {
@@ -160,15 +167,15 @@ const confirmDelete = (user) => {
   });
 };
 
-const getSelectedPermissions = () => {
-  return Object.entries(formData.value.permissions)
+const getSelectedPermissions = () => 
+  Object.entries(formData.value.permissions)
     .filter(([_, value]) => value)
-    .map(([key, _]) => key);
-};
+    .map(([key, _]) => key)
+;
 
 const handleAddUser = async () => {
   try {
-    let discordId;
+    let discordId = "";
     try {
       discordId = BigInt(formData.value.discordUserId).toString();
     } catch {
@@ -196,9 +203,9 @@ const handleAddUser = async () => {
     showAddModal.value = false;
     fetchUsers();
     showSuccessToast("User added successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 
@@ -208,7 +215,7 @@ const handleUpdateUser = async () => {
     return;
   }
   try {
-    let discordId;
+    let discordId = "";
     try {
       discordId = BigInt(formData.value.discordUserId).toString();
     } catch {
@@ -237,9 +244,9 @@ const handleUpdateUser = async () => {
     showUpdateModal.value = false;
     fetchUsers();
     showSuccessToast("User updated successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 
@@ -260,9 +267,9 @@ const handleDeleteUser = async (user) => {
 
     fetchUsers();
     showSuccessToast("User deleted successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   }
 };
 
@@ -281,7 +288,7 @@ onMounted(() => {
       <Button label="Add User" icon="pi pi-plus" @click="openAddModal" />
     </header>
 
-    <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+    <Message v-if="errorMsg" severity="error" :closable="false" class="mb-4">{{ errorMsg }}</Message>
 
     <Card class="card-elevated filters-card">
       <template #content>
@@ -293,9 +300,7 @@ onMounted(() => {
                 :modelValue="filterPermissions.length === 0"
                 binary
                 inputId="filter-all"
-                @update:modelValue="
-                  (v) => (filterPermissions = v ? [] : filterPermissions)
-                "
+                @update:modelValue="(v) => (filterPermissions = v ? [] : filterPermissions)"
               />
               <label for="filter-all" class="checkbox-label">All</label>
             </div>
@@ -308,11 +313,7 @@ onMounted(() => {
               <label for="filter-superadmin" class="checkbox-label">Super Admin</label>
             </div>
             <div v-for="perm in availablePermissions" :key="perm" class="permission-item">
-              <Checkbox
-                v-model="filterPermissions"
-                :value="perm"
-                :inputId="`filter-${perm}`"
-              />
+              <Checkbox v-model="filterPermissions" :value="perm" :inputId="`filter-${perm}`" />
               <label :for="`filter-${perm}`" class="checkbox-label">{{
                 formatPermission(perm)
               }}</label>
