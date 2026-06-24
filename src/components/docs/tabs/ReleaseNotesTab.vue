@@ -56,7 +56,7 @@ const typeStyle = (t) =>
 
 const scrollToVersion = (v) => {
   selectedVersion.value = v;
-  document.getElementById(`release-${  v}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById(`release-${v}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 onMounted(async () => {

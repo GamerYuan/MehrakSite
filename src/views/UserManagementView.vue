@@ -71,6 +71,7 @@ const fetchUsers = async () => {
   } catch (error) {
     if (error._redirected) return;
     errorMsg.value = error.message;
+    showErrorToast(error.message, error.status);
   } finally {
     loading.value = false;
   }

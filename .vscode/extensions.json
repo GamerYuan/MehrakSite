@@ -1,7 +1,7 @@
 {
   "recommendations": [
     "Vue.volar",
-    "oxc.oxc",
+    "oxc.oxc-vscode",
     "EditorConfig.EditorConfig"
   ]
 }

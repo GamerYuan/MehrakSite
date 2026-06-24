@@ -48,6 +48,7 @@ const fetchDocuments = async () => {
     }
   } catch (error) {
     if (error._redirected) return;
+    showErrorToast(error.message, error.status);
   } finally {
     loading.value = false;
   }
