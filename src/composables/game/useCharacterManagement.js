@@ -10,7 +10,7 @@ const toStatNumber = (value) => {
 };
 
 export function useCharacterManagement(config, _activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
   const confirm = useConfirm();
 
   const allCharacters = ref([]);
@@ -31,8 +31,7 @@ export function useCharacterManagement(config, _activeTab) {
         showErrorToast(data.error || "Failed to fetch characters", status);
       }
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     }
   };
 
@@ -56,8 +55,7 @@ export function useCharacterManagement(config, _activeTab) {
         showErrorToast(data.error || "Failed to fetch character stats", status);
       }
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     }
   };
 
@@ -119,9 +117,8 @@ export function useCharacterManagement(config, _activeTab) {
         characterStats.value[addedCharacterName] = { baseVal: 0, maxAscVal: 0 };
       }
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       manageError.value = error.message;
-      showErrorToast(error.message, error.status);
     } finally {
       manageLoading.value = false;
     }
@@ -162,9 +159,8 @@ export function useCharacterManagement(config, _activeTab) {
         delete characterStats.value[name];
       }
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       manageError.value = error.message;
-      showErrorToast(error.message, error.status);
     } finally {
       manageLoading.value = false;
     }
@@ -199,8 +195,7 @@ export function useCharacterManagement(config, _activeTab) {
         showErrorToast(data.error || "Failed to fetch character stats", status);
       }
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     } finally {
       editStatFetching.value = false;
     }
@@ -233,8 +228,7 @@ export function useCharacterManagement(config, _activeTab) {
       };
       showSuccessToast("Character stats updated successfully");
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     } finally {
       editStatLoading.value = false;
     }

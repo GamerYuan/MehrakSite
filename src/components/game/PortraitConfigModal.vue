@@ -17,7 +17,7 @@ import { useApi } from "../../composables/useApi";
 import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
-const { apiFetch, showErrorToast, showSuccessToast } = useApi();
+const { apiFetch, showErrorToast, showSuccessToast, handleApiError } = useApi();
 
 const canvasRef = ref(null);
 const portraitImage = ref(null);
@@ -155,7 +155,7 @@ const loadDefaultPortrait = async () => {
     }, { once: true });
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (error) {
-    if (error._redirected) return;
+    if (handleApiError(error)) return;
     if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
@@ -197,7 +197,7 @@ const loadUserPortraitImage = async (id) => {
     }, { once: true });
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (error) {
-    if (error._redirected) return;
+    if (handleApiError(error)) return;
     if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
@@ -489,8 +489,7 @@ const onSetActiveUserPortrait = async () => {
   try {
     await gv.setActiveUserPortrait(gv.userPortraitId);
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 
@@ -501,8 +500,7 @@ const onSetInactiveUserPortrait = async () => {
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
     showSuccessToast("Portrait set inactive");
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 const isSaveDisabled = computed(() => {
@@ -564,8 +562,7 @@ const onDeleteUserPortrait = async () => {
     cleanupPortrait();
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 

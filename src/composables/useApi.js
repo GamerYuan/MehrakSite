@@ -80,10 +80,17 @@ export function useApi() {
     });
   };
 
+  const handleApiError = (err) => {
+    if (err?._redirected) return true;
+    showErrorToast(err.message, err.status);
+    return false;
+  };
+
   return {
     showErrorToast,
     showSuccessToast,
     showWarnToast,
+    handleApiError,
     buildError,
     apiFetch: standaloneApiFetch,
     apiFetchJson: standaloneApiFetchJson,

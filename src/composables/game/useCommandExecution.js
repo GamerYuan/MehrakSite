@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { useApi } from "../useApi";
 
 export function useCommandExecution(config, activeTab) {
-  const { showErrorToast, buildError, apiFetch } = useApi();
+  const { buildError, handleApiError, apiFetch } = useApi();
 
   const loading = ref({});
   const errorMsg = ref({});
@@ -68,9 +68,8 @@ export function useCommandExecution(config, activeTab) {
         resultImages.value[currentTab] = `${backendUrl}/attachments/${data.storageFileName}`;
       }
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       errorMsg.value[currentTab] = error.message;
-      showErrorToast(error.message, error.status);
     } finally {
       loading.value[currentTab] = false;
     }
@@ -100,9 +99,8 @@ export function useCommandExecution(config, activeTab) {
       authPassphrase.value = "";
       executeCommand();
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       authError.value = error.message;
-      showErrorToast(error.message, error.status);
     } finally {
       authLoading.value = false;
     }
