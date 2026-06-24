@@ -11,7 +11,7 @@ when done.
 |------|-------|----------|--------|------------|--------|
 | 001  | Establish Vitest test baseline with characterization tests | P1 | M | — | DONE |
 | 002  | Add OxLint + oxfmt + jsconfig + editorconfig | P2 | S | — | DONE |
-| 003  | Add .env.example for VITE_APP_BACKEND_URL | P2 | S | — | TODO |
+| 003  | Add .env.example for VITE_APP_BACKEND_URL | P2 | S | — | DONE |
 | 004  | Replace stale Vite template README with project README | P2 | S | 003 | TODO |
 | 005  | Fix AGENTS.md drift — useGameView location and router mode | P3 | S | — | TODO |
 | 006  | Fix docs permission check — remove lowercase mismatch | P1 | S | 001 (rec) | TODO |
