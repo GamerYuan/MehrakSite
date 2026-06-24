@@ -19,7 +19,7 @@ when done.
 | 008  | Replace normalizeUser mass-spread with explicit allowlist | P2 | S | 007 | DONE |
 | 009  | Add cancellation token to UserPortraitUploadModal onFileChange | P2 | S | — | DONE |
 | 010  | Fix alias delete loop — refetch on partial failure | P2 | S | — | TODO |
-| 011  | Deduplicate normalizeUser in UserManagementView | P2 | S | 008 | TODO |
+| 011  | Deduplicate normalizeUser in UserManagementView | P2 | S | 008 | DONE |
 | 012  | Centralize _redirected error handling with handleApiError helper | P2 | M | 001 (rec) | TODO |
 | 013  | Add CSRF defense documentation and frontend coordination notes | P2 | M | 012 | TODO |
 | 014  | Add CSP and browser hardening headers via public/_headers | P2 | S | — | TODO |
