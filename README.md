@@ -1,6 +1,6 @@
 # Mehrak Dashboard
 
-Vue 3 dashboard for managing HoYoLAB-linked game accounts (Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Honkai Impact 3rd). Deployed to Cloudflare Pages.
+Vue 3 dashboard for managing HoYoLAB-linked game accounts (Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Honkai Impact 3rd). Powered by [MehrakBot](https://github.com/GamerYuan/MehrakBot). Deployed to Cloudflare Pages.
 
 ## Stack
 
