@@ -39,8 +39,7 @@ export function useAlias() {
       });
       aliases.value = newAliases;
     } catch (error) {
-      if (handleApiError(error)) return;
-      errorMsg.value = error.message || "Failed to fetch aliases";
+      handleApiError(error);
     } finally {
       loading.value = false;
     }

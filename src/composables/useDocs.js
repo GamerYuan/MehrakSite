@@ -37,8 +37,7 @@ export function useDocs() {
         errorMsg.value = data.error || "Failed to fetch documentation";
       }
     } catch (error) {
-      if (handleApiError(error)) return;
-      errorMsg.value = error.message;
+      handleApiError(error);
     } finally {
       loading.value = false;
     }

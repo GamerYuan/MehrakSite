@@ -155,7 +155,7 @@ const loadDefaultPortrait = async () => {
     }, { once: true });
     portraitImage.value.src = portraitBlobUrl.value;
   } catch (error) {
-    if (error._redirected) return;
+    if (handleApiError(error)) return;
     if (token !== portraitLoadToken) return;
     portraitError.value = true;
   } finally {
