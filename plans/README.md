@@ -14,7 +14,7 @@ when done.
 | 003  | Add .env.example for VITE_APP_BACKEND_URL | P2 | S | — | DONE |
 | 004  | Replace stale Vite template README with project README | P2 | S | 003 | DONE |
 | 005  | Fix AGENTS.md drift — useGameView location and router mode | P3 | S | — | TODO |
-| 006  | Fix docs permission check — remove lowercase mismatch | P1 | S | 001 (rec) | TODO |
+| 006  | Fix docs permission check — remove lowercase mismatch | P1 | S | 001 (rec) | DONE |
 | 007  | Fix transient /users/me failure permanently locking user out | P1 | S | 001 (rec) | TODO |
 | 008  | Replace normalizeUser mass-spread with explicit allowlist | P2 | S | 007 | TODO |
 | 009  | Add cancellation token to UserPortraitUploadModal onFileChange | P2 | S | — | TODO |
