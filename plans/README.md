@@ -23,7 +23,7 @@ when done.
 | 012  | Centralize _redirected error handling with handleApiError helper | P2 | M | 001 (rec) | DONE |
 | 013  | Add CSRF defense documentation and frontend coordination notes | P2 | M | 012 | TODO |
 | 014  | Add CSP and browser hardening headers via public/_headers | P2 | S | — | TODO |
-| 015  | Add route-level code splitting to reduce initial bundle size | P2 | S | — | TODO |
+| 015  | Add route-level code splitting to reduce initial bundle size | P2 | S | — | DONE |
 | 016  | Consolidate game registry — kill configMap, remove dead import | P2 | S | 001 (rec) | TODO |
 | 017  | Spike — investigate Seaweed Filer integration vs demotion | P3 | S | — | TODO |
 
