@@ -14,7 +14,7 @@ import { useApi } from "../composables/useApi";
 import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
-const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast } = useApi();
+const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast, handleApiError } = useApi();
 
 const props = defineProps({
   userInfo: {
@@ -69,9 +69,8 @@ const fetchUsers = async () => {
       showErrorToast(data.error || "Failed to fetch users", status);
     }
   } catch (error) {
-    if (error._redirected) return;
+    if (handleApiError(error)) return;
     errorMsg.value = error.message;
-    showErrorToast(error.message, error.status);
   } finally {
     loading.value = false;
   }
@@ -204,8 +203,7 @@ const handleAddUser = async () => {
     fetchUsers();
     showSuccessToast("User added successfully");
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 
@@ -245,8 +243,7 @@ const handleUpdateUser = async () => {
     fetchUsers();
     showSuccessToast("User updated successfully");
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 
@@ -268,8 +265,7 @@ const handleDeleteUser = async (user) => {
     fetchUsers();
     showSuccessToast("User deleted successfully");
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 

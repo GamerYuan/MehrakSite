@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useApi } from "./useApi";
 
 export function useAlias() {
-  const { apiFetchJson } = useApi();
+  const { apiFetchJson, handleApiError } = useApi();
 
   const aliases = ref({});
   const loading = ref(false);
@@ -39,7 +39,7 @@ export function useAlias() {
       });
       aliases.value = newAliases;
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       errorMsg.value = error.message || "Failed to fetch aliases";
     } finally {
       loading.value = false;

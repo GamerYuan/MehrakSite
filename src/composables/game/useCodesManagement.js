@@ -3,7 +3,7 @@ import { useApi } from "../useApi";
 import { useConfirm } from "primevue/useconfirm";
 
 export function useCodesManagement(config, _activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
   const confirm = useConfirm();
 
   if (!config || !config.hasCodesManagement) {
@@ -35,8 +35,7 @@ export function useCodesManagement(config, _activeTab) {
         showErrorToast(data.error || "Failed to fetch codes", status);
       }
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     }
   };
 
@@ -79,8 +78,7 @@ export function useCodesManagement(config, _activeTab) {
       await fetchCodes();
       showSuccessToast("Codes added successfully");
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     } finally {
       codesLoading.value = false;
     }
@@ -123,8 +121,7 @@ export function useCodesManagement(config, _activeTab) {
       await fetchCodes();
       showSuccessToast("Codes deleted successfully");
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     } finally {
       codesLoading.value = false;
     }

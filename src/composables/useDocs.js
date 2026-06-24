@@ -16,7 +16,7 @@ export const gameLabels = Object.fromEntries(
 const SUPPORTED_GAMES = Object.keys(gameLabels);
 
 export function useDocs() {
-  const { apiFetch, apiFetchJson } = useApi();
+  const { apiFetch, apiFetchJson, handleApiError } = useApi();
 
   const documents = ref([]);
   const loading = ref(false);
@@ -37,7 +37,7 @@ export function useDocs() {
         errorMsg.value = data.error || "Failed to fetch documentation";
       }
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       errorMsg.value = error.message;
     } finally {
       loading.value = false;

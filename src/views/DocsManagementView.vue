@@ -13,7 +13,7 @@ import { useApi } from "../composables/useApi";
 import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
-const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast } = useApi();
+const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, handleApiError } = useApi();
 
 const props = defineProps({
   userInfo: {
@@ -46,8 +46,7 @@ const fetchDocuments = async () => {
       showErrorToast(data.error || "Failed to fetch documentation", status);
     }
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   } finally {
     loading.value = false;
   }
@@ -83,8 +82,7 @@ const openEditModal = async (doc) => {
     isEditing.value = true;
     showModal.value = true;
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 
@@ -125,8 +123,7 @@ const handleDelete = async (doc) => {
     fetchDocuments();
     showSuccessToast("Documentation deleted successfully");
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 
@@ -157,8 +154,7 @@ const handleSave = async (formData) => {
       isEditing.value ? "Documentation updated successfully" : "Documentation created successfully",
     );
   } catch (error) {
-    if (error._redirected) return;
-    showErrorToast(error.message, error.status);
+    handleApiError(error);
   }
 };
 

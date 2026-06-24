@@ -4,7 +4,7 @@ import { useApi } from "../useApi";
 const MAX_PORTRAITS_PER_CHARACTER = 5;
 
 export function useUserPortraits(config) {
-  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
 
   const userPortraits = ref([]);
   const userPortraitsLoading = ref(false);
@@ -43,10 +43,9 @@ export function useUserPortraits(config) {
         userPortraitId.value = null;
       }
     } catch (error) {
-      if (error._redirected) return;
+      if (handleApiError(error)) return;
       userPortraits.value = [];
       userPortraitId.value = null;
-      showErrorToast(error.message, error.status);
     } finally {
       userPortraitsLoading.value = false;
     }
@@ -72,8 +71,7 @@ export function useUserPortraits(config) {
         userPortraitConfigArtistAttribution.value = cfg.artistAttribution ?? null;
       }
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     } finally {
       userPortraitConfigFetching.value = false;
     }
@@ -125,8 +123,7 @@ export function useUserPortraits(config) {
         await fetchUserPortraits(userPortraitsCharacter.value);
       }
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      handleApiError(error);
     }
   };
 
@@ -156,8 +153,7 @@ export function useUserPortraits(config) {
 
       showSuccessToast("Portrait config updated successfully");
     } catch (error) {
-      if (error._redirected) return;
-      showErrorToast(error.message, error.status);
+      if (handleApiError(error)) return;
     } finally {
       userPortraitConfigSaving.value = false;
     }
