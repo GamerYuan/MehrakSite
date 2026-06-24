@@ -50,4 +50,16 @@ describe("normalizeUser", () => {
     expect(result.gameWritePermissions).toEqual([]);
     expect(result.username).toBe("");
   });
+
+  it("does not forward unknown fields from the API response", () => {
+    const result = normalizeUser({
+      discordId: "123",
+      discordUserId: "123",
+      username: "test",
+      secretToken: "abc123",
+      internalDebugFlag: true,
+    });
+    expect(result).not.toHaveProperty("secretToken");
+    expect(result).not.toHaveProperty("internalDebugFlag");
+  });
 });
