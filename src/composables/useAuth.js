@@ -61,7 +61,7 @@ export function useAuth() {
         if (error._redirected) return null;
         user.value = null;
         errorMsg.value = error.message || "Failed to fetch user";
-        fetched = true;
+        // ponytail: don't set fetched=true on transient errors — allow retry
       } finally {
         loading.value = false;
         inflight = null;
