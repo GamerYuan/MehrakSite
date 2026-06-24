@@ -1,16 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { getUser, setUserCache } from "../composables/authStore";
-import DashboardHomeView from "../views/DashboardHomeView.vue";
-import DashboardLayout from "../layouts/DashboardLayout.vue";
-import DocsManagementView from "../views/DocsManagementView.vue";
-import DocsView from "../views/DocsView.vue";
-import GameView from "../views/GameView.vue";
-import HomeView from "../views/HomeView.vue";
-import PrivacyPolicyView from "../views/PrivacyPolicyView.vue";
-import ReleaseNotesManagementView from "../views/ReleaseNotesManagementView.vue";
-import SeaweedFilerView from "../views/SeaweedFilerView.vue";
-import TermsOfServiceView from "../views/TermsOfServiceView.vue";
-import UserManagementView from "../views/UserManagementView.vue";
 import { gameMeta } from "../configs/gameMeta";
 
 const validGameKeys = new Set(Object.values(gameMeta)
@@ -38,62 +27,62 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: HomeView,
+      component: () => import("../views/HomeView.vue"),
     },
     {
       path: "/docs",
       name: "docs",
-      component: DocsView,
+      component: () => import("../views/DocsView.vue"),
     },
     {
       path: "/privacy",
       name: "privacy",
-      component: PrivacyPolicyView,
+      component: () => import("../views/PrivacyPolicyView.vue"),
     },
     {
       path: "/terms",
       name: "terms",
-      component: TermsOfServiceView,
+      component: () => import("../views/TermsOfServiceView.vue"),
     },
     {
       path: "/dashboard",
-      component: DashboardLayout,
+      component: () => import("../layouts/DashboardLayout.vue"),
       children: [
         {
           path: "",
           name: "dashboard-home",
-          component: DashboardHomeView,
+          component: () => import("../views/DashboardHomeView.vue"),
           meta: { requireAuth: true },
         },
         {
           path: "users",
           name: "user-management",
-          component: UserManagementView,
+          component: () => import("../views/UserManagementView.vue"),
           meta: { requireSuperAdmin: true },
         },
         {
           path: "docs",
           name: "docs-management",
-          component: DocsManagementView,
+          component: () => import("../views/DocsManagementView.vue"),
           meta: { requireAnyPermission: true },
         },
         {
           path: "release-notes",
           name: "release-notes-management",
-          component: ReleaseNotesManagementView,
+          component: () => import("../views/ReleaseNotesManagementView.vue"),
           meta: { requireSuperAdmin: true },
         },
         {
           path: ":game",
           name: "game",
-          component: GameView,
+          component: () => import("../views/GameView.vue"),
           beforeEnter: (to) => validateGameParam(to.params.game),
           meta: { requireAuth: true },
         },
         {
           path: "seaweed-filer",
           name: "seaweed-filer",
-          component: SeaweedFilerView,
+          component: () => import("../views/SeaweedFilerView.vue"),
           meta: { requireSuperAdmin: true },
         },
       ],
