@@ -10,6 +10,7 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Tag from "primevue/tag";
+import { normalizeUser } from "../composables/useAuth";
 import { useApi } from "../composables/useApi";
 import { useConfirm } from "primevue/useconfirm";
 
@@ -57,13 +58,7 @@ const fetchUsers = async () => {
   try {
     const { ok, data, status } = await apiFetchJson("/users/list");
     if (ok) {
-      users.value = data.map((u) => ({
-        ...u,
-        discordUserId: u.discordUserId || u.DiscordUserId || "",
-        isSuperAdmin: u.isSuperAdmin ?? u.IsSuperAdmin ?? false,
-        isRootUser: u.isRootUser ?? u.IsRootUser ?? false,
-        gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
-      }));
+      users.value = data.map(normalizeUser);
     } else {
       errorMsg.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
