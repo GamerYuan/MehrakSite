@@ -119,7 +119,6 @@ export function useAliasManagement(config, _activeTab) {
       newAliasCharacter.value = "";
       newAliasList.value = "";
       originalAliases.value = [];
-      await fetchAliases();
       showSuccessToast(
         isEditingAlias.value ? "Aliases updated successfully" : "Aliases added successfully",
       );
@@ -127,6 +126,7 @@ export function useAliasManagement(config, _activeTab) {
       if (error._redirected) return;
       showErrorToast(error.message, error.status);
     } finally {
+      await fetchAliases();
       addAliasLoading.value = false;
     }
   };
