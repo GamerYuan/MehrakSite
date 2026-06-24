@@ -11,7 +11,15 @@
 - `npm run dev` — Vite dev server
 - `npm run build` — production build to `dist/`
 - `npm run deploy` — build + `wrangler deploy` (Cloudflare Pages)
-- There are **no test, lint, or typecheck scripts**
+- `npm run test` / `npm run test:ci` — vitest
+- `npm run lint` / `npm run lint:fix` — oxlint
+- `npm run format` — oxfmt on src/
+
+## DX / Tooling
+- oxlint (`.oxlintrc.json`) — linter; `no-undef` is error-level, `globalThis` is in globals
+- oxfmt (`.oxfmtrc.json`) — formatter; 2-space indent, double quotes, trailing commas, 100-char width
+- `jsconfig.json` — `@/*` path alias maps to `./src/*`
+- `.editorconfig` — 2-space indent, LF line endings, final newline
 
 ## Environment
 - `VITE_APP_BACKEND_URL` — backend API base URL (set in `.env` / `.env.local`)
