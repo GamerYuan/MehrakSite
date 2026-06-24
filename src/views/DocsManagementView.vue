@@ -33,8 +33,7 @@ const isEditing = ref(false);
 
 const hasGameWriteAccess = (game) => {
   if (props.userInfo.isSuperAdmin) return true;
-  const normalized = game.toLowerCase();
-  return props.userInfo.gameWritePermissions?.includes(normalized);
+  return props.userInfo.gameWritePermissions?.includes(game);
 };
 
 const fetchDocuments = async () => {
@@ -132,6 +131,11 @@ const handleDelete = async (doc) => {
 };
 
 const handleSave = async (formData) => {
+  if (!isEditing.value && !hasGameWriteAccess(formData.game)) {
+    showErrorToast("You do not have permission to create documentation for this game.");
+    return;
+  }
+
   try {
     const url = isEditing.value ? `/docs/${selectedDoc.value.id}` : "/docs/add";
     const method = isEditing.value ? "PUT" : "POST";
