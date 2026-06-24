@@ -26,6 +26,7 @@
     "import.meta": "readonly",
     "document": "readonly",
     "window": "readonly",
+    "globalThis": "readonly",
     "console": "readonly",
     "setTimeout": "readonly",
     "clearTimeout": "readonly",
