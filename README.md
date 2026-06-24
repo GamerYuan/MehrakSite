@@ -1,5 +1,35 @@
-# Vue 3 + Vite
+# Mehrak Dashboard
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue 3 dashboard for managing HoYoLAB-linked game accounts (Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Honkai Impact 3rd). Deployed to Cloudflare Pages.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Stack
+
+- Vue 3 (Composition API, `<script setup>`, plain JS)
+- Vite 7, Tailwind CSS v4
+- PrimeVue v4 with Aura preset
+- vue-router, Vitest, oxlint, oxfmt
+
+## Commands
+
+```sh
+npm run dev        # Vite dev server
+npm run build      # production build to dist/
+npm run deploy     # build + wrangler deploy (Cloudflare Pages)
+npm run test       # vitest (watch mode)
+npm run test:ci    # vitest (single run)
+npm run lint       # oxlint
+npm run lint:fix   # oxlint --fix
+npm run format     # oxfmt on src/
+```
+
+## Setup
+
+1. `npm install`
+2. Copy `.env.example` to `.env.local` and fill in the values
+3. `npm run dev`
+
+See `.env.example` for required environment variables.
+
+## License
+
+GPL-3.0 — see [LICENSE.txt](LICENSE.txt)
