@@ -3,18 +3,18 @@ import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
 import { setUserCache } from "./authStore";
 
 const normalizeUser = (data) => ({
-  ...data,
+  discordId: data.discordId || data.DiscordId || "",
+  discordUserId: data.discordUserId || data.DiscordUserId || "",
+  isSuperAdmin: data.isSuperAdmin ?? data.IsSuperAdmin ?? false,
+  isRootUser: data.isRootUser ?? data.IsRootUser ?? false,
+  gameWritePermissions: data.gameWritePermissions || data.GameWritePermissions || [],
+  username: data.username || data.Username || "",
   avatarUrl:
     data.avatarUrl ||
     data.avatar ||
     data.AvatarUrl ||
     data.Avatar ||
     `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`,
-  discordUserId: data.discordUserId || data.DiscordUserId || "",
-  isSuperAdmin: data.isSuperAdmin ?? data.IsSuperAdmin ?? false,
-  isRootUser: data.isRootUser ?? data.IsRootUser ?? false,
-  gameWritePermissions: data.gameWritePermissions || data.GameWritePermissions || [],
-  username: data.username || data.Username || "",
 });
 
 const user = ref(null);
