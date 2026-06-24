@@ -17,7 +17,7 @@ when done.
 | 006  | Fix docs permission check — remove lowercase mismatch | P1 | S | 001 (rec) | DONE |
 | 007  | Fix transient /users/me failure permanently locking user out | P1 | S | 001 (rec) | DONE |
 | 008  | Replace normalizeUser mass-spread with explicit allowlist | P2 | S | 007 | DONE |
-| 009  | Add cancellation token to UserPortraitUploadModal onFileChange | P2 | S | — | TODO |
+| 009  | Add cancellation token to UserPortraitUploadModal onFileChange | P2 | S | — | DONE |
 | 010  | Fix alias delete loop — refetch on partial failure | P2 | S | — | TODO |
 | 011  | Deduplicate normalizeUser in UserManagementView | P2 | S | 008 | TODO |
 | 012  | Centralize _redirected error handling with handleApiError helper | P2 | M | 001 (rec) | TODO |
