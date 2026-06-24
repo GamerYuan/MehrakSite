@@ -26,6 +26,7 @@ const nsfwError = ref("");
 const modelLoading = ref(false);
 const classifying = ref(false);
 let nsfwModel = null;
+let fileChangeToken = 0;
 
 const allowedTypesLabel = ALLOWED_TYPES.map((t) => (t === "image/jpeg" ? "JPG" : "PNG")).join(", ");
 
@@ -102,6 +103,7 @@ const classifyImage = async (file) => {
 
 const onFileChange = async (event) => {
   const file = event.target.files?.[0];
+  const myToken = ++fileChangeToken;
   fileError.value = "";
   nsfwError.value = "";
   revokePreview();
@@ -118,33 +120,41 @@ const onFileChange = async (event) => {
     return;
   }
 
-  let dims = null;
+  let dims;
   try {
     dims = await getImageDimensions(file);
   } catch {
+    if (myToken !== fileChangeToken) return;
     fileError.value = "Could not read image dimensions.";
     return;
   }
+  if (myToken !== fileChangeToken) return;
   if (dims.width > MAX_DIMENSION || dims.height > MAX_DIMENSION) {
     fileError.value = `Image dimensions exceed ${MAX_DIMENSION}x${MAX_DIMENSION}px (${dims.width}x${dims.height}).`;
     return;
   }
 
-  previewUrl.value = URL.createObjectURL(file);
+  const myPreviewUrl = URL.createObjectURL(file);
+  previewUrl.value = myPreviewUrl;
   selectedFile.value = file;
 
   classifying.value = true;
   try {
     const score = await classifyImage(file);
+    if (myToken !== fileChangeToken) return;
     if (score >= NSFW_THRESHOLD) {
       nsfwError.value = "Potential NSFW image detected";
-      revokePreview();
-      selectedFile.value = null;
+      URL.revokeObjectURL(myPreviewUrl);
+      if (previewUrl.value === myPreviewUrl) previewUrl.value = null;
+      if (selectedFile.value === file) selectedFile.value = null;
     }
-  } catch (error) {
-    nsfwError.value = `Could not verify image content: ${error.message || "Unknown error"}. Please try again.`;
+  } catch (err) {
+    if (myToken !== fileChangeToken) return;
+    nsfwError.value = `Could not verify image content: ${err.message || "Unknown error"}. Please try again.`;
   } finally {
-    classifying.value = false;
+    if (myToken === fileChangeToken) {
+      classifying.value = false;
+    }
   }
 };
 
