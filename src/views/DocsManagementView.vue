@@ -1,19 +1,19 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useConfirm } from "primevue/useconfirm";
-import { useApi } from "../composables/useApi";
-import Card from "primevue/card";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
+import { computed, onMounted, ref } from "vue";
+import { gameFilterOptions, gameLabels } from "../configs/gameMeta";
 import Button from "primevue/button";
+import Card from "primevue/card";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import DocFormModal from "../components/docs/DocFormModal.vue";
+import GameTag from "../components/docs/GameTag.vue";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import GameTag from "../components/docs/GameTag.vue";
-import DocFormModal from "../components/docs/DocFormModal.vue";
-import { gameFilterOptions, gameLabels } from "../configs/gameMeta";
+import { useApi } from "../composables/useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
-const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast } = useApi();
+const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, handleApiError } = useApi();
 
 const props = defineProps({
   userInfo: {
@@ -33,8 +33,7 @@ const isEditing = ref(false);
 
 const hasGameWriteAccess = (game) => {
   if (props.userInfo.isSuperAdmin) return true;
-  const normalized = game.toLowerCase();
-  return props.userInfo.gameWritePermissions?.includes(normalized);
+  return props.userInfo.gameWritePermissions?.includes(game);
 };
 
 const fetchDocuments = async () => {
@@ -46,21 +45,21 @@ const fetchDocuments = async () => {
     } else {
       showErrorToast(data.error || "Failed to fetch documentation", status);
     }
-  } catch (err) {
-    if (err._redirected) return;
+  } catch (error) {
+    handleApiError(error);
   } finally {
     loading.value = false;
   }
 };
 
-const filteredDocuments = computed(() => {
-  return documents.value.filter((doc) => {
+const filteredDocuments = computed(() => 
+  documents.value.filter((doc) => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.value.toLowerCase());
 
     if (filterGame.value === "All") return matchesSearch;
     return matchesSearch && doc.game === filterGame.value;
-  });
-});
+  })
+);
 
 const openAddModal = () => {
   selectedDoc.value = null;
@@ -82,9 +81,8 @@ const openEditModal = async (doc) => {
     selectedDoc.value = await response.json();
     isEditing.value = true;
     showModal.value = true;
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    handleApiError(error);
   }
 };
 
@@ -124,13 +122,17 @@ const handleDelete = async (doc) => {
 
     fetchDocuments();
     showSuccessToast("Documentation deleted successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    handleApiError(error);
   }
 };
 
 const handleSave = async (formData) => {
+  if (!isEditing.value && !hasGameWriteAccess(formData.game)) {
+    showErrorToast("You do not have permission to create documentation for this game.");
+    return;
+  }
+
   try {
     const url = isEditing.value ? `/docs/${selectedDoc.value.id}` : "/docs/add";
     const method = isEditing.value ? "PUT" : "POST";
@@ -151,9 +153,8 @@ const handleSave = async (formData) => {
     showSuccessToast(
       isEditing.value ? "Documentation updated successfully" : "Documentation created successfully",
     );
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    handleApiError(error);
   }
 };
 

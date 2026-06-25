@@ -1,33 +1,33 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import AppNavbar from "../components/AppNavbar.vue";
+import AboutCookiesTab from "../components/docs/tabs/AboutCookiesTab.vue";
+import AboutMehrakTab from "../components/docs/tabs/AboutMehrakTab.vue";
+import AliasTab from "../components/docs/tabs/AliasTab.vue";
 import AppFooter from "../components/AppFooter.vue";
+import AppNavbar from "../components/AppNavbar.vue";
+import CommendationsTab from "../components/docs/tabs/CommendationsTab.vue";
 import DocCard from "../components/docs/DocCard.vue";
 import DocDetailModal from "../components/docs/DocDetailModal.vue";
 import DocSearchBar from "../components/docs/DocSearchBar.vue";
-import GettingStartedTab from "../components/docs/tabs/GettingStartedTab.vue";
 import FaqTab from "../components/docs/tabs/FaqTab.vue";
-import AboutMehrakTab from "../components/docs/tabs/AboutMehrakTab.vue";
-import AboutCookiesTab from "../components/docs/tabs/AboutCookiesTab.vue";
-import ReleaseNotesTab from "../components/docs/tabs/ReleaseNotesTab.vue";
-import CommendationsTab from "../components/docs/tabs/CommendationsTab.vue";
-import AliasTab from "../components/docs/tabs/AliasTab.vue";
-import { useDocs } from "../composables/useDocs";
-import Tabs from "primevue/tabs";
-import TabList from "primevue/tablist";
-import Tab from "primevue/tab";
-import TabPanels from "primevue/tabpanels";
-import TabPanel from "primevue/tabpanel";
+import GettingStartedTab from "../components/docs/tabs/GettingStartedTab.vue";
 import Message from "primevue/message";
 import ProgressSpinner from "primevue/progressspinner";
+import ReleaseNotesTab from "../components/docs/tabs/ReleaseNotesTab.vue";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanel from "primevue/tabpanel";
+import TabPanels from "primevue/tabpanels";
+import Tabs from "primevue/tabs";
+import { useDocs } from "../composables/useDocs";
 
 const route = useRoute();
 const router = useRouter();
 
 const {
   loading,
-  error,
+  error: docsError,
   searchQuery,
   selectedGames,
   groupedDocuments,
@@ -59,9 +59,9 @@ const appendixTabs = [
 ];
 
 const syncFromUrl = () => {
-  const tab = route.query.tab;
-  const section = route.query.section;
-  const hash = route.hash;
+  const {tab} = route.query;
+  const {section} = route.query;
+  const {hash} = route;
   if (tab) {
     activeTab.value = tab;
     if (tab === "appendix" && section) appendixTab.value = section;
@@ -82,8 +82,8 @@ const handleDocClick = async (doc) => {
   selectedDoc.value = { ...doc, parameters: [], examples: [] };
   try {
     selectedDoc.value = await fetchDocumentDetail(doc.id);
-  } catch (err) {
-    console.error("Failed to fetch document details:", err);
+  } catch (error) {
+    console.error("Failed to fetch document details:", error);
   } finally {
     loadingDetail.value = false;
   }
@@ -158,8 +158,8 @@ const handleTabChange = (tab) => {
               <span>Loading commands...</span>
             </div>
 
-            <div v-else-if="error" class="state-box">
-              <Message severity="error" :closable="false">{{ error }}</Message>
+            <div v-else-if="docsError" class="state-box">
+              <Message severity="error" :closable="false">{{ docsError }}</Message>
             </div>
 
             <div v-else-if="Object.keys(groupedDocuments).length === 0" class="state-box">

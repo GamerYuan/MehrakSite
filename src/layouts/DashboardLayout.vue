@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useAuth } from "../composables/useAuth";
+import { onMounted, ref } from "vue";
 import Sidebar from "../components/Sidebar.vue";
+import { useAuth } from "../composables/useAuth";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const { user, loading, fetchUser } = useAuth();
@@ -15,7 +15,7 @@ const toggleSidebar = () => {
 onMounted(async () => {
   const u = await fetchUser();
   if (!u) {
-    window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+    globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
   }
 });
 </script>

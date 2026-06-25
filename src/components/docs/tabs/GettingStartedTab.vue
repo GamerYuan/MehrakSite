@@ -1,12 +1,12 @@
 <script setup>
-import { useRouter } from "vue-router";
-import Stepper from "primevue/stepper";
-import StepItem from "primevue/stepitem";
-import Step from "primevue/step";
-import StepPanel from "primevue/steppanel";
 import Button from "primevue/button";
-import Message from "primevue/message";
 import Image from "primevue/image";
+import Message from "primevue/message";
+import Step from "primevue/step";
+import StepItem from "primevue/stepitem";
+import StepPanel from "primevue/steppanel";
+import Stepper from "primevue/stepper";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 </script>

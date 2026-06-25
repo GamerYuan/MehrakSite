@@ -1,6 +1,6 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import Button from "primevue/button";
 import ThemeToggle from "./ThemeToggle.vue";
 import { useAuth } from "../composables/useAuth";
@@ -31,7 +31,7 @@ const closeDropdown = (e) => {
 };
 
 const handleLogin = () => {
-  window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+  globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
 };
 
 function onScroll() {
@@ -41,23 +41,19 @@ function onScroll() {
     return;
   }
   const rect = featuresEl.getBoundingClientRect();
-  if (rect.top < window.innerHeight / 2) {
-    activeSection.value = "features";
-  } else {
-    activeSection.value = "home";
-  }
+  activeSection.value = rect.top < globalThis.innerHeight / 2 ? "features" : "home";
 }
 
 onMounted(() => {
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("click", closeDropdown);
+  globalThis.addEventListener("scroll", onScroll, { passive: true });
+  globalThis.addEventListener("click", closeDropdown);
   onScroll();
   fetchUser();
 });
 
 onUnmounted(() => {
-  window.removeEventListener("scroll", onScroll);
-  window.removeEventListener("click", closeDropdown);
+  globalThis.removeEventListener("scroll", onScroll);
+  globalThis.removeEventListener("click", closeDropdown);
 });
 
 function isActive(link) {
@@ -71,7 +67,7 @@ function handleNavClick(link) {
   mobileMenuOpen.value = false;
   if (link.path === "/") {
     if (route.path === "/") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      globalThis.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       router.push("/");
     }

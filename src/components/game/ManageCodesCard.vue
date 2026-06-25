@@ -1,10 +1,10 @@
 <script setup>
-import { useGameViewInject } from "../../composables/game/injectKey";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import InputText from "primevue/inputtext";
+import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
 </script>

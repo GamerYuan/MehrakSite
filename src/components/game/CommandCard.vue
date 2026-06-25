@@ -1,11 +1,11 @@
 <script setup>
-import { useGameViewInject } from "../../composables/game/injectKey";
-import InputNumber from "primevue/inputnumber";
-import Select from "primevue/select";
 import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import InputNumber from "primevue/inputnumber";
 import Message from "primevue/message";
+import Select from "primevue/select";
+import { useGameViewInject } from "../../composables/game/injectKey";
 
 defineProps({
   tabConfig: Object,

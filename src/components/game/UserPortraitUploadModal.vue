@@ -1,7 +1,7 @@
 <script setup>
-import { ref, watch, onUnmounted } from "vue";
-import Dialog from "primevue/dialog";
+import { onUnmounted, ref, watch } from "vue";
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import Message from "primevue/message";
 
 const props = defineProps({
@@ -26,6 +26,7 @@ const nsfwError = ref("");
 const modelLoading = ref(false);
 const classifying = ref(false);
 let nsfwModel = null;
+let fileChangeToken = 0;
 
 const allowedTypesLabel = ALLOWED_TYPES.map((t) => (t === "image/jpeg" ? "JPG" : "PNG")).join(", ");
 
@@ -54,14 +55,14 @@ const getImageDimensions = (file) =>
   new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
-    img.onload = () => {
+    img.addEventListener("load", () => {
       URL.revokeObjectURL(url);
       resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    };
-    img.onerror = () => {
+    }, { once: true });
+    img.addEventListener("error", () => {
       URL.revokeObjectURL(url);
       reject(new Error("Failed to read image dimensions"));
-    };
+    }, { once: true });
     img.src = url;
   });
 
@@ -71,9 +72,9 @@ const loadNsfwModel = async () => {
   try {
     const nsfwjs = await import("nsfwjs");
     nsfwModel = await nsfwjs.load();
-  } catch (err) {
+  } catch (error) {
     nsfwModel = null;
-    throw err;
+    throw error;
   } finally {
     modelLoading.value = false;
   }
@@ -86,8 +87,8 @@ const classifyImage = async (file) => {
   try {
     const img = new Image();
     await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = () => reject(new Error("Failed to load image for classification"));
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", () => reject(new Error("Failed to load image for classification")), { once: true });
       img.src = url;
     });
     const predictions = await model.classify(img);
@@ -102,6 +103,7 @@ const classifyImage = async (file) => {
 
 const onFileChange = async (event) => {
   const file = event.target.files?.[0];
+  const myToken = ++fileChangeToken;
   fileError.value = "";
   nsfwError.value = "";
   revokePreview();
@@ -122,29 +124,37 @@ const onFileChange = async (event) => {
   try {
     dims = await getImageDimensions(file);
   } catch {
+    if (myToken !== fileChangeToken) return;
     fileError.value = "Could not read image dimensions.";
     return;
   }
+  if (myToken !== fileChangeToken) return;
   if (dims.width > MAX_DIMENSION || dims.height > MAX_DIMENSION) {
     fileError.value = `Image dimensions exceed ${MAX_DIMENSION}x${MAX_DIMENSION}px (${dims.width}x${dims.height}).`;
     return;
   }
 
-  previewUrl.value = URL.createObjectURL(file);
+  const myPreviewUrl = URL.createObjectURL(file);
+  previewUrl.value = myPreviewUrl;
   selectedFile.value = file;
 
   classifying.value = true;
   try {
     const score = await classifyImage(file);
+    if (myToken !== fileChangeToken) return;
     if (score >= NSFW_THRESHOLD) {
       nsfwError.value = "Potential NSFW image detected";
-      revokePreview();
-      selectedFile.value = null;
+      URL.revokeObjectURL(myPreviewUrl);
+      if (previewUrl.value === myPreviewUrl) previewUrl.value = null;
+      if (selectedFile.value === file) selectedFile.value = null;
     }
   } catch (err) {
+    if (myToken !== fileChangeToken) return;
     nsfwError.value = `Could not verify image content: ${err.message || "Unknown error"}. Please try again.`;
   } finally {
-    classifying.value = false;
+    if (myToken === fileChangeToken) {
+      classifying.value = false;
+    }
   }
 };
 

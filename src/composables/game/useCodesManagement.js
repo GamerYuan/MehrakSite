@@ -1,9 +1,9 @@
-import { ref, computed } from "vue";
-import { useConfirm } from "primevue/useconfirm";
+import { computed, ref } from "vue";
 import { useApi } from "../useApi";
+import { useConfirm } from "primevue/useconfirm";
 
-export function useCodesManagement(config, activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
+export function useCodesManagement(config, _activeTab) {
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
   const confirm = useConfirm();
 
   if (!config || !config.hasCodesManagement) {
@@ -34,9 +34,8 @@ export function useCodesManagement(config, activeTab) {
       } else {
         showErrorToast(data.error || "Failed to fetch codes", status);
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      handleApiError(error);
     }
   };
 
@@ -78,9 +77,8 @@ export function useCodesManagement(config, activeTab) {
       newCodesInput.value = "";
       await fetchCodes();
       showSuccessToast("Codes added successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      handleApiError(error);
     } finally {
       codesLoading.value = false;
     }
@@ -122,9 +120,8 @@ export function useCodesManagement(config, activeTab) {
       selectedCodes.value = [];
       await fetchCodes();
       showSuccessToast("Codes deleted successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      handleApiError(error);
     } finally {
       codesLoading.value = false;
     }

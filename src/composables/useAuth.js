@@ -1,28 +1,32 @@
-import { ref, computed, readonly } from "vue";
+import { computed, readonly, ref } from "vue";
 import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
 import { setUserCache } from "./authStore";
 
 const normalizeUser = (data) => ({
-  ...data,
+  discordId: data.discordId || data.DiscordId || "",
+  discordUserId: data.discordUserId || data.DiscordUserId || "",
+  isSuperAdmin: data.isSuperAdmin ?? data.IsSuperAdmin ?? false,
+  isRootUser: data.isRootUser ?? data.IsRootUser ?? false,
+  gameWritePermissions: data.gameWritePermissions || data.GameWritePermissions || [],
+  username: data.username || data.Username || "",
   avatarUrl:
     data.avatarUrl ||
     data.avatar ||
     data.AvatarUrl ||
     data.Avatar ||
     `https://cdn.discordapp.com/embed/avatars/${(BigInt(data.discordId || data.DiscordId || 0) >> 22n) % 6n}.png`,
-  discordUserId: data.discordUserId || data.DiscordUserId || "",
-  isSuperAdmin: data.isSuperAdmin ?? data.IsSuperAdmin ?? false,
-  isRootUser: data.isRootUser ?? data.IsRootUser ?? false,
-  gameWritePermissions: data.gameWritePermissions || data.GameWritePermissions || [],
-  username: data.username || data.Username || "",
 });
 
 const user = ref(null);
 const loading = ref(true);
-const error = ref("");
+const errorMsg = ref("");
 
 let fetched = false;
 let inflight = null;
+
+const login = () => {
+  globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+};
 
 const setAuthState = (userData) => {
   user.value = userData;
@@ -32,15 +36,15 @@ const setAuthState = (userData) => {
 };
 
 export function useAuth() {
-  const isAuthenticated = computed(() => !!user.value);
-  const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin);
-  const isRootUser = computed(() => !!user.value?.isRootUser);
+  const isAuthenticated = computed(() => Boolean(user.value));
+  const isSuperAdmin = computed(() => Boolean(user.value?.isSuperAdmin));
+  const isRootUser = computed(() => Boolean(user.value?.isRootUser));
 
   const fetchUser = async () => {
     if (fetched) return user.value;
     if (inflight) return inflight;
     loading.value = true;
-    error.value = "";
+    errorMsg.value = "";
 
     inflight = (async () => {
       try {
@@ -53,11 +57,11 @@ export function useAuth() {
           user.value = null;
           fetched = true;
         }
-      } catch (err) {
-        if (err._redirected) return null;
+      } catch (error) {
+        if (error._redirected) return null;
         user.value = null;
-        error.value = err.message || "Failed to fetch user";
-        fetched = true;
+        errorMsg.value = error.message || "Failed to fetch user";
+        // ponytail: don't set fetched=true on transient errors — allow retry
       } finally {
         loading.value = false;
         inflight = null;
@@ -68,10 +72,6 @@ export function useAuth() {
     return inflight;
   };
 
-  const login = () => {
-    globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
-  };
-
   const logout = async () => {
     try {
       await standaloneApiFetch("/auth/logout", {
@@ -79,7 +79,7 @@ export function useAuth() {
         skipAuthRedirect: true,
       });
     } catch {
-      // ignore
+      // Ignore
     } finally {
       user.value = null;
       fetched = false;
@@ -96,7 +96,7 @@ export function useAuth() {
   return {
     user: readonly(user),
     loading: readonly(loading),
-    error: readonly(error),
+    error: readonly(errorMsg),
     isAuthenticated,
     isSuperAdmin,
     isRootUser,

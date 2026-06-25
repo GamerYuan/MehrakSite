@@ -1,4 +1,3 @@
-import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 
 const MISSING_BACKEND_URL =
@@ -22,7 +21,7 @@ const standaloneApiFetch = async (path, options = {}) => {
   });
 
   if (response.status === 401 && !skipAuthRedirect) {
-    window.location.href = "/";
+    globalThis.location.href = "/";
     const err = buildError("Unauthorized", 401);
     err._redirected = true;
     throw err;
@@ -52,7 +51,6 @@ const standaloneApiFetchJson = async (path, options = {}) => {
 export { standaloneApiFetch, standaloneApiFetchJson, buildError };
 
 export function useApi() {
-  const router = useRouter();
   const toast = useToast();
 
   const showErrorToast = (message, status) => {
@@ -82,10 +80,17 @@ export function useApi() {
     });
   };
 
+  const handleApiError = (err) => {
+    if (err?._redirected) return true;
+    showErrorToast(err.message, err.status);
+    return false;
+  };
+
   return {
     showErrorToast,
     showSuccessToast,
     showWarnToast,
+    handleApiError,
     buildError,
     apiFetch: standaloneApiFetch,
     apiFetchJson: standaloneApiFetchJson,

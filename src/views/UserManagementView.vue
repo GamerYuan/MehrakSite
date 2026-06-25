@@ -1,21 +1,21 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useConfirm } from "primevue/useconfirm";
-import { useApi } from "../composables/useApi";
 import { availablePermissions, permissionLabels } from "../configs/gameMeta";
-import Card from "primevue/card";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
+import { computed, onMounted, ref } from "vue";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Dialog from "primevue/dialog";
+import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
-import Tag from "primevue/tag";
-import Select from "primevue/select";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
 import Message from "primevue/message";
+import Tag from "primevue/tag";
+import { normalizeUser } from "../composables/useAuth";
+import { useApi } from "../composables/useApi";
+import { useConfirm } from "primevue/useconfirm";
 
 const confirm = useConfirm();
-const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast } = useApi();
+const { apiFetch, apiFetchJson, showErrorToast, showSuccessToast, showWarnToast, handleApiError } = useApi();
 
 const props = defineProps({
   userInfo: {
@@ -27,17 +27,15 @@ const props = defineProps({
 const users = ref([]);
 const loading = ref(false);
 const searchQuery = ref("");
-const filterPermission = ref("All");
+const filterPermissions = ref([]);
 
 const showAddModal = ref(false);
 const showUpdateModal = ref(false);
-const showTempPasswordModal = ref(false);
 
 const selectedUser = ref(null);
-const tempPassword = ref("");
-const error = ref("");
+const errorMsg = ref("");
 
-const isRootUser = (user) => !!user?.isRootUser;
+const isRootUser = (user) => Boolean(user?.isRootUser);
 
 const blockRootAction = () => {
   showWarnToast("Root users cannot be modified.");
@@ -60,43 +58,50 @@ const fetchUsers = async () => {
   try {
     const { ok, data, status } = await apiFetchJson("/users/list");
     if (ok) {
-      users.value = data.map((u) => ({
-        ...u,
-        userId: u.userId || u.UserId || u.id || "",
-        username: u.username || u.Username || "",
-        discordUserId: u.discordUserId || u.DiscordUserId || "",
-        isSuperAdmin: u.isSuperAdmin ?? u.IsSuperAdmin ?? false,
-        isRootUser: u.isRootUser ?? u.IsRootUser ?? false,
-        gameWritePermissions: u.gameWritePermissions || u.GameWritePermissions || [],
-      }));
+      users.value = data.map(normalizeUser);
     } else {
-      error.value = "Failed to fetch users";
+      errorMsg.value = "Failed to fetch users";
       showErrorToast(data.error || "Failed to fetch users", status);
     }
-  } catch (err) {
-    if (err._redirected) return;
-    error.value = err.message;
+  } catch (error) {
+    if (handleApiError(error)) return;
+    errorMsg.value = error.message;
   } finally {
     loading.value = false;
   }
 };
 
-const filteredUsers = computed(() => {
-  return users.value.filter((user) => {
-    const matchesSearch = (user.username || "")
-      .toLowerCase()
-      .includes(searchQuery.value.toLowerCase());
+const getRole = (u) => {
+  if (u.isRootUser) return 0;
+  if (u.isSuperAdmin) return 1;
+  return 2;
+};
 
-    if (filterPermission.value === "All") return matchesSearch;
-    if (filterPermission.value === "SuperAdmin") return matchesSearch && user.isSuperAdmin;
+const filteredUsers = computed(() => 
+  users.value
+    .filter((user) => {
+      const matchesSearch = (user.discordUserId || "")
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase());
 
-    return (
-      matchesSearch &&
-      user.gameWritePermissions &&
-      user.gameWritePermissions.includes(filterPermission.value)
-    );
-  });
-});
+      if (filterPermissions.value.length === 0) return matchesSearch;
+      if (filterPermissions.value.includes("SuperAdmin")) return matchesSearch && user.isSuperAdmin;
+
+      return (
+        matchesSearch &&
+        user.gameWritePermissions &&
+        user.gameWritePermissions.some((p) => filterPermissions.value.includes(p))
+      );
+    })
+    .sort((a, b) => {
+      const ra = getRole(a);
+      const rb = getRole(b);
+      if (ra !== rb) return ra - rb;
+      return String(a.discordUserId).localeCompare(String(b.discordUserId), undefined, {
+        numeric: true,
+      });
+    })
+);
 
 const resetForm = () => {
   formData.value = {
@@ -118,7 +123,7 @@ const openUpdateModal = (user) => {
     return;
   }
   selectedUser.value = user;
-  const userPerms = new Set((user.gameWritePermissions || []).map((p) => p.toLowerCase()));
+  const userPerms = new Set(user.gameWritePermissions || []);
 
   const newPermissions = {};
   availablePermissions.forEach((perm) => {
@@ -140,7 +145,7 @@ const confirmDelete = (user) => {
     return;
   }
   confirm.require({
-    message: `Are you sure you want to delete user ${user.username}?`,
+    message: `Are you sure you want to delete user ${user.discordUserId}?`,
     header: "Confirm Delete",
     icon: "pi pi-exclamation-triangle",
     rejectProps: {
@@ -156,15 +161,15 @@ const confirmDelete = (user) => {
   });
 };
 
-const getSelectedPermissions = () => {
-  return Object.entries(formData.value.permissions)
+const getSelectedPermissions = () => 
+  Object.entries(formData.value.permissions)
     .filter(([_, value]) => value)
-    .map(([key, _]) => key);
-};
+    .map(([key, _]) => key)
+;
 
 const handleAddUser = async () => {
   try {
-    let discordId;
+    let discordId = "";
     try {
       discordId = BigInt(formData.value.discordUserId).toString();
     } catch {
@@ -189,15 +194,11 @@ const handleAddUser = async () => {
       throw new Error(data.error || "Failed to add user");
     }
 
-    const result = await response.json();
-    tempPassword.value = result.temporaryPassword;
     showAddModal.value = false;
-    showTempPasswordModal.value = true;
     fetchUsers();
     showSuccessToast("User added successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    handleApiError(error);
   }
 };
 
@@ -207,7 +208,7 @@ const handleUpdateUser = async () => {
     return;
   }
   try {
-    let discordId;
+    let discordId = "";
     try {
       discordId = BigInt(formData.value.discordUserId).toString();
     } catch {
@@ -222,7 +223,7 @@ const handleUpdateUser = async () => {
       gameWritePermissions: getSelectedPermissions(),
     };
 
-    const response = await apiFetch(`/users/${selectedUser.value.userId}`, {
+    const response = await apiFetch(`/users/${selectedUser.value.discordUserId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -236,9 +237,8 @@ const handleUpdateUser = async () => {
     showUpdateModal.value = false;
     fetchUsers();
     showSuccessToast("User updated successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    handleApiError(error);
   }
 };
 
@@ -248,7 +248,7 @@ const handleDeleteUser = async (user) => {
     return;
   }
   try {
-    const response = await apiFetch(`/users/${user.userId}`, {
+    const response = await apiFetch(`/users/${user.discordUserId}`, {
       method: "DELETE",
     });
 
@@ -259,25 +259,13 @@ const handleDeleteUser = async (user) => {
 
     fetchUsers();
     showSuccessToast("User deleted successfully");
-  } catch (err) {
-    if (err._redirected) return;
-    showErrorToast(err.message, err.status);
+  } catch (error) {
+    handleApiError(error);
   }
 };
 
 onMounted(() => {
   fetchUsers();
-});
-
-const permissionOptions = computed(() => {
-  return [
-    { label: "All Permissions", value: "All" },
-    { label: "Super Admin", value: "SuperAdmin" },
-    ...availablePermissions.map((perm) => ({
-      label: formatPermission(perm),
-      value: perm,
-    })),
-  ];
 });
 </script>
 
@@ -291,20 +279,37 @@ const permissionOptions = computed(() => {
       <Button label="Add User" icon="pi pi-plus" @click="openAddModal" />
     </header>
 
-    <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+    <Message v-if="errorMsg" severity="error" :closable="false" class="mb-4">{{ errorMsg }}</Message>
 
     <Card class="card-elevated filters-card">
       <template #content>
         <div class="filters-row">
-          <InputText v-model="searchQuery" placeholder="Search users..." fluid />
-          <Select
-            v-model="filterPermission"
-            :options="permissionOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Filter Permissions"
-            class="permission-filter"
-          />
+          <InputText v-model="searchQuery" placeholder="Search users..." class="search-input" />
+          <div class="filter-checkboxes">
+            <div class="permission-item">
+              <Checkbox
+                :modelValue="filterPermissions.length === 0"
+                binary
+                inputId="filter-all"
+                @update:modelValue="(v) => (filterPermissions = v ? [] : filterPermissions)"
+              />
+              <label for="filter-all" class="checkbox-label">All</label>
+            </div>
+            <div class="permission-item">
+              <Checkbox
+                v-model="filterPermissions"
+                value="SuperAdmin"
+                inputId="filter-superadmin"
+              />
+              <label for="filter-superadmin" class="checkbox-label">Super Admin</label>
+            </div>
+            <div v-for="perm in availablePermissions" :key="perm" class="permission-item">
+              <Checkbox v-model="filterPermissions" :value="perm" :inputId="`filter-${perm}`" />
+              <label :for="`filter-${perm}`" class="checkbox-label">{{
+                formatPermission(perm)
+              }}</label>
+            </div>
+          </div>
         </div>
       </template>
     </Card>
@@ -406,19 +411,32 @@ const permissionOptions = computed(() => {
           <div class="permission-grid">
             <div v-for="perm in availablePermissions" :key="perm" class="permission-item">
               <Checkbox v-model="formData.permissions[perm]" binary :inputId="`add-perm-${perm}`" />
-              <label :for="`add-perm-${perm}`" class="checkbox-label">{{ formatPermission(perm) }}</label>
+              <label :for="`add-perm-${perm}`" class="checkbox-label">{{
+                formatPermission(perm)
+              }}</label>
             </div>
           </div>
         </div>
 
         <div class="form-actions">
-          <Button type="button" label="Cancel" severity="secondary" outlined @click="showAddModal = false" />
+          <Button
+            type="button"
+            label="Cancel"
+            severity="secondary"
+            outlined
+            @click="showAddModal = false"
+          />
           <Button type="submit" label="Save" />
         </div>
       </form>
     </Dialog>
 
-    <Dialog v-model:visible="showUpdateModal" modal header="Update User" :style="{ width: '25rem' }">
+    <Dialog
+      v-model:visible="showUpdateModal"
+      modal
+      header="Update User"
+      :style="{ width: '25rem' }"
+    >
       <form @submit.prevent="handleUpdateUser" class="user-form">
         <div class="field">
           <label for="edit-discordId">Discord ID</label>
@@ -443,30 +461,29 @@ const permissionOptions = computed(() => {
           <label>Game Write Permissions</label>
           <div class="permission-grid">
             <div v-for="perm in availablePermissions" :key="perm" class="permission-item">
-              <Checkbox v-model="formData.permissions[perm]" binary :inputId="`edit-perm-${perm}`" />
-              <label :for="`edit-perm-${perm}`" class="checkbox-label">{{ formatPermission(perm) }}</label>
+              <Checkbox
+                v-model="formData.permissions[perm]"
+                binary
+                :inputId="`edit-perm-${perm}`"
+              />
+              <label :for="`edit-perm-${perm}`" class="checkbox-label">{{
+                formatPermission(perm)
+              }}</label>
             </div>
           </div>
         </div>
 
         <div class="form-actions">
-          <Button type="button" label="Cancel" severity="secondary" outlined @click="showUpdateModal = false" />
+          <Button
+            type="button"
+            label="Cancel"
+            severity="secondary"
+            outlined
+            @click="showUpdateModal = false"
+          />
           <Button type="submit" label="Save" />
         </div>
       </form>
-    </Dialog>
-
-    <Dialog v-model:visible="showTempPasswordModal" modal header="User Created" :style="{ width: '25rem' }">
-      <div class="temp-password">
-        <p class="mb-2">Temporary Password:</p>
-        <div class="code-block select-all">
-          {{ tempPassword }}
-        </div>
-        <p class="warning-text">Please copy this password. It will not be shown again.</p>
-        <div class="flex justify-end">
-          <Button label="Close" @click="showTempPasswordModal = false" />
-        </div>
-      </div>
     </Dialog>
   </div>
 </template>
@@ -506,15 +523,16 @@ const permissionOptions = computed(() => {
   gap: 0.75rem;
 }
 
-@media (min-width: 640px) {
-  .filters-row {
-    flex-direction: row;
-  }
+.search-input {
+  flex: 1;
+  min-width: 12rem;
+}
 
-  .permission-filter {
-    width: 16rem;
-    flex-shrink: 0;
-  }
+.filter-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
 }
 
 .table-card :deep(.p-card-content) {
@@ -589,31 +607,5 @@ const permissionOptions = computed(() => {
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1.5rem;
-}
-
-.temp-password {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.code-block {
-  background: var(--bg-surface-raised);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  padding: 0.875rem;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 0.9375rem;
-  word-break: break-all;
-  color: var(--text-primary);
-}
-
-.warning-text {
-  color: var(--p-orange-500);
-  font-size: 0.875rem;
-}
-
-.mb-2 {
-  margin-bottom: 0.5rem;
 }
 </style>

@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { useApi } from "../useApi";
 
 export function usePortraitConfig(config) {
-  const { showErrorToast, showSuccessToast, buildError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
 
   const showPortraitConfigModal = ref(false);
   const showMissingServerIdModal = ref(false);
@@ -35,9 +35,8 @@ export function usePortraitConfig(config) {
         portraitConfigTargetScale.value = data.targetScale ?? null;
         portraitConfigFlipX.value = data.flipX ?? false;
       }
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      handleApiError(error);
     } finally {
       portraitConfigFetching.value = false;
     }
@@ -72,9 +71,8 @@ export function usePortraitConfig(config) {
 
       showPortraitConfigModal.value = true;
       await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      handleApiError(error);
     } finally {
       portraitConfigFetching.value = false;
     }
@@ -108,9 +106,8 @@ export function usePortraitConfig(config) {
 
       showPortraitConfigModal.value = false;
       showSuccessToast("Portrait config updated successfully");
-    } catch (err) {
-      if (err._redirected) return;
-      showErrorToast(err.message, err.status);
+    } catch (error) {
+      handleApiError(error);
     } finally {
       portraitConfigSaving.value = false;
     }

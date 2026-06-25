@@ -1,5 +1,3 @@
-import { gameConfigs } from "./gameConfigs";
-
 export const gameMeta = {
   Genshin: {
     label: "Genshin Impact",
@@ -73,10 +71,12 @@ export const gameMeta = {
   },
 };
 
-export const gameOptions = Object.entries(gameMeta)
-  .filter(([key]) => key !== "Unsupported")
-  .map(([value, meta]) => ({ label: meta.label, value }))
-  .concat([{ label: "Miscellaneous", value: "Unsupported" }]);
+export const gameOptions = [
+  ...Object.entries(gameMeta)
+    .filter(([key]) => key !== "Unsupported")
+    .map(([value, meta]) => ({ label: meta.label, value })),
+  { label: "Miscellaneous", value: "Unsupported" },
+];
 
 export const gameFilterOptions = [{ label: "All Games", value: "All" }, ...gameOptions];
 

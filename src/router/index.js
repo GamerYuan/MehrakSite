@@ -1,17 +1,16 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
-import DocsView from "../views/DocsView.vue";
-import DashboardLayout from "../layouts/DashboardLayout.vue";
-import DashboardHomeView from "../views/DashboardHomeView.vue";
-import UserManagementView from "../views/UserManagementView.vue";
-import DocsManagementView from "../views/DocsManagementView.vue";
-import GameView from "../views/GameView.vue";
-import SeaweedFilerView from "../views/SeaweedFilerView.vue";
-import ReleaseNotesManagementView from "../views/ReleaseNotesManagementView.vue";
-import PrivacyPolicyView from "../views/PrivacyPolicyView.vue";
-import TermsOfServiceView from "../views/TermsOfServiceView.vue";
-import { gameMeta } from "../configs/gameMeta";
 import { getUser, setUserCache } from "../composables/authStore";
+import { gameMeta } from "../configs/gameMeta";
+
+const validGameKeys = new Set(Object.values(gameMeta)
+  .map((m) => m.routeKey)
+  .filter(Boolean));
+
+function validateGameParam(game) {
+  if (!validGameKeys.has(game)) {
+    return { name: "dashboard-home" };
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,71 +27,59 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: HomeView,
+      component: () => import("../views/HomeView.vue"),
     },
     {
       path: "/docs",
       name: "docs",
-      component: DocsView,
+      component: () => import("../views/DocsView.vue"),
     },
     {
       path: "/privacy",
       name: "privacy",
-      component: PrivacyPolicyView,
+      component: () => import("../views/PrivacyPolicyView.vue"),
     },
     {
       path: "/terms",
       name: "terms",
-      component: TermsOfServiceView,
+      component: () => import("../views/TermsOfServiceView.vue"),
     },
     {
       path: "/dashboard",
-      component: DashboardLayout,
+      component: () => import("../layouts/DashboardLayout.vue"),
       children: [
         {
           path: "",
           name: "dashboard-home",
-          component: DashboardHomeView,
+          component: () => import("../views/DashboardHomeView.vue"),
           meta: { requireAuth: true },
         },
         {
           path: "users",
           name: "user-management",
-          component: UserManagementView,
+          component: () => import("../views/UserManagementView.vue"),
           meta: { requireSuperAdmin: true },
         },
         {
           path: "docs",
           name: "docs-management",
-          component: DocsManagementView,
+          component: () => import("../views/DocsManagementView.vue"),
           meta: { requireAnyPermission: true },
         },
         {
           path: "release-notes",
           name: "release-notes-management",
-          component: ReleaseNotesManagementView,
+          component: () => import("../views/ReleaseNotesManagementView.vue"),
           meta: { requireSuperAdmin: true },
         },
         {
           path: ":game",
           name: "game",
-          component: GameView,
-          beforeEnter: (to) => {
-            const validGames = Object.values(gameMeta)
-              .map((m) => m.routeKey)
-              .filter(Boolean);
-            if (!validGames.includes(to.params.game)) {
-              return { name: "dashboard-home" };
-            }
-          },
+          component: () => import("../views/GameView.vue"),
+          beforeEnter: (to) => validateGameParam(to.params.game),
           meta: { requireAuth: true },
         },
-        {
-          path: "seaweed-filer",
-          name: "seaweed-filer",
-          component: SeaweedFilerView,
-          meta: { requireSuperAdmin: true },
-        },
+
       ],
     },
   ],
@@ -101,7 +88,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
-  const meta = to.meta;
+  const {meta} = to;
   if (
     !meta.requireAuth &&
     !meta.requireSuperAdmin &&
@@ -120,7 +107,7 @@ router.beforeEach(async (to) => {
       });
       if (!ok) {
         if (status === 401) {
-          window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+          globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
           return false;
         }
         return { name: "home" };
@@ -128,9 +115,9 @@ router.beforeEach(async (to) => {
       const normalized = normalizeUser(data);
       setUserCache(normalized);
       setAuthState(normalized);
-    } catch (err) {
-      if (err.status === 401) {
-        window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+    } catch (error) {
+      if (error.status === 401) {
+        globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
       }
       return false;
     }
@@ -143,7 +130,7 @@ router.beforeEach(async (to) => {
   }
 
   if (meta.requireGamePermission) {
-    const game = to.params.game;
+    const {game} = to.params;
     if (!user.isSuperAdmin && !user.gameWritePermissions?.includes(game)) {
       return { name: "dashboard-home" };
     }
@@ -154,4 +141,5 @@ router.beforeEach(async (to) => {
   }
 });
 
+export { validateGameParam };
 export default router;

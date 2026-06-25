@@ -1,18 +1,18 @@
-import { ref } from "vue";
 import { gameConfigs } from "../configs/gameConfigs";
+import { ref } from "vue";
 import { useApi } from "./useApi";
 
 export function useAlias() {
-  const { apiFetchJson } = useApi();
+  const { apiFetchJson, handleApiError } = useApi();
 
   const aliases = ref({});
   const loading = ref(false);
-  const error = ref(null);
+  const errorMsg = ref(null);
   const searchQuery = ref("");
 
   const fetchAllAliases = async () => {
     loading.value = true;
-    error.value = null;
+    errorMsg.value = null;
     const games = Object.values(gameConfigs).map((c) => c.id);
 
     try {
@@ -38,13 +38,12 @@ export function useAlias() {
         });
       });
       aliases.value = newAliases;
-    } catch (err) {
-      if (err._redirected) return;
-      error.value = err.message || "Failed to fetch aliases";
+    } catch (error) {
+      handleApiError(error);
     } finally {
       loading.value = false;
     }
   };
 
-  return { aliases, loading, error, searchQuery, fetchAllAliases };
+  return { aliases, loading, error: errorMsg, searchQuery, fetchAllAliases };
 }
