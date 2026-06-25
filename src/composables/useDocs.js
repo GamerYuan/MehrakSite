@@ -1,5 +1,5 @@
 import { computed, onMounted, ref } from "vue";
-import { gameMeta } from "../configs/gameMeta";
+import { gameMeta, gameLabels } from "../configs/gameMeta";
 import { useApi } from "./useApi";
 
 export const gameColors = Object.fromEntries(
@@ -7,10 +7,6 @@ export const gameColors = Object.fromEntries(
     key,
     { bg: meta.bgColor, border: meta.borderColor, text: meta.color },
   ]),
-);
-
-export const gameLabels = Object.fromEntries(
-  Object.entries(gameMeta).map(([key, meta]) => [key, meta.label]),
 );
 
 const SUPPORTED_GAMES = Object.keys(gameLabels);

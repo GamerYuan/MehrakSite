@@ -10,7 +10,7 @@ import Message from "primevue/message";
 import Password from "primevue/password";
 import ProgressSpinner from "primevue/progressspinner";
 import Tag from "primevue/tag";
-import { gameConfigs } from "../configs/gameConfigs";
+import { gameLabels } from "../configs/gameMeta";
 import { useAuth } from "../composables/useAuth";
 import { useProfileManagement } from "../composables/useProfileManagement";
 
@@ -31,8 +31,6 @@ const {
   confirmDelete,
   confirmDeleteAll,
 } = useProfileManagement();
-
-const gameIdToTitle = Object.fromEntries(Object.values(gameConfigs).map((c) => [c.id, c.title]));
 
 const isMobile = ref(false);
 
@@ -161,7 +159,7 @@ onUnmounted(() => {
                 <div v-else class="game-uids-stack">
                   <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-block">
                     <div class="game-uid-header">
-                      <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
+                      <span class="game-uid-name">{{ gameLabels[game] || game }}</span>
                       <Tag
                         v-if="data.lastUsedRegions?.[game]"
                         :value="`Last Used: ${data.lastUsedRegions[game]}`"
@@ -238,7 +236,7 @@ onUnmounted(() => {
                     class="game-uid-block"
                   >
                     <div class="game-uid-header">
-                      <span class="game-uid-name">{{ gameIdToTitle[game] || game }}</span>
+                      <span class="game-uid-name">{{ gameLabels[game] || game }}</span>
                       <Tag
                         v-if="profile.lastUsedRegions?.[game]"
                         :value="profile.lastUsedRegions[game]"

@@ -24,7 +24,7 @@ when done.
 | 013  | Add CSRF defense documentation and frontend coordination notes | P2 | M | 012 | TODO |
 | 014  | Add CSP and browser hardening headers via public/_headers | P2 | S | — | DONE |
 | 015  | Add route-level code splitting to reduce initial bundle size | P2 | S | — | DONE |
-| 016  | Consolidate game registry — kill configMap, remove dead import | P2 | S | 001 (rec) | TODO |
+| 016  | Consolidate game registry — kill configMap, remove dead import | P2 | S | 001 (rec) | DONE |
 | 017  | Spike — investigate Seaweed Filer integration vs demotion | P3 | S | — | TODO |
 
 ## Dependency notes
