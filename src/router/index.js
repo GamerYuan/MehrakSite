@@ -79,12 +79,7 @@ const router = createRouter({
           beforeEnter: (to) => validateGameParam(to.params.game),
           meta: { requireAuth: true },
         },
-        {
-          path: "seaweed-filer",
-          name: "seaweed-filer",
-          component: () => import("../views/SeaweedFilerView.vue"),
-          meta: { requireSuperAdmin: true },
-        },
+
       ],
     },
   ],

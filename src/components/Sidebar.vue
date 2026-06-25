@@ -7,6 +7,7 @@ import { useAuth } from "../composables/useAuth";
 const router = useRouter();
 const route = useRoute();
 const { user, logout, isSuperAdmin } = useAuth();
+const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
 
 const props = defineProps({
   userInfo: {
@@ -121,16 +122,21 @@ const isActive = (path) => route.path === path;
           <i class="pi pi-megaphone nav-icon"></i>
           <span>Release Notes</span>
         </router-link>
-        <router-link
-          v-if="isSuperAdmin"
-          to="/dashboard/seaweed-filer"
+
+      </div>
+
+      <div v-if="isSuperAdmin" class="nav-group">
+        <span class="nav-group-label">External Tools</span>
+        <a
+          :href="`${backendUrl}/admin/seaweed-filer/`"
+          target="_blank"
+          rel="noopener noreferrer"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/seaweed-filer') }"
           @click="close"
         >
-          <i class="pi pi-folder nav-icon"></i>
+          <i class="pi pi-external-link nav-icon"></i>
           <span>Seaweed Filer</span>
-        </router-link>
+        </a>
       </div>
     </nav>
 
