@@ -25,6 +25,7 @@ export const gameConfigs = {
     ],
     hasCodesManagement: true,
     hasStatEdit: true,
+    hasWeaponIcons: true,
     characterPlaceholder: "e.g. Nahida",
     portraitAlignX: 640,
     portraitAlignY: 640,
