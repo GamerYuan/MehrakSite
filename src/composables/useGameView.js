@@ -7,6 +7,7 @@ import { useCommandExecution } from "./game/useCommandExecution";
 import { usePortraitConfig } from "./game/usePortraitConfig";
 import { useProfileManagement } from "./useProfileManagement";
 import { useUserPortraits } from "./game/useUserPortraits";
+import { useWeaponIcons } from "./game/useWeaponIcons";
 
 export function useGameView(config) {
   const activeTab = ref(config.tabs[0]?.id || "character");
@@ -20,6 +21,7 @@ export function useGameView(config) {
   const userPortraits = useUserPortraits(config);
 
   const codes = useCodesManagement(config, activeTab);
+  const weaponIcons = useWeaponIcons(config, activeTab);
 
   const user = getUser();
   const canManage =
@@ -33,6 +35,9 @@ export function useGameView(config) {
       t.push({ id: "aliases", name: "Manage Aliases" });
       if (config.hasCodesManagement) {
         t.push({ id: "codes", name: "Manage Codes" });
+      }
+      if (config.hasWeaponIcons) {
+        t.push({ id: "weaponicons", name: "Weapon Icons" });
       }
     }
     return t;
@@ -71,6 +76,8 @@ export function useGameView(config) {
       aliases.fetchAliases();
     } else if (newTab === "codes" && canManage && config.hasCodesManagement) {
       codes.fetchCodes();
+    } else if (newTab === "weaponicons" && canManage && config.hasWeaponIcons) {
+      weaponIcons.fetchWeapons();
     }
   });
 
@@ -98,5 +105,6 @@ export function useGameView(config) {
     ...portrait,
     ...userPortraits,
     ...codeRefs,
+    ...weaponIcons,
   };
 }
