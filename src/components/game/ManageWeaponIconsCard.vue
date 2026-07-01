@@ -80,9 +80,9 @@ const handleProcess = async () => {
 const handleTempUpload = async () => {
   if (!gv.selectedWeaponId || !tempProcessedFile.value) return;
   uploading.value = true;
-  await gv.confirmUploadWeaponIcon(`weapon_ascended_${gv.selectedWeaponId}.png`, tempProcessedFile.value);
+  const ok = await gv.confirmUploadWeaponIcon(`weapon_ascended_${gv.selectedWeaponId}.png`, tempProcessedFile.value);
   uploading.value = false;
-  clearTempProcessed();
+  if (ok) clearTempProcessed();
 };
 
 const clearTempProcessed = () => {
@@ -336,7 +336,7 @@ onBeforeUnmount(() => {
                   label="Upload"
                   :loading="uploading"
                   :disabled="uploading"
-                  @click="handleUpload(selectedFile)"
+                  @click="handleTempUpload"
                 />
               </div>
             </div>
