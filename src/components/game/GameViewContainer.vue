@@ -7,6 +7,7 @@ import Image from "primevue/image";
 import ManageAliasesCard from "./ManageAliasesCard.vue";
 import ManageCharactersCard from "./ManageCharactersCard.vue";
 import ManageCodesCard from "./ManageCodesCard.vue";
+import ManageWeaponIconsCard from "./ManageWeaponIconsCard.vue";
 import PortraitConfigModal from "./PortraitConfigModal.vue";
 import StatEditModal from "./StatEditModal.vue";
 import Tab from "primevue/tab";
@@ -59,6 +60,8 @@ const clearResult = () => {
           <ManageAliasesCard v-else-if="tab.id === 'aliases'" />
 
           <ManageCodesCard v-else-if="tab.id === 'codes'" />
+
+          <ManageWeaponIconsCard v-else-if="tab.id === 'weaponicons'" />
 
           <CommandCard v-else :tabConfig="getTabConfig(tab.id)" />
         </TabPanel>
