@@ -69,10 +69,10 @@ const bgUrl = computed(() =>
   previewConfig.value?.background ?? ""
 );
 
-const serverIdOptions = computed(() =>
-  (gv.portraitConfigServerIds || []).map((id) => ({
-    label: `ID: ${id}`,
-    value: id,
+const portraitOptions = computed(() =>
+  (gv.portraitConfigEntries || []).map((e) => ({
+    label: e.subId != null ? `ID: ${e.serverId} · Outfit ${e.subId}` : `ID: ${e.serverId}`,
+    value: e,
   })),
 );
 
@@ -111,17 +111,19 @@ const loadBackground = () => {
 };
 
 const loadDefaultPortrait = async () => {
-  if (!gv.config.id || !gv.portraitConfigServerId) return;
+  const entry = gv.portraitConfigSelection;
+  if (!gv.config.id || !entry) return;
   const token = ++portraitLoadToken;
-  const serverId = gv.portraitConfigServerId;
+  const { serverId } = entry;
   portraitLoading.value = true;
   portraitError.value = false;
   portraitLoaded.value = false;
 
   try {
-    const response = await apiFetch(
-      `/portraits/image?game=${encodeURIComponent(gv.config.id)}&serverId=${encodeURIComponent(serverId)}`,
-    );
+    const url = `/portraits/image?game=${encodeURIComponent(gv.config.id)}&serverId=${encodeURIComponent(
+      serverId,
+    )}${entry.subId != null ? `&subId=${encodeURIComponent(entry.subId)}` : ""}`;
+    const response = await apiFetch(url);
     if (token !== portraitLoadToken) return;
 
     if (response.status === 404) {
@@ -366,14 +368,17 @@ watch(
 );
 
 watch(
-  () => gv.portraitConfigServerId,
-  (newId, oldId) => {
-    if (newId == null) return;
+  () => gv.portraitConfigSelection,
+  (newEntry, oldEntry) => {
+    if (newEntry == null) return;
     if (activeModalTab.value !== "default") return;
     cleanupPortrait();
     loadDefaultPortrait();
-    if (oldId != null && oldId !== newId) {
-      gv.fetchPortraitConfigForServerId(newId);
+    if (
+      oldEntry != null &&
+      (oldEntry.serverId !== newEntry.serverId || oldEntry.subId !== newEntry.subId)
+    ) {
+      gv.fetchPortraitConfig(newEntry);
     }
   },
 );
@@ -413,7 +418,7 @@ const loadPortraitForActiveTab = () => {
     } else {
       drawBackgroundOnly();
     }
-  } else if (gv.portraitConfigServerId) {
+  } else if (gv.portraitConfigSelection) {
     loadDefaultPortrait();
   } else {
     drawBackgroundOnly();
@@ -463,7 +468,7 @@ watch(activeModalTab, (newTab) => {
       loadUserPortraitImage(gv.userPortraitId);
       gv.fetchUserPortraitConfig(gv.userPortraitId);
     }
-  } else if (gv.portraitConfigServerId) {
+  } else if (gv.portraitConfigSelection) {
     loadDefaultPortrait();
   }
 });
@@ -602,14 +607,14 @@ onUnmounted(() => {
               <TabPanel value="default">
                 <div class="flex flex-col gap-3">
                   <div
-                    v-if="gv.portraitConfigServerIds && gv.portraitConfigServerIds.length > 1"
+                    v-if="gv.portraitConfigEntries && gv.portraitConfigEntries.length > 1"
                     class="flex flex-col gap-2"
                   >
                     <label for="portrait-server-id">Portrait (Server ID)</label>
                     <Select
                       id="portrait-server-id"
-                      v-model="gv.portraitConfigServerId"
-                      :options="serverIdOptions"
+                      v-model="gv.portraitConfigSelection"
+                      :options="portraitOptions"
                       optionLabel="label"
                       optionValue="value"
                       placeholder="Select portrait"

@@ -8,8 +8,8 @@ export function usePortraitConfig(config) {
   const showMissingServerIdModal = ref(false);
   const missingServerIdCharacter = ref("");
   const portraitConfigCharacter = ref("");
-  const portraitConfigServerIds = ref([]);
-  const portraitConfigServerId = ref(null);
+  const portraitConfigEntries = ref([]);
+  const portraitConfigSelection = ref(null);
   const portraitConfigOffsetX = ref(null);
   const portraitConfigOffsetY = ref(null);
   const portraitConfigTargetScale = ref(null);
@@ -17,8 +17,8 @@ export function usePortraitConfig(config) {
   const portraitConfigFetching = ref(false);
   const portraitConfigSaving = ref(false);
 
-  const fetchPortraitConfigForServerId = async (serverId) => {
-    portraitConfigServerId.value = serverId;
+  const fetchPortraitConfig = async (entry) => {
+    portraitConfigSelection.value = entry;
     portraitConfigOffsetX.value = null;
     portraitConfigOffsetY.value = null;
     portraitConfigTargetScale.value = null;
@@ -26,9 +26,10 @@ export function usePortraitConfig(config) {
     portraitConfigFetching.value = true;
 
     try {
-      const { ok, data } = await apiFetchJson(
-        `/portraits/config?game=${config.id}&serverId=${serverId}`,
-      );
+      const url = `/portraits/config?game=${config.id}&serverId=${entry.serverId}${
+        entry.subId != null ? `&subId=${entry.subId}` : ""
+      }`;
+      const { ok, data } = await apiFetchJson(url);
       if (ok) {
         portraitConfigOffsetX.value = data.offsetX ?? 0;
         portraitConfigOffsetY.value = data.offsetY ?? 0;
@@ -44,8 +45,8 @@ export function usePortraitConfig(config) {
 
   const openPortraitConfigModal = async (char) => {
     portraitConfigCharacter.value = char;
-    portraitConfigServerIds.value = [];
-    portraitConfigServerId.value = null;
+    portraitConfigEntries.value = [];
+    portraitConfigSelection.value = null;
     portraitConfigOffsetX.value = 0;
     portraitConfigOffsetY.value = 0;
     portraitConfigTargetScale.value = null;
@@ -61,16 +62,16 @@ export function usePortraitConfig(config) {
         throw new Error(data.error || `Failed to fetch portrait list (${listResponse.status})`);
       }
 
-      portraitConfigServerIds.value = await listResponse.json();
+      portraitConfigEntries.value = await listResponse.json();
 
-      if (portraitConfigServerIds.value.length === 0) {
+      if (portraitConfigEntries.value.length === 0) {
         missingServerIdCharacter.value = char;
         showMissingServerIdModal.value = true;
         return;
       }
 
       showPortraitConfigModal.value = true;
-      await fetchPortraitConfigForServerId(portraitConfigServerIds.value[0]);
+      await fetchPortraitConfig(portraitConfigEntries.value[0]);
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -79,16 +80,18 @@ export function usePortraitConfig(config) {
   };
 
   const handlePortraitConfigSubmit = async () => {
-    if (!portraitConfigServerId.value) {
+    const entry = portraitConfigSelection.value;
+    if (!entry) {
       showErrorToast("No portrait selected. Please select a portrait first.", 400);
       return;
     }
     portraitConfigSaving.value = true;
     try {
-      const response = await apiFetch(
-        `/portraits/config?game=${config.id}&serverId=${portraitConfigServerId.value}`,
-        {
-          method: "PATCH",
+      const url = `/portraits/config?game=${config.id}&serverId=${entry.serverId}${
+        entry.subId != null ? `&subId=${entry.subId}` : ""
+      }`;
+      const response = await apiFetch(url, {
+        method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             offsetX: Math.round(portraitConfigOffsetX.value),
@@ -118,8 +121,8 @@ export function usePortraitConfig(config) {
     showMissingServerIdModal,
     missingServerIdCharacter,
     portraitConfigCharacter,
-    portraitConfigServerIds,
-    portraitConfigServerId,
+    portraitConfigEntries,
+    portraitConfigSelection,
     portraitConfigOffsetX,
     portraitConfigOffsetY,
     portraitConfigTargetScale,
@@ -127,7 +130,7 @@ export function usePortraitConfig(config) {
     portraitConfigFetching,
     portraitConfigSaving,
     openPortraitConfigModal,
-    fetchPortraitConfigForServerId,
+    fetchPortraitConfig,
     handlePortraitConfigSubmit,
   };
 }
