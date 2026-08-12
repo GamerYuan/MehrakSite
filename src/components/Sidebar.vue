@@ -1,400 +1,475 @@
 <script setup>
-import { useRoute, useRouter } from "vue-router";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useRoute } from "vue-router";
 import ThemeToggle from "./ThemeToggle.vue";
-import { gameMeta } from "../configs/gameMeta";
+import {
+  canManageGameCapability,
+  gameMeta,
+  hasAnyGamePermission,
+  isSuperAdminUser,
+} from "../configs/gameMeta";
 import { useAuth } from "../composables/useAuth";
 
-const router = useRouter();
 const route = useRoute();
-const { user, logout, isSuperAdmin } = useAuth();
+const { logout } = useAuth();
 const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
+const closeButton = ref(null);
+const isMobile = ref(false);
+let mediaQuery = null;
+const updateMobile = () => (isMobile.value = mediaQuery.matches);
 
 const props = defineProps({
-  userInfo: {
-    type: Object,
-    required: true,
-  },
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
+  userInfo: { type: Object, required: true },
+  modelValue: { type: Boolean, default: false },
 });
+const emit = defineEmits(["update:modelValue", "close"]);
 
-const emit = defineEmits(["update:modelValue"]);
+const games = Object.values(gameMeta).filter(
+  (game) => game.routeKey && game.capabilities?.commands,
+);
+const managementDestinations = [
+  { capability: "characters", label: "Characters", suffix: "manage", icon: "pi-users" },
+  { capability: "aliases", label: "Aliases", suffix: "manage/aliases", icon: "pi-tags" },
+  { capability: "codes", label: "Codes", suffix: "manage/codes", icon: "pi-ticket" },
+  {
+    capability: "weaponIcons",
+    label: "Weapon icons",
+    suffix: "manage/weapon-icons",
+    icon: "pi-images",
+  },
+];
 
-const close = () => emit("update:modelValue", false);
+const isSuperAdmin = computed(() => isSuperAdminUser(props.userInfo));
+const hasGlobalManagement = computed(() => hasAnyGamePermission(props.userInfo));
+const managedGames = computed(() =>
+  games
+    .map((game) => ({
+      game,
+      links: managementDestinations.filter((item) =>
+        canManageGameCapability(props.userInfo, game.id, item.capability),
+      ),
+    }))
+    .filter((game) => game.links.length),
+);
 
-const handleLogout = () => {
-  logout();
+const close = (restoreFocus = false) => {
+  const wasOpen = props.modelValue;
+  emit("update:modelValue", false);
+  if (restoreFocus && wasOpen) emit("close");
 };
-
-const gameRoutes = Object.entries(gameMeta)
-  .filter(([, meta]) => Boolean(meta.routeKey))
-  .map(([metaKey, meta]) => ({
-    key: meta.routeKey,
-    label: meta.label,
-    logo: meta.logo,
-    metaKey,
-  }));
-
 const isActive = (path) => route.path === path;
+const focusCloseButton = () => closeButton.value?.focus();
+const getFocusableElements = () =>
+  [
+    closeButton.value,
+    ...document.querySelectorAll(
+      "#dashboard-sidebar a[href], #dashboard-sidebar button:not([disabled]), #dashboard-sidebar summary",
+    ),
+  ].filter((element) => element && globalThis.getComputedStyle(element).display !== "none");
+defineExpose({ focusCloseButton, getFocusableElements });
+
+onMounted(() => {
+  mediaQuery = globalThis.matchMedia("(max-width: 768px)");
+  updateMobile();
+  mediaQuery.addEventListener("change", updateMobile);
+});
+onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="modelValue" class="sidebar-backdrop" @click="close"></div>
+      <button
+        v-if="modelValue"
+        class="sidebar-backdrop"
+        type="button"
+        aria-label="Close dashboard navigation"
+        @click="close(true)"
+      ></button>
     </Transition>
   </Teleport>
 
-  <aside class="sidebar" :class="{ 'sidebar--open': modelValue }">
+  <aside
+    id="dashboard-sidebar"
+    class="sidebar"
+    :class="{ 'sidebar--open': modelValue }"
+    aria-label="Dashboard navigation"
+    :aria-hidden="isMobile && !modelValue ? 'true' : undefined"
+    :inert="isMobile && !modelValue"
+  >
     <div class="sidebar-header">
-      <div class="sidebar-header-content" @click="router.push('/')" role="button" tabindex="0">
-        <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
-        <span class="sidebar-logo-text">MehrakBot</span>
-      </div>
-      <ThemeToggle />
-      <button class="sidebar-close-btn" @click="close" aria-label="Close menu">
-        <i class="pi pi-times"></i>
+      <a href="/" class="brand" aria-label="MehrakBot home">
+        <img src="/logo.webp" alt="" class="brand-mark" />
+        <span><strong>MehrakBot</strong><small>Celestial field station</small></span>
+      </a>
+      <button
+        ref="closeButton"
+        class="sidebar-close"
+        type="button"
+        aria-label="Close menu"
+        @click="close(true)"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
       </button>
     </div>
 
-    <nav class="sidebar-nav">
-      <div class="nav-group">
-        <span class="nav-group-label">Account</span>
+    <nav class="sidebar-nav" aria-label="Operations console">
+      <section class="nav-group" aria-labelledby="nav-account">
+        <h2 id="nav-account">Account</h2>
         <router-link
           to="/dashboard"
           class="nav-item"
           :class="{ active: isActive('/dashboard') }"
-          @click="close"
+          @click="close(true)"
         >
-          <i class="pi pi-user nav-icon"></i>
-          <span>Profile</span>
+          <i class="pi pi-compass" aria-hidden="true"></i><span>Overview</span>
         </router-link>
-      </div>
+      </section>
 
-      <div class="nav-group">
-        <span class="nav-group-label">Games</span>
+      <section class="nav-group" aria-labelledby="nav-commands">
+        <h2 id="nav-commands">Game commands</h2>
         <router-link
-          v-for="g in gameRoutes"
-          :key="g.key"
-          :to="`/dashboard/${g.key}`"
-          class="nav-item game-nav-item"
-          :class="{ active: isActive(`/dashboard/${g.key}`) }"
-          :data-game="g.key"
-          @click="close"
+          v-for="game in games"
+          :key="game.id"
+          :to="`/dashboard/${game.routeKey}`"
+          class="nav-item game-item"
+          :class="{ active: isActive(`/dashboard/${game.routeKey}`) }"
+          :style="{ '--game-color': `var(--game-${game.routeKey})` }"
+          @click="close(true)"
         >
-          <img :src="g.logo" class="nav-game-logo" :alt="g.label" />
-          <span>{{ g.label }}</span>
-          <span class="game-dot" :style="{ backgroundColor: gameMeta[g.metaKey].color }"></span>
+          <img :src="game.logo" :alt="`${game.label} logo`" />
+          <span>{{ game.label }}</span
+          ><span class="signal" aria-hidden="true"></span>
         </router-link>
-      </div>
+      </section>
 
-      <div v-if="isSuperAdmin || user.gameWritePermissions?.length" class="nav-group">
-        <span class="nav-group-label">Management</span>
+      <section v-if="managedGames.length" class="nav-group" aria-labelledby="nav-game-management">
+        <h2 id="nav-game-management">Game management</h2>
+        <details
+          v-for="entry in managedGames"
+          :key="entry.game.id"
+          :open="route.path.startsWith(`/dashboard/${entry.game.routeKey}/manage`)"
+          class="game-management"
+        >
+          <summary>
+            <img :src="entry.game.logo" alt="" /><span>{{ entry.game.shortLabel }}</span
+            ><i class="pi pi-chevron-down" aria-hidden="true"></i>
+          </summary>
+          <router-link
+            v-for="item in entry.links"
+            :key="item.capability"
+            :to="`/dashboard/${entry.game.routeKey}/${item.suffix}`"
+            class="management-link"
+            :class="{ active: isActive(`/dashboard/${entry.game.routeKey}/${item.suffix}`) }"
+            @click="close(true)"
+          >
+            <i class="pi" :class="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span>
+          </router-link>
+        </details>
+      </section>
+
+      <section v-if="hasGlobalManagement" class="nav-group" aria-labelledby="nav-global-management">
+        <h2 id="nav-global-management">Global management</h2>
         <router-link
           v-if="isSuperAdmin"
           to="/dashboard/users"
           class="nav-item"
           :class="{ active: isActive('/dashboard/users') }"
-          @click="close"
+          @click="close(true)"
         >
-          <i class="pi pi-users nav-icon"></i>
-          <span>User Management</span>
+          <i class="pi pi-users" aria-hidden="true"></i><span>Users</span>
         </router-link>
         <router-link
-          v-if="isSuperAdmin || user.gameWritePermissions?.length"
           to="/dashboard/docs"
           class="nav-item"
           :class="{ active: isActive('/dashboard/docs') }"
-          @click="close"
+          @click="close(true)"
         >
-          <i class="pi pi-book nav-icon"></i>
-          <span>Documentation</span>
+          <i class="pi pi-book" aria-hidden="true"></i><span>Documentation</span>
         </router-link>
         <router-link
           v-if="isSuperAdmin"
           to="/dashboard/release-notes"
           class="nav-item"
           :class="{ active: isActive('/dashboard/release-notes') }"
-          @click="close"
+          @click="close(true)"
         >
-          <i class="pi pi-megaphone nav-icon"></i>
-          <span>Release Notes</span>
+          <i class="pi pi-megaphone" aria-hidden="true"></i><span>Release notes</span>
         </router-link>
+      </section>
 
-      </div>
-
-      <div v-if="isSuperAdmin" class="nav-group">
-        <span class="nav-group-label">External Tools</span>
+      <section v-if="isSuperAdmin" class="nav-group" aria-labelledby="nav-tools">
+        <h2 id="nav-tools">External tools</h2>
         <a
           :href="`${backendUrl}/admin/seaweed-filer/`"
           target="_blank"
           rel="noopener noreferrer"
           class="nav-item"
-          @click="close"
+          @click="close(true)"
         >
-          <i class="pi pi-external-link nav-icon"></i>
-          <span>Seaweed Filer</span>
+          <i class="pi pi-external-link" aria-hidden="true"></i><span>Seaweed Filer</span>
         </a>
-      </div>
+      </section>
     </nav>
 
-    <div class="sidebar-footer">
-      <div class="user-mini-profile">
+    <footer class="sidebar-footer">
+      <div class="account-context">
         <img
           v-if="userInfo.avatarUrl"
           :src="userInfo.avatarUrl"
-          :alt="userInfo.username"
-          class="user-avatar"
+          :alt="`${userInfo.username} avatar`"
         />
-        <span class="username">{{ userInfo.username }}</span>
+        <span
+          ><strong>{{ userInfo.username || "Discord operator" }}</strong
+          ><small>{{ isSuperAdmin ? "Super administrator" : "Station operator" }}</small></span
+        >
+        <ThemeToggle />
       </div>
-      <button @click="handleLogout" class="logout-btn">
-        <i class="pi pi-sign-out"></i>
-        <span>Logout</span>
+      <button type="button" class="logout-button" @click="logout">
+        <i class="pi pi-sign-out" aria-hidden="true"></i><span>End session</span>
       </button>
-    </div>
+    </footer>
   </aside>
 </template>
 
 <style scoped>
 .sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background-color: var(--bg-surface);
-  border-right: 1px solid var(--border-primary);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
   position: fixed;
-  left: 0;
-  top: 0;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  display: flex;
+  width: 17.5rem;
+  flex-direction: column;
+  border-right: 1px solid var(--border-primary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-md);
 }
-
+.sidebar::before {
+  content: "";
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--brass), transparent);
+}
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.25rem 1rem;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border-primary);
 }
-
-.sidebar-header-content {
+.brand {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  cursor: pointer;
+  gap: var(--space-3);
+  color: var(--text-primary);
+  text-decoration: none;
 }
-
-.sidebar-close-btn {
+.brand-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+}
+.brand span,
+.account-context span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.brand strong {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: 1.1;
+}
+.brand small,
+.account-context small {
+  color: var(--text-muted);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sidebar-close {
   display: none;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
-  padding: 0.25rem;
-  font-size: 1.25rem;
 }
-
-.sidebar-logo-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  object-fit: contain;
-}
-
-.sidebar-logo-text {
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-}
-
 .sidebar-nav {
   flex: 1;
-  padding: 0.5rem 1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
   overflow-y: auto;
+  padding: var(--space-4);
 }
-
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.nav-group + .nav-group {
+  margin-top: var(--space-6);
 }
-
-.nav-group-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.nav-group h2 {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-2);
   color: var(--text-muted);
-  padding: 0 0.75rem;
-  margin-bottom: 0.25rem;
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
-
-.nav-item {
+.nav-item,
+.management-link {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 8px;
+  gap: var(--space-3);
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
   transition:
-    background-color 0.2s,
-    color 0.2s;
-  position: relative;
+    background var(--motion-fast),
+    color var(--motion-fast);
 }
-
-.nav-icon {
-  font-size: 1rem;
-  width: 1.25rem;
-  text-align: center;
-}
-
-.nav-game-logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.nav-item:hover {
-  background-color: var(--bg-surface-raised);
+.nav-item:hover,
+.management-link:hover {
+  background: var(--bg-surface-raised);
   color: var(--text-primary);
 }
-
-.nav-item.active {
-  background-color: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent);
-  font-weight: 500;
+.nav-item.active,
+.management-link.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
 }
-
-.game-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.nav-item i,
+.management-link i {
+  width: 1rem;
+  text-align: center;
+}
+.game-item {
+  --game-color: var(--accent);
+}
+.game-item img,
+.game-management img {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+.game-item.active {
+  box-shadow: inset 3px 0 var(--game-color);
+}
+.signal {
+  width: 0.4rem;
+  height: 0.4rem;
   margin-left: auto;
-  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--game-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--game-color) 18%, transparent);
 }
-
-.nav-item.game-nav-item.active[data-game="genshin"] {
-  background-color: rgba(255, 215, 0, 0.12);
-  color: #b8860b;
+.game-management {
+  margin-bottom: var(--space-1);
 }
-.dark .nav-item.game-nav-item.active[data-game="genshin"] {
-  color: #ffd700;
-}
-
-.nav-item.game-nav-item.active[data-game="hsr"] {
-  background-color: rgba(0, 212, 255, 0.12);
-  color: #0077a8;
-}
-.dark .nav-item.game-nav-item.active[data-game="hsr"] {
-  color: #00d4ff;
-}
-
-.nav-item.game-nav-item.active[data-game="zzz"] {
-  background-color: rgba(255, 107, 0, 0.12);
-  color: #c45200;
-}
-.dark .nav-item.game-nav-item.active[data-game="zzz"] {
-  color: #ff6b00;
-}
-
-.nav-item.game-nav-item.active[data-game="hi3"] {
-  background-color: rgba(255, 105, 180, 0.12);
-  color: #cc3388;
-}
-.dark .nav-item.game-nav-item.active[data-game="hi3"] {
-  color: #ff69b4;
-}
-
-.sidebar-footer {
-  padding: 1rem 1.25rem 1.25rem;
-  border-top: 1px solid var(--border-primary);
-}
-
-.user-mini-profile {
+.game-management summary {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
 }
-
-.user-avatar {
-  width: 2rem;
-  height: 2rem;
+.game-management summary::-webkit-details-marker {
+  display: none;
+}
+.game-management summary:hover {
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+}
+.game-management summary i {
+  margin-left: auto;
+  font-size: 0.7rem;
+  transition: transform var(--motion-fast);
+}
+.game-management[open] summary i {
+  transform: rotate(180deg);
+}
+.management-link {
+  min-height: 2.15rem;
+  margin-left: 1.25rem;
+  padding-left: var(--space-4);
+  font-size: var(--text-xs);
+}
+.sidebar-footer {
+  padding: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-surface-sunken);
+}
+.account-context {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.account-context > img {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border-secondary);
   border-radius: 50%;
   object-fit: cover;
 }
-
-.username {
-  font-weight: 600;
+.account-context strong {
+  overflow: hidden;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.logout-btn {
-  width: 100%;
+.logout-button {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.55rem;
-  background-color: var(--bg-surface-raised);
-  color: var(--text-primary);
-  border: 1px solid var(--border-secondary);
-  border-radius: 8px;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: 0.875rem;
-  font-weight: 500;
 }
-
-.logout-btn:hover {
-  background-color: var(--border-secondary);
+.logout-button:hover {
+  border-color: var(--danger);
+  color: var(--danger);
 }
-
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  z-index: 35;
+  border: 0;
+  background: color-mix(in srgb, var(--bg-surface-sunken) 72%, transparent);
+  cursor: pointer;
 }
-
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--motion-base);
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
-
 @media (max-width: 768px) {
   .sidebar {
-    z-index: 999;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    width: 280px;
+    width: min(19rem, calc(100vw - 2.5rem));
+    transform: translateX(-105%);
+    transition: transform var(--motion-base) var(--ease-enter);
   }
-
   .sidebar--open {
     transform: translateX(0);
   }
-
-  .sidebar-close-btn {
-    display: block;
-  }
-
-  .nav-item {
-    padding: 0.75rem;
+  .sidebar-close {
+    display: grid;
   }
 }
 </style>

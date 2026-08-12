@@ -1,16 +1,50 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { getUser, setUserCache } from "../composables/authStore";
-import { gameMeta } from "../configs/gameMeta";
+import {
+  canManageGame,
+  canManageGameCapability,
+  getGameCapabilities,
+  hasAnyGamePermission,
+  isSuperAdminUser,
+} from "../configs/gameMeta";
+import { fetchUser, getAuthStatus, getUser } from "../composables/useAuth";
+import { gameConfigs } from "../configs/gameConfigs";
 
-const validGameKeys = new Set(Object.values(gameMeta)
-  .map((m) => m.routeKey)
-  .filter(Boolean));
+const validGameKeys = new Set(Object.keys(gameConfigs));
 
 function validateGameParam(game) {
   if (!validGameKeys.has(game)) {
     return { name: "dashboard-home" };
   }
 }
+
+const isProtectedRoute = (meta = {}) =>
+  Boolean(
+    meta.requireAuth ||
+    meta.requireSuperAdmin ||
+    meta.requireGamePermission ||
+    meta.requireGameCapability ||
+    meta.requireGameFeature ||
+    meta.requireAnyPermission,
+  );
+
+const canAccessRoute = (to, user) => {
+  const meta = to.meta || {};
+  const game = to.params?.game;
+  if (meta.requireAuth && !user) return false;
+  if (meta.requireSuperAdmin && !isSuperAdminUser(user)) return false;
+  if (meta.requireGamePermission && !canManageGame(user, game)) return false;
+  if (meta.requireGameFeature && !getGameCapabilities(game).management?.[meta.requireGameFeature]) {
+    return false;
+  }
+  if (
+    meta.requireGameCapability &&
+    !canManageGameCapability(user, game, meta.requireGameCapability)
+  ) {
+    return false;
+  }
+  if (meta.requireAnyPermission && !hasAnyGamePermission(user)) return false;
+  return true;
+};
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,23 +60,29 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "home",
-      component: () => import("../views/HomeView.vue"),
-    },
-    {
-      path: "/docs",
-      name: "docs",
-      component: () => import("../views/DocsView.vue"),
-    },
-    {
-      path: "/privacy",
-      name: "privacy",
-      component: () => import("../views/PrivacyPolicyView.vue"),
-    },
-    {
-      path: "/terms",
-      name: "terms",
-      component: () => import("../views/TermsOfServiceView.vue"),
+      component: () => import("../layouts/PublicLayout.vue"),
+      children: [
+        {
+          path: "",
+          name: "home",
+          component: () => import("../views/HomeView.vue"),
+        },
+        {
+          path: "docs",
+          name: "docs",
+          component: () => import("../views/DocsView.vue"),
+        },
+        {
+          path: "privacy",
+          name: "privacy",
+          component: () => import("../views/PrivacyPolicyView.vue"),
+        },
+        {
+          path: "terms",
+          name: "terms",
+          component: () => import("../views/TermsOfServiceView.vue"),
+        },
+      ],
     },
     {
       path: "/dashboard",
@@ -73,13 +113,71 @@ const router = createRouter({
           meta: { requireSuperAdmin: true },
         },
         {
+          path: ":game/portraits",
+          name: "game-user-portraits",
+          component: () => import("../views/GameView.vue"),
+          beforeEnter: (to) => validateGameParam(to.params.game),
+          meta: {
+            requireAuth: true,
+            requireGameFeature: "userPortraits",
+            gameWorkspaceTab: "portraits",
+          },
+        },
+        {
+          path: ":game/manage",
+          name: "game-management",
+          component: () => import("../views/GameView.vue"),
+          beforeEnter: (to) => validateGameParam(to.params.game),
+          meta: {
+            requireAuth: true,
+            requireGamePermission: true,
+            requireGameCapability: "characters",
+            gameManagementTab: "manage",
+          },
+        },
+        {
+          path: ":game/manage/aliases",
+          name: "game-alias-management",
+          component: () => import("../views/GameView.vue"),
+          beforeEnter: (to) => validateGameParam(to.params.game),
+          meta: {
+            requireAuth: true,
+            requireGamePermission: true,
+            requireGameCapability: "aliases",
+            gameManagementTab: "aliases",
+          },
+        },
+        {
+          path: ":game/manage/codes",
+          name: "game-code-management",
+          component: () => import("../views/GameView.vue"),
+          beforeEnter: (to) => validateGameParam(to.params.game),
+          meta: {
+            requireAuth: true,
+            requireGamePermission: true,
+            requireGameCapability: "codes",
+            gameManagementTab: "codes",
+          },
+        },
+        {
+          path: ":game/manage/weapon-icons",
+          name: "game-weapon-icon-management",
+          component: () => import("../views/GameView.vue"),
+          beforeEnter: (to) => validateGameParam(to.params.game),
+          meta: {
+            requireAuth: true,
+            requireGamePermission: true,
+            requireGameCapability: "weaponIcons",
+            gameManagementTab: "weaponicons",
+          },
+        },
+        {
           path: ":game",
           name: "game",
           component: () => import("../views/GameView.vue"),
           beforeEnter: (to) => validateGameParam(to.params.game),
           meta: { requireAuth: true },
         },
-
       ],
     },
   ],
@@ -88,58 +186,23 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   if (!to.path.startsWith("/dashboard")) return;
 
-  const {meta} = to;
-  if (
-    !meta.requireAuth &&
-    !meta.requireSuperAdmin &&
-    !meta.requireGamePermission &&
-    !meta.requireAnyPermission
-  ) {
-    return;
-  }
+  if (!isProtectedRoute(to.meta)) return;
 
-  if (!getUser()) {
-    try {
-      const { standaloneApiFetchJson } = await import("../composables/useApi");
-      const { normalizeUser, setAuthState } = await import("../composables/useAuth");
-      const { ok, data, status } = await standaloneApiFetchJson("/users/me", {
-        skipAuthRedirect: true,
-      });
-      if (!ok) {
-        if (status === 401) {
-          globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
-          return false;
-        }
-        return { name: "home" };
-      }
-      const normalized = normalizeUser(data);
-      setUserCache(normalized);
-      setAuthState(normalized);
-    } catch (error) {
-      if (error.status === 401) {
+  let user = getUser();
+  if (!user) {
+    user = await fetchUser();
+    if (!user) {
+      const status = getAuthStatus();
+      if (status === 401) {
         globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
+        return false;
       }
-      return false;
+      return status == null ? false : { name: "home" };
     }
   }
 
-  const user = getUser();
-
-  if (meta.requireSuperAdmin && !user.isSuperAdmin) {
-    return { name: "dashboard-home" };
-  }
-
-  if (meta.requireGamePermission) {
-    const {game} = to.params;
-    if (!user.isSuperAdmin && !user.gameWritePermissions?.includes(game)) {
-      return { name: "dashboard-home" };
-    }
-  }
-
-  if (meta.requireAnyPermission && !user.isSuperAdmin && !user.gameWritePermissions?.length) {
-    return { name: "dashboard-home" };
-  }
+  if (!canAccessRoute(to, user)) return { name: "dashboard-home" };
 });
 
-export { validateGameParam };
+export { canAccessRoute, isProtectedRoute, validateGameParam };
 export default router;

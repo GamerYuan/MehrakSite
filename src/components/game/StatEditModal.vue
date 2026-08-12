@@ -13,7 +13,8 @@ const gv = useGameViewInject();
     v-model:visible="gv.showEditStatModal"
     modal
     header="Edit Character Stats"
-    :style="{ width: '30rem' }"
+    :style="{ width: 'min(30rem, calc(100vw - 2rem))' }"
+    class="operation-dialog"
   >
     <div class="relative">
       <div
@@ -45,6 +46,7 @@ const gv = useGameViewInject();
                 severity="danger"
                 text
                 @click="gv.editStatBase = null"
+                aria-label="Clear base stat"
               />
             </div>
           </div>
@@ -65,6 +67,7 @@ const gv = useGameViewInject();
                 severity="danger"
                 text
                 @click="gv.editStatMax = null"
+                aria-label="Clear max ascension value"
               />
             </div>
           </div>

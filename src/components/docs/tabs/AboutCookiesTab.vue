@@ -5,9 +5,6 @@ import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
 
 const cookieActions = [
   { action: "Login to your game account", canDo: false },
@@ -47,13 +44,13 @@ const faqItems = [
         <i class="pi pi-shield"></i>
       </div>
       <div>
-        <h1 class="cookies-title">HoYoLAB Cookies</h1>
+        <h3 class="cookies-title">HoYoLAB Cookies</h3>
         <p class="cookies-sub">Understanding how Mehrak uses your HoYoLAB cookies.</p>
       </div>
     </div>
 
     <section class="cookies-card">
-      <h2 class="cookies-card-title">Disclaimer</h2>
+      <h4 class="cookies-card-title">Disclaimer</h4>
       <p class="cookies-text">
         Mehrak does not force its users to provide their HoYoLAB Cookies without consent. While many
         features of Mehrak requires the use of HoYoLAB Cookies, it is on the user's choice to
@@ -65,13 +62,12 @@ const faqItems = [
       </p>
       <p class="cookies-text">
         By providing your HoYoLAB Cookies, you consent to our
-        <a href="#" @click.prevent="router.push('/privacy')" class="cookies-link">Privacy Policy</a
-        >.
+        <RouterLink to="/privacy" class="cookies-link">Privacy Policy</RouterLink>.
       </p>
     </section>
 
     <section class="cookies-card">
-      <h2 class="cookies-card-title">What are cookies?</h2>
+      <h4 class="cookies-card-title">What are cookies?</h4>
       <p class="cookies-text">
         Cookies are traces of information left on your browser when you access online services. They
         generally contain information about your login session, your preferences, or other temporary
@@ -96,7 +92,7 @@ const faqItems = [
     </section>
 
     <section class="cookies-card">
-      <h2 class="cookies-card-title">What can HoYoLAB Cookies do?</h2>
+      <h4 class="cookies-card-title">What can HoYoLAB Cookies do?</h4>
       <p class="cookies-text">
         The HoYoLAB Cookies Mehrak requires contains your login session. These are the things that
         you can and cannot do with said HoYoLAB Cookies:
@@ -119,7 +115,7 @@ const faqItems = [
     </section>
 
     <section class="cookies-card">
-      <h2 class="cookies-card-title">How are my Cookies stored?</h2>
+      <h4 class="cookies-card-title">How are my Cookies stored?</h4>
       <p class="cookies-text">
         The official Mehrak bot runs on a Virtual Private Server (VPS) hosted by Hetzner. Several
         best practices has been done to ensure that the VPS instance is kept secure from
@@ -142,7 +138,7 @@ const faqItems = [
     </section>
 
     <section class="cookies-card">
-      <h2 class="cookies-card-title">Our commitment</h2>
+      <h4 class="cookies-card-title">Our commitment</h4>
       <p class="cookies-text">
         We, as the developer team, is committed to providing users with secure and convenient
         services. Should there be an identified security breach, we will make an announcement to all
@@ -166,7 +162,7 @@ const faqItems = [
     </section>
 
     <section class="cookies-card">
-      <h2 class="cookies-card-title">Other Facts about HoYoLAB Cookies</h2>
+      <h4 class="cookies-card-title">Other Facts about HoYoLAB Cookies</h4>
       <Accordion value="" multiple expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
         <AccordionPanel v-for="(item, index) in faqItems" :key="index" :value="index">
           <AccordionHeader>{{ item.question }}</AccordionHeader>

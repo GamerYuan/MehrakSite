@@ -1,112 +1,124 @@
 <script setup>
-import { useRouter } from "vue-router";
-
-const router = useRouter();
+import { RouterLink } from "vue-router";
+import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 </script>
 
 <template>
-  <footer class="footer mt-auto">
-    <div class="footer-content">
-      <div class="footer-left">
-        <div class="footer-brand">
-          <img src="/logo.webp" alt="MehrakBot" class="logo-icon" />
-          <span class="brand-text">MehrakBot</span>
-        </div>
-        <p class="footer-disclaimer">
-          Licensed under GPL-3.0. MehrakBot is not affiliated with HoYoverse.
-        </p>
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <RouterLink to="/" aria-label="MehrakBot home">
+          <img src="/logo.webp" alt="" />
+          <span>MehrakBot</span>
+        </RouterLink>
+        <p>An open-source HoYoverse toolbox for Discord, built by GamerYuan.</p>
       </div>
-      <div class="footer-right">
-        <a href="#" @click.prevent="router.push('/docs')">Documentation</a>
-        <a href="#" @click.prevent="router.push('/privacy')">Privacy Policy</a>
-        <a href="#" @click.prevent="router.push('/terms')">Terms of Service</a>
-      </div>
+
+      <nav aria-label="Explore">
+        <strong>Explore</strong>
+        <RouterLink to="/docs">Field guide</RouterLink>
+        <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer">Invite bot</a>
+        <a :href="githubUrl" target="_blank" rel="noopener noreferrer">GitHub source</a>
+      </nav>
+
+      <nav aria-label="Legal">
+        <strong>Legal</strong>
+        <RouterLink to="/privacy">Privacy policy</RouterLink>
+        <RouterLink to="/terms">Terms of service</RouterLink>
+      </nav>
+    </div>
+    <div class="footer-notes">
+      <span>GPL-3.0 licensed.</span>
+      <span>MehrakBot is not affiliated with HoYoverse.</span>
     </div>
   </footer>
 </template>
 
 <style scoped>
 .footer {
-  padding: 2.5rem 2.5rem;
+  padding: var(--space-12) max(var(--space-4), calc((100% - 90rem) / 2));
   border-top: 1px solid var(--border-primary);
   background: var(--footer-bg);
 }
 
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(15rem, 2fr) repeat(2, minmax(8rem, 1fr));
+  gap: var(--space-10);
 }
 
-.footer-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.footer-brand {
+.footer-brand a {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-3);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  text-decoration: none;
 }
 
-.logo-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+.footer-brand img {
+  width: 2.5rem;
+  height: 2.5rem;
   object-fit: contain;
 }
 
-.brand-text {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--accent);
-  letter-spacing: 0.02em;
+.footer-brand p {
+  max-width: 30rem;
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
 }
 
-.footer-disclaimer {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  margin: 0;
-}
-
-.footer-right {
+.footer nav {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
-.footer-right a {
+.footer nav strong {
+  margin-bottom: var(--space-2);
   color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  transition: color 0.2s;
 }
 
-.footer-right a:hover {
-  color: var(--text-primary);
+.footer nav a {
+  color: var(--text-secondary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
 }
 
-@media (max-width: 640px) {
-  .footer-content {
+.footer nav a:hover {
+  color: var(--accent-strong);
+}
+
+.footer-notes {
+  display: flex;
+  margin-top: var(--space-10);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-primary);
+  justify-content: space-between;
+  gap: var(--space-4);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 42rem) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .footer-notes {
     flex-direction: column;
-    text-align: center;
-  }
-
-  .footer-left {
-    align-items: center;
-  }
-
-  .footer-right {
-    justify-content: center;
   }
 }
 </style>

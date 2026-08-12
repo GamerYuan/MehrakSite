@@ -125,7 +125,15 @@ onBeforeUnmount(() => {
 
 <template>
   <Card class="game-card">
-    <template #title>Manage Weapon Icons</template>
+    <template #title>
+      <div class="management-heading">
+        <div>
+          <span class="surface-kicker">Asset pipeline</span>
+          <span>Weapon icons</span>
+        </div>
+        <span class="record-count">{{ gv.filteredWeapons.length }} weapons</span>
+      </div>
+    </template>
     <template #content>
       <div class="flex flex-col gap-4">
         <!-- Selector row -->
@@ -151,7 +159,7 @@ onBeforeUnmount(() => {
 
         <!-- Image display -->
         <div v-if="gv.selectedWeaponId" class="flex flex-col items-center gap-4">
-          <div class="flex gap-4">
+          <div class="icon-stage">
             <!-- Base icon -->
             <div class="flex flex-col items-center gap-2">
               <img
@@ -247,7 +255,12 @@ onBeforeUnmount(() => {
   </Popover>
 
   <!-- Compare Dialog -->
-  <Dialog v-model:visible="showCompare" modal header="Compare Icons" :style="{ width: '28rem' }">
+  <Dialog
+    v-model:visible="showCompare"
+    modal
+    header="Compare Icons"
+    :style="{ width: 'min(28rem, calc(100vw - 2rem))' }"
+  >
     <div class="flex justify-center">
       <ImageCompare class="w-[200px] h-[200px]">
         <template #left>
@@ -265,7 +278,7 @@ onBeforeUnmount(() => {
     v-model:visible="showUploadModal"
     modal
     header="Upload Weapon Icon"
-    :style="{ width: '32rem' }"
+    :style="{ width: 'min(32rem, calc(100vw - 2rem))' }"
     @after-hide="closeUploadModal"
   >
     <div class="relative">
@@ -395,6 +408,37 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.management-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.management-heading > div > span:last-child {
+  display: block;
+  font-size: var(--text-xl);
+}
+
+.record-count {
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.icon-stage {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+}
+
 /* ponytail: override PrimeVue theme's width:100% on ImageCompare */
 :deep(.p-imagecompare) {
   width: 200px !important;

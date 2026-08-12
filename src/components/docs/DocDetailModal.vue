@@ -1,11 +1,14 @@
 <script setup>
 import Dialog from "primevue/dialog";
+import Message from "primevue/message";
 import ProgressSpinner from "primevue/progressspinner";
+import GameTag from "./GameTag.vue";
 
 const props = defineProps({
   visible: Boolean,
   doc: Object,
   loading: Boolean,
+  error: String,
 });
 
 const emit = defineEmits(["update:visible"]);
@@ -15,64 +18,35 @@ const emit = defineEmits(["update:visible"]);
   <Dialog
     :visible="visible"
     @update:visible="emit('update:visible', $event)"
-    :header="doc?.name || 'Documentation'"
     modal
+    :pt="{ root: { 'aria-labelledby': 'doc-detail-modal-title' } }"
     :style="{ width: '92%', maxWidth: '560px' }"
     class="doc-modal"
   >
-    <div v-if="loading" class="modal-loader">
+    <template #header>
+      <h2 id="doc-detail-modal-title" class="modal-title">
+        {{ doc?.name || "Documentation" }}
+      </h2>
+    </template>
+    <div v-if="loading" class="modal-loader" role="status" aria-live="polite">
       <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="3" />
       <span>Loading details...</span>
     </div>
 
+    <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
+
     <div v-else-if="doc" class="modal-body">
       <div class="modal-badge-row">
-        <span
-          class="modal-badge"
-          :style="{
-            color:
-              doc.game === 'Genshin'
-                ? '#B8860B'
-                : doc.game === 'HonkaiStarRail'
-                  ? '#0077A8'
-                  : doc.game === 'ZenlessZoneZero'
-                    ? '#C45200'
-                    : doc.game === 'HonkaiImpact3'
-                      ? '#CC3388'
-                      : '#666',
-            background:
-              doc.game === 'Genshin'
-                ? 'rgba(184,134,11,0.12)'
-                : doc.game === 'HonkaiStarRail'
-                  ? 'rgba(0,119,168,0.12)'
-                  : doc.game === 'ZenlessZoneZero'
-                    ? 'rgba(196,82,0,0.12)'
-                    : doc.game === 'HonkaiImpact3'
-                      ? 'rgba(204,51,136,0.12)'
-                      : 'rgba(102,102,102,0.12)',
-          }"
-        >
-          {{
-            doc.game === "HonkaiStarRail"
-              ? "Honkai: Star Rail"
-              : doc.game === "ZenlessZoneZero"
-                ? "Zenless Zone Zero"
-                : doc.game === "HonkaiImpact3"
-                  ? "Honkai Impact 3rd"
-                  : doc.game === "Genshin"
-                    ? "Genshin Impact"
-                    : doc.game
-          }}
-        </span>
+        <GameTag :game="doc.game" full />
       </div>
 
       <section class="modal-section">
-        <h4 class="modal-label">Description</h4>
+        <h3 class="modal-label">Description</h3>
         <p class="modal-text">{{ doc.description }}</p>
       </section>
 
       <section v-if="doc.name" class="modal-section">
-        <h4 class="modal-label">Usage</h4>
+        <h3 class="modal-label">Usage</h3>
         <div class="modal-code">
           /{{ doc.name
           }}<template v-if="doc.parameters?.length"
@@ -85,7 +59,7 @@ const emit = defineEmits(["update:visible"]);
       </section>
 
       <section v-if="doc.parameters?.length" class="modal-section">
-        <h4 class="modal-label">Parameters</h4>
+        <h3 class="modal-label">Parameters</h3>
         <div class="param-list">
           <div v-for="p in doc.parameters" :key="p.name" class="param-row">
             <div class="param-head">
@@ -99,7 +73,7 @@ const emit = defineEmits(["update:visible"]);
       </section>
 
       <section v-if="doc.examples?.length" class="modal-section">
-        <h4 class="modal-label">Examples</h4>
+        <h3 class="modal-label">Examples</h3>
         <div class="modal-code modal-code-block">
           <template v-for="(ex, i) in doc.examples" :key="i">
             {{ ex }}<br v-if="i < doc.examples.length - 1" />
@@ -120,6 +94,11 @@ const emit = defineEmits(["update:visible"]);
   color: var(--text-muted);
 }
 
+.modal-title {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
 .modal-body {
   display: flex;
   flex-direction: column;
@@ -128,13 +107,6 @@ const emit = defineEmits(["update:visible"]);
 
 .modal-badge-row {
   display: flex;
-}
-
-.modal-badge {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.25rem;
 }
 
 .modal-section {
@@ -164,7 +136,7 @@ const emit = defineEmits(["update:visible"]);
   background: var(--code-bg);
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
   color: var(--accent);
   word-break: break-all;
@@ -210,7 +182,7 @@ const emit = defineEmits(["update:visible"]);
   background: rgba(34, 197, 94, 0.1);
   color: var(--accent);
   border-radius: 0.1875rem;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
 }
 
 .param-req {
@@ -218,7 +190,7 @@ const emit = defineEmits(["update:visible"]);
   font-weight: 700;
   padding: 0.0625rem 0.3125rem;
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--danger);
   border-radius: 0.1875rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;

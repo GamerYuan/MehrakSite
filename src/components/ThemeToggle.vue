@@ -1,6 +1,12 @@
 <template>
-  <button class="theme-toggle" :title="tooltip" @click="toggleTheme">
-    <i :class="icon" />
+  <button
+    class="theme-toggle"
+    type="button"
+    :title="tooltip"
+    :aria-label="tooltip"
+    @click="toggleTheme"
+  >
+    <i :class="icon" aria-hidden="true" />
   </button>
 </template>
 

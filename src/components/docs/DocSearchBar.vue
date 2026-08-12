@@ -20,52 +20,73 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
 </script>
 
 <template>
-  <div class="search-bar">
+  <form class="search-bar" role="search" @submit.prevent>
     <div class="search-wrap">
-      <i class="pi pi-search search-icon"></i>
+      <label for="command-search">Search the command catalogue</label>
+      <i class="pi pi-search search-icon" aria-hidden="true"></i>
       <input
+        id="command-search"
         type="text"
         :value="searchQuery"
         @input="emit('update:searchQuery', $event.target.value)"
-        placeholder="Search commands..."
+        placeholder="Try “build”, “profile”, or “abyss”…"
         class="search-input"
+        autocomplete="off"
       />
     </div>
-    <div class="filters">
+    <fieldset class="filters">
+      <legend>Filter by game</legend>
       <div class="filter-pills">
         <button
           v-for="game in gameFilters"
           :key="game.key"
+          type="button"
           :class="['pill', { active: isGameSelected(game.key) }]"
+          :aria-pressed="isGameSelected(game.key)"
           @click="emit('toggleGame', game.key)"
         >
           <span class="pill-dot" :style="{ background: game.color }"></span>
           {{ game.label }}
         </button>
       </div>
-      <button v-if="!allSelected" class="select-all" @click="emit('selectAllGames')">
+      <button v-if="!allSelected" type="button" class="select-all" @click="emit('selectAllGames')">
         Select all
       </button>
-    </div>
-  </div>
+    </fieldset>
+  </form>
 </template>
 
 <style scoped>
 .search-bar {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-raised);
 }
 
 .search-wrap {
   position: relative;
 }
 
+.search-wrap label,
+.filters legend {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .search-icon {
   position: absolute;
   left: 0.875rem;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 0.9rem;
   color: var(--text-muted);
   font-size: 0.875rem;
   pointer-events: none;
@@ -73,20 +94,17 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
 
 .search-input {
   width: 100%;
-  padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  padding: 0.8rem 0.875rem 0.8rem 2.5rem;
   background: var(--card-surface);
   border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 0.8125rem;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.12s ease;
+  font-size: var(--text-sm);
+  transition: border-color var(--motion-fast) var(--ease-standard);
 }
 
-.search-input:focus {
+.search-input:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.08);
 }
 
 .search-input::placeholder {
@@ -96,8 +114,12 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
 .filters {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .filter-pills {
@@ -110,8 +132,8 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.625rem;
-  border-radius: 1rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border-primary);
   background: transparent;
   color: var(--text-muted);
@@ -119,7 +141,9 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
 }
 
 .pill:hover {
@@ -128,9 +152,9 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
 }
 
 .pill.active {
-  background: var(--bg-surface);
+  background: var(--accent-soft);
   border-color: var(--border-secondary);
-  color: var(--text-primary);
+  color: var(--accent-strong);
 }
 
 .pill-dot {
@@ -147,7 +171,7 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem 0;
+  padding: 0.4rem 0;
   font-family: inherit;
   opacity: 0.8;
   transition: opacity 0.1s ease;
@@ -155,5 +179,11 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
 
 .select-all:hover {
   opacity: 1;
+}
+
+@media (max-width: 40rem) {
+  .search-bar {
+    padding: var(--space-4);
+  }
 }
 </style>

@@ -20,17 +20,26 @@ const handleVisibleUpdate = (value) => {
     v-model:visible="gv.showAuthModal"
     modal
     header="Profile Authentication Required"
-    :style="{ width: '25rem' }"
+    :style="{ width: 'min(25rem, calc(100vw - 2rem))' }"
+    class="operation-dialog"
   >
-    <p class="mb-4">
-      Please authenticate profile <strong>{{ gv.authProfileId }}</strong>
+    <p class="auth-context">
+      Command transmission paused. Authenticate profile
+      <strong>#{{ gv.authProfileId }}</strong> to retry automatically.
     </p>
 
     <form @submit.prevent="gv.handleAuth()">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label>Passphrase</label>
-          <Password v-model="gv.authPassphrase" required :feedback="false" toggleMask fluid />
+          <label for="profile-passphrase">Passphrase</label>
+          <Password
+            inputId="profile-passphrase"
+            v-model="gv.authPassphrase"
+            required
+            :feedback="false"
+            toggleMask
+            fluid
+          />
         </div>
 
         <Message v-if="gv.authError" severity="error">{{ gv.authError }}</Message>
@@ -52,3 +61,14 @@ const handleVisibleUpdate = (value) => {
     </form>
   </Dialog>
 </template>
+
+<style scoped>
+.auth-context {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface-raised);
+  border-left: 3px solid var(--brass);
+  border-radius: var(--radius-sm);
+}
+</style>

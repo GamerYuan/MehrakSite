@@ -11,26 +11,39 @@ const gv = useGameViewInject();
 
 <template>
   <Card class="game-card">
-    <template #title>Manage Codes</template>
+    <template #title>
+      <div class="management-heading">
+        <div>
+          <span class="surface-kicker">Redemption operations</span>
+          <span>Codes</span>
+        </div>
+        <span class="record-count">{{ gv.filteredCodes.length }} active</span>
+      </div>
+    </template>
     <template #content>
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col sm:flex-row gap-2">
+      <div class="management-stack">
+        <div class="action-strip">
+          <label for="new-codes" class="sr-only">New codes</label>
           <InputText
+            id="new-codes"
             v-model="gv.newCodesInput"
             placeholder="New Codes (comma-separated)"
             fluid
             class="flex-1"
           />
           <Button
-            label="Add"
+            label="Add codes"
+            icon="pi pi-plus"
             @click="gv.confirmAddCodes"
             :loading="gv.codesLoading"
             :disabled="!gv.newCodesInput"
           />
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:justify-between gap-2">
+        <div class="filter-strip">
+          <label for="code-search" class="sr-only">Search codes</label>
           <InputText
+            id="code-search"
             v-model="gv.codesSearchQuery"
             placeholder="Search codes..."
             fluid
@@ -62,6 +75,7 @@ const gv = useGameViewInject();
                 severity="danger"
                 text
                 rounded
+                aria-label="Delete code"
                 @click="gv.confirmDeleteCodes([slotProps.data.code])"
                 :loading="gv.codesLoading"
               />
@@ -72,3 +86,52 @@ const gv = useGameViewInject();
     </template>
   </Card>
 </template>
+
+<style scoped>
+.management-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.management-heading > div > span:last-child {
+  display: block;
+  font-size: var(--text-xl);
+}
+
+.record-count {
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.management-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.action-strip,
+.filter-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+}
+
+.action-strip {
+  padding: 0.85rem;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 560px) {
+  .action-strip,
+  .filter-strip {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

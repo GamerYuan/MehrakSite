@@ -7,7 +7,7 @@
         <i class="pi pi-heart"></i>
       </div>
       <div>
-        <h1 class="about-title">About Mehrak</h1>
+        <h3 class="about-title">About Mehrak</h3>
         <p class="about-sub">Your all-in-one HoYoverse games toolbox.</p>
       </div>
     </div>
@@ -20,13 +20,13 @@
     </section>
 
     <section class="about-card">
-      <h2 class="about-card-title">Why Mehrak?</h2>
+      <h4 class="about-card-title">Why Mehrak?</h4>
 
       <div class="feature-grid">
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-user"></i></div>
           <div>
-            <h3 class="feature-title">User-First Approach</h3>
+            <h5 class="feature-title">User-First Approach</h5>
             <p class="feature-desc">
               Users are our main concern when developing Mehrak. The development thus far has been
               based on user feedback. We are committed to improve our services through user feedback
@@ -38,7 +38,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-shield"></i></div>
           <div>
-            <h3 class="feature-title">Security</h3>
+            <h5 class="feature-title">Security</h5>
             <p class="feature-desc">
               Mehrak is one of the only few HoYoverse games Discord bots that offers zero-knowledge
               encryption and security for your cookies information. Your information is safe with
@@ -50,7 +50,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-dollar"></i></div>
           <div>
-            <h3 class="feature-title">Free</h3>
+            <h5 class="feature-title">Free</h5>
             <p class="feature-desc">
               All Mehrak services are provided for free. We are committed to keeping all our
               services free in the future, with no paywalls or premium benefits.
@@ -61,7 +61,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-star"></i></div>
           <div>
-            <h3 class="feature-title">Features</h3>
+            <h5 class="feature-title">Features</h5>
             <p class="feature-desc">
               Our vision is to be the most fully featured HoYoverse games Discord bot that covers
               all HoYoverse titles. You can be part of our journey by using Mehrak services.
@@ -72,7 +72,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-code"></i></div>
           <div>
-            <h3 class="feature-title">Open Source</h3>
+            <h5 class="feature-title">Open Source</h5>
             <p class="feature-desc">
               Mehrak is fully open-source. This allows you to see how your data is being used. You
               may audit the source code at any given time and voice your concerns.
@@ -83,7 +83,7 @@
     </section>
 
     <section class="about-card">
-      <h2 class="about-card-title">Self-Hosting</h2>
+      <h4 class="about-card-title">Self-Hosting</h4>
       <p class="about-text">
         We will not provide any instructions to self-host Mehrak. However, with the source code
         available, with enough technical expertise you can technically self-host Mehrak if you wish

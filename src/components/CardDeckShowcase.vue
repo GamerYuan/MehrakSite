@@ -1,153 +1,80 @@
 <script setup>
-import { computed, nextTick, onUnmounted, ref, watch } from "vue";
-
-const props = defineProps({
+defineProps({
   images: { type: Array, required: true },
-  interval: { type: Number, default: 3000 },
-  active: { type: Boolean, default: false },
+  label: { type: String, required: true },
 });
-
-// Ensure at least 3 images for the deck effect
-const deck = computed(() => {
-  const imgs = props.images;
-  if (imgs.length >= 3) return imgs;
-  if (imgs.length === 0) return [];
-  const filled = [];
-  for (let i = 0; i < 3; i++) {
-    filled.push(imgs[i % imgs.length]);
-  }
-  return filled;
-});
-
-const frontIndex = ref(0);
-const leaving = ref(false);
-const resetIndex = ref(null);
-let timer = null;
-let cycleTimeout = null;
-
-function posClass(i) {
-  const p = (i - frontIndex.value + 3) % 3;
-  if (p === 0) return "card-front";
-  if (p === 1) return "card-mid";
-  return "card-back";
-}
-
-function cycle() {
-  if (leaving.value) return;
-  leaving.value = true;
-  cycleTimeout = setTimeout(async () => {
-    frontIndex.value = (frontIndex.value + 1) % 3;
-    // The card that just left (old front) snaps instantly to the back
-    resetIndex.value = (frontIndex.value + 2) % 3;
-    leaving.value = false;
-    await nextTick();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        resetIndex.value = null;
-      });
-    });
-  }, 650);
-}
-
-function start() {
-  if (timer) clearInterval(timer);
-  timer = setInterval(cycle, props.interval);
-}
-
-function stop() {
-  if (timer) {
-    clearInterval(timer);
-    timer = null;
-  }
-  if (cycleTimeout) {
-    clearTimeout(cycleTimeout);
-    cycleTimeout = null;
-  }
-}
-
-watch(
-  () => props.active,
-  (val) => {
-    if (val) start();
-    else stop();
-  },
-  { immediate: true },
-);
-
-onUnmounted(stop);
 </script>
 
 <template>
-  <div class="deck">
-    <div
-      v-for="i in 3"
-      :key="i"
-      class="card"
-      :class="{
-        [posClass(i - 1)]: true,
-        'is-leaving': leaving && i - 1 === frontIndex,
-        'no-transition': resetIndex === i - 1,
-      }"
-    >
-      <img :src="deck[i - 1]" :alt="`Showcase ${i}`" />
-    </div>
+  <div class="plate" :style="{ '--count': Math.min(images.length, 4) }">
+    <figure v-for="(image, index) in images.slice(0, 4)" :key="image" class="plate-item">
+      <img :src="image" :alt="`${label} generated card example ${index + 1}`" loading="lazy" />
+      <figcaption>PLATE {{ String(index + 1).padStart(2, "0") }}</figcaption>
+    </figure>
   </div>
 </template>
 
 <style scoped>
-.deck {
+.plate {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  width: min(100%, 52rem);
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  border-top: 1px solid var(--border-secondary);
+  border-bottom: 1px solid var(--border-secondary);
+  background: var(--bg-surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.plate-item {
   position: relative;
-  width: 100%;
-  max-width: 640px;
-  aspect-ratio: 3/2;
-  margin: 0 auto;
+  min-width: 0;
+  margin: 0 -8%;
+  padding: var(--space-2);
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-md);
 }
 
-.card {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    z-index 0s step-end;
+.plate-item:nth-child(odd) {
+  transform: translateY(-3%) rotate(-1.2deg);
 }
 
-.card.no-transition {
-  transition: none !important;
+.plate-item:nth-child(even) {
+  transform: translateY(5%) rotate(1.5deg);
 }
 
-.card img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 14px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-}
-
-.card-front {
-  transform: translate(0, 0) scale(1) rotate(-1deg);
-  z-index: 3;
-}
-
-.card-mid {
-  transform: translate(-12px, 12px) scale(0.96) rotate(1.5deg);
+.plate-item:hover {
   z-index: 2;
-  opacity: 0.88;
+  transform: translateY(-5%) rotate(0);
 }
 
-.card-back {
-  transform: translate(-24px, 24px) scale(0.92) rotate(-1.5deg);
-  z-index: 1;
-  opacity: 0.7;
+.plate-item img {
+  display: block;
+  width: 100%;
+  height: clamp(11rem, 23vw, 22rem);
+  object-fit: contain;
 }
 
-.is-leaving {
-  transform: translate(75%, -35px) scale(1.02) rotate(7deg);
-  opacity: 0;
-  z-index: 10;
+.plate-item figcaption {
+  padding: var(--space-2) 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 40rem) {
+  .plate {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .plate-item {
+    margin: -3% -3%;
+  }
+
+  .plate-item img {
+    height: 10rem;
+  }
 }
 </style>

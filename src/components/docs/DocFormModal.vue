@@ -126,13 +126,18 @@ const canEditGame = computed(() => {
     <form @submit.prevent="handleSubmit" class="flex flex-col">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Command Name</label>
-          <InputText v-model="form.name" placeholder="e.g., build" required />
+          <label for="doc-command-name" class="font-semibold text-[var(--text-primary)]"
+            >Command Name</label
+          >
+          <InputText id="doc-command-name" v-model="form.name" placeholder="e.g., build" required />
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Description</label>
+          <label for="doc-description" class="font-semibold text-[var(--text-primary)]"
+            >Description</label
+          >
           <Textarea
+            id="doc-description"
             v-model="form.description"
             placeholder="Brief description of what this command does"
             rows="3"
@@ -141,8 +146,9 @@ const canEditGame = computed(() => {
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Game</label>
+          <label for="doc-game" class="font-semibold text-[var(--text-primary)]">Game</label>
           <Select
+            inputId="doc-game"
             v-model="form.game"
             :options="gameOptions"
             optionLabel="label"
@@ -154,22 +160,28 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Parameters</label>
+          <span id="doc-parameters-label" class="font-semibold text-[var(--text-primary)]"
+            >Parameters</span
+          >
           <div
             class="flex gap-2 items-start flex-wrap p-3 bg-[var(--bg-surface-raised)] rounded-md border border-[var(--border-primary)]"
           >
             <div class="flex flex-col gap-2 flex-1 min-w-0">
               <div class="flex gap-2 items-center flex-wrap w-full">
                 <InputText
+                  id="doc-parameter-name"
                   v-model="newParam.name"
                   placeholder="Parameter name"
+                  aria-label="Parameter name"
                   class="flex-1 min-w-0"
                 />
                 <Select
+                  inputId="doc-parameter-type"
                   v-model="newParam.type"
                   :options="paramTypeOptions"
                   optionLabel="label"
                   optionValue="value"
+                  aria-label="Parameter type"
                 />
                 <div class="flex items-center gap-2 px-2">
                   <Checkbox v-model="newParam.required" binary inputId="param-required" />
@@ -178,7 +190,13 @@ const canEditGame = computed(() => {
                   >
                 </div>
               </div>
-              <InputText v-model="newParam.description" placeholder="Description" class="w-full" />
+              <InputText
+                id="doc-parameter-description"
+                v-model="newParam.description"
+                placeholder="Description"
+                aria-label="Parameter description"
+                class="w-full"
+              />
             </div>
             <Button
               type="button"
@@ -187,6 +205,7 @@ const canEditGame = computed(() => {
               @click="addParameter"
               :disabled="!newParam.name.trim()"
               class="shrink-0"
+              aria-label="Add parameter"
             />
           </div>
           <div v-if="form.parameters.length" class="flex flex-col gap-2 mt-2">
@@ -217,6 +236,7 @@ const canEditGame = computed(() => {
                 text
                 size="small"
                 @click="removeParameter(index)"
+                :aria-label="`Remove parameter ${param.name}`"
               />
             </div>
           </div>
@@ -225,9 +245,10 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Examples</label>
+          <label for="doc-example" class="font-semibold text-[var(--text-primary)]">Examples</label>
           <div class="flex gap-2 items-center">
             <InputText
+              id="doc-example"
               v-model="newExample"
               placeholder="Example command usage"
               class="flex-1"
@@ -239,6 +260,7 @@ const canEditGame = computed(() => {
               size="small"
               @click="addExample"
               :disabled="!newExample.trim()"
+              aria-label="Add example"
             />
           </div>
           <div v-if="form.examples.length" class="flex flex-col gap-2 mt-2">
@@ -255,6 +277,7 @@ const canEditGame = computed(() => {
                 text
                 size="small"
                 @click="removeExample(index)"
+                :aria-label="`Remove example ${index + 1}`"
               />
             </div>
           </div>

@@ -120,7 +120,7 @@ const onFileChange = async (event) => {
     return;
   }
 
-  let dims;
+  let dims = null;
   try {
     dims = await getImageDimensions(file);
   } catch {
@@ -148,9 +148,9 @@ const onFileChange = async (event) => {
       if (previewUrl.value === myPreviewUrl) previewUrl.value = null;
       if (selectedFile.value === file) selectedFile.value = null;
     }
-  } catch (err) {
+  } catch (error) {
     if (myToken !== fileChangeToken) return;
-    nsfwError.value = `Could not verify image content: ${err.message || "Unknown error"}. Please try again.`;
+    nsfwError.value = `Could not verify image content: ${error.message || "Unknown error"}. Please try again.`;
   } finally {
     if (myToken === fileChangeToken) {
       classifying.value = false;
@@ -181,7 +181,8 @@ onUnmounted(() => {
     @update:visible="handleVisibleUpdate"
     modal
     header="Upload Portrait"
-    :style="{ width: '32rem' }"
+    :style="{ width: 'min(32rem, calc(100vw - 2rem))' }"
+    class="portrait-upload-dialog"
   >
     <div class="relative">
       <div
@@ -263,3 +264,14 @@ onUnmounted(() => {
     </div>
   </Dialog>
 </template>
+
+<style scoped>
+:deep(.portrait-upload-dialog) {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+}
+
+:deep(.portrait-upload-dialog .p-dialog-header) {
+  border-bottom: 1px solid var(--border-primary);
+}
+</style>

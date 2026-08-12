@@ -1,170 +1,123 @@
 <script setup>
-const props = defineProps({
+import GameTag from "./GameTag.vue";
+
+defineProps({
   doc: { type: Object, required: true },
+  index: { type: Number, required: true },
 });
+
 const emit = defineEmits(["click"]);
 </script>
 
 <template>
-  <article class="doc-card" @click="emit('click', doc)">
-    <div class="card-top">
-      <span class="card-name">{{ doc.name }}</span>
-      <span
-        class="card-badge"
-        :style="{
-          color:
-            doc.game === 'Genshin'
-              ? '#B8860B'
-              : doc.game === 'HonkaiStarRail'
-                ? '#0077A8'
-                : doc.game === 'ZenlessZoneZero'
-                  ? '#C45200'
-                  : doc.game === 'HonkaiImpact3'
-                    ? '#CC3388'
-                    : doc.game === 'TearsOfThemis'
-                      ? '#8B6B8B'
-                      : '#666',
-          background:
-            doc.game === 'Genshin'
-              ? 'rgba(184,134,11,0.12)'
-              : doc.game === 'HonkaiStarRail'
-                ? 'rgba(0,119,168,0.12)'
-                : doc.game === 'ZenlessZoneZero'
-                  ? 'rgba(196,82,0,0.12)'
-                  : doc.game === 'HonkaiImpact3'
-                    ? 'rgba(204,51,136,0.12)'
-                    : doc.game === 'TearsOfThemis'
-                      ? 'rgba(139,107,139,0.12)'
-                      : 'rgba(102,102,102,0.12)',
-          borderColor:
-            doc.game === 'Genshin'
-              ? 'rgba(184,134,11,0.3)'
-              : doc.game === 'HonkaiStarRail'
-                ? 'rgba(0,119,168,0.3)'
-                : doc.game === 'ZenlessZoneZero'
-                  ? 'rgba(196,82,0,0.3)'
-                  : doc.game === 'HonkaiImpact3'
-                    ? 'rgba(204,51,136,0.3)'
-                    : doc.game === 'TearsOfThemis'
-                      ? 'rgba(139,107,139,0.3)'
-                      : 'rgba(102,102,102,0.3)',
-        }"
-      >
-        {{
-          doc.game === "HonkaiStarRail"
-            ? "HSR"
-            : doc.game === "ZenlessZoneZero"
-              ? "ZZZ"
-              : doc.game === "HonkaiImpact3"
-                ? "HI3"
-                : doc.game === "TearsOfThemis"
-                  ? "ToT"
-                  : doc.game === "Genshin"
-                    ? "GI"
-                    : "Misc"
-        }}
-      </span>
-    </div>
-    <p class="card-desc">{{ doc.description }}</p>
-    <div class="card-foot">
-      <span class="card-link">View details <i class="pi pi-arrow-right"></i></span>
-    </div>
-  </article>
+  <button type="button" class="doc-card" @click="emit('click', doc)">
+    <span class="card-index" aria-hidden="true">/{{ String(index).padStart(2, "0") }}</span>
+    <span class="card-top">
+      <strong class="card-name">/{{ doc.name }}</strong>
+      <GameTag :game="doc.game" size="small" />
+    </span>
+    <span class="card-desc">{{ doc.description }}</span>
+    <span class="card-foot">
+      <span>Open field note</span>
+      <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+    </span>
+  </button>
 </template>
 
 <style scoped>
 .doc-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.875rem;
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.625rem;
-  cursor: pointer;
-  transition: all 0.12s ease;
   position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 11rem;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
   overflow: hidden;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--card-surface);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard);
 }
 
-.doc-card::before {
-  content: "";
+.doc-card::after {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.04) 0%, transparent 50%);
-  opacity: 0;
-  transition: opacity 0.12s ease;
+  right: -2.75rem;
+  bottom: -3.75rem;
+  width: 8rem;
+  height: 8rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  content: "";
+  opacity: 0.65;
 }
 
 .doc-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.08);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-.doc-card:hover::before {
-  opacity: 1;
+.card-index {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-3);
+  color: var(--border-secondary);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: 1;
+  opacity: 0.45;
+}
+
+.card-top,
+.card-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
 }
 
 .card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  position: relative;
+  padding-right: var(--space-8);
+  align-items: flex-start;
 }
 
 .card-name {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  min-width: 0;
   color: var(--text-primary);
-  line-height: 1.3;
-}
-
-.card-badge {
-  font-size: 0.5625rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  border: 1px solid;
-  flex-shrink: 0;
-  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
 }
 
 .card-desc {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   position: relative;
+  z-index: 1;
+  display: -webkit-box;
+  flex: 1;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .card-foot {
-  position: relative;
-}
-
-.card-link {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--accent);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  opacity: 0;
-  transform: translateX(-0.25rem);
-  transition: all 0.12s ease;
-}
-
-.doc-card:hover .card-link {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.card-link i {
-  font-size: 0.5rem;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 </style>

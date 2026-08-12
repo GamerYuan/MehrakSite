@@ -7,19 +7,19 @@
         <i class="pi pi-star"></i>
       </div>
       <div>
-        <h1 class="com-title">Commendations</h1>
+        <h3 class="com-title">Commendations</h3>
         <p class="com-sub">A special thanks to everyone who made Mehrak possible.</p>
       </div>
     </div>
 
     <section class="com-card">
-      <h2 class="com-card-title">Big thanks to:</h2>
+      <h4 class="com-card-title">Big thanks to:</h4>
 
       <div class="com-items">
         <div class="com-item">
           <div class="com-item-icon"><i class="pi pi-users"></i></div>
           <div>
-            <h3 class="com-item-title">Contributors</h3>
+            <h5 class="com-item-title">Contributors</h5>
             <p class="com-item-text">GamerYuan</p>
           </div>
         </div>
@@ -27,7 +27,7 @@
         <div class="com-item">
           <div class="com-item-icon"><i class="pi pi-heart"></i></div>
           <div>
-            <h3 class="com-item-title">HoYoverse Developers</h3>
+            <h5 class="com-item-title">HoYoverse Developers</h5>
             <p class="com-item-text">For creating fun games for all of us.</p>
           </div>
         </div>
@@ -35,7 +35,7 @@
         <div class="com-item">
           <div class="com-item-icon"><i class="pi pi-thumbs-up"></i></div>
           <div>
-            <h3 class="com-item-title">You!</h3>
+            <h5 class="com-item-title">You!</h5>
             <p class="com-item-text">We couldn't have made it this far without your support.</p>
           </div>
         </div>

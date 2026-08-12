@@ -7,5 +7,6 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     passWithNoTests: false,
+    exclude: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/.opencode/worktrees/**"],
   },
 });

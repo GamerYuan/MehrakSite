@@ -38,14 +38,16 @@ const filteredAliases = computed(() => {
         <i class="pi pi-tags"></i>
       </div>
       <div>
-        <h1 class="alias-title">Character Aliases</h1>
+        <h2 class="alias-title">Character Aliases</h2>
         <p class="alias-sub">View supported aliases for characters across different games.</p>
       </div>
     </div>
 
     <div class="alias-search-wrap">
+      <label for="alias-search">Search aliases</label>
       <i class="pi pi-search alias-search-icon"></i>
       <input
+        id="alias-search"
         v-model="searchQuery"
         type="text"
         placeholder="Search character or alias..."
@@ -53,12 +55,12 @@ const filteredAliases = computed(() => {
       />
     </div>
 
-    <div v-if="loading" class="alias-state">
+    <div v-if="loading" class="alias-state" role="status" aria-live="polite">
       <ProgressSpinner style="width: 36px; height: 36px" strokeWidth="3" />
       <span>Loading aliases...</span>
     </div>
 
-    <div v-else-if="error" class="alias-state">
+    <div v-else-if="error" class="alias-state" role="alert">
       <Message severity="error" :closable="false">{{ error }}</Message>
     </div>
 
@@ -69,7 +71,12 @@ const filteredAliases = computed(() => {
         </TabList>
         <TabPanels>
           <TabPanel v-for="game in games" :key="game.id" :value="game.id">
-            <div v-if="!aliases[game.id] || aliases[game.id].length === 0" class="alias-empty">
+            <div
+              v-if="
+                !aliases[game.id] || (aliases[game.id].length === 0 && searchQuery.length === 0)
+              "
+              class="alias-empty"
+            >
               <i class="pi pi-inbox" style="font-size: 1.5rem; opacity: 0.3"></i>
               <p>No aliases for this game yet.</p>
             </div>
@@ -163,11 +170,21 @@ const filteredAliases = computed(() => {
   position: relative;
 }
 
+.alias-search-wrap label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .alias-search-icon {
   position: absolute;
   left: 0.875rem;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 0.85rem;
   color: var(--text-muted);
   font-size: 0.875rem;
   pointer-events: none;
@@ -182,13 +199,11 @@ const filteredAliases = computed(() => {
   color: var(--text-primary);
   font-size: 0.8125rem;
   font-family: inherit;
-  outline: none;
   transition: border-color 0.12s ease;
 }
 
-.alias-search:focus {
+.alias-search:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.08);
 }
 
 .alias-search::placeholder {

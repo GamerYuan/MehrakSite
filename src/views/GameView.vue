@@ -10,14 +10,12 @@ const route = useRoute();
 const router = useRouter();
 
 const config = gameConfigs[route.params.game];
-if (config) {
-  const gameView = reactive(useGameView(config));
-  provide(GAME_VIEW_KEY, gameView);
-} else {
-  router.replace({ name: "dashboard-home" });
-}
+const gameView = config ? reactive(useGameView(config)) : null;
+
+if (gameView) provide(GAME_VIEW_KEY, gameView);
+else router.replace({ name: "dashboard-home" });
 </script>
 
 <template>
-  <GameViewContainer />
+  <GameViewContainer v-if="gameView" />
 </template>

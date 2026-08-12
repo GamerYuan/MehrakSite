@@ -1,163 +1,73 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
 import CardDeckShowcase from "./CardDeckShowcase.vue";
 
-const props = defineProps({
+defineProps({
+  index: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String, required: true },
   images: { type: Array, required: true },
   reversed: { type: Boolean, default: false },
 });
-
-const sectionRef = ref(null);
-const isVisible = ref(false);
-let observer = null;
-
-onMounted(() => {
-  if (!sectionRef.value) return;
-  observer = new IntersectionObserver(
-    ([entry]) => {
-      if (entry.isIntersecting) {
-        isVisible.value = true;
-        observer.disconnect();
-      }
-    },
-    { threshold: 0.2 },
-  );
-  observer.observe(sectionRef.value);
-});
-
-onUnmounted(() => {
-  if (observer) observer.disconnect();
-});
 </script>
 
 <template>
-  <section ref="sectionRef" class="showcase-section" :class="{ reversed, visible: isVisible }">
-    <div class="showcase-text">
-      <h2 class="showcase-title">{{ title }}</h2>
-      <p class="showcase-desc">{{ description }}</p>
+  <section class="showcase-section" :class="{ reversed }">
+    <div class="showcase-copy">
+      <span class="section-index">OBSERVATION / {{ index }}</span>
+      <h3>{{ title }}</h3>
+      <p>{{ description }}</p>
     </div>
-    <div class="showcase-media">
-      <CardDeckShowcase :images="images" :active="isVisible" />
-    </div>
+    <CardDeckShowcase :images="images" :label="title" />
   </section>
 </template>
 
 <style scoped>
 .showcase-section {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1.6fr);
   align-items: center;
-  gap: 4rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 5rem 2.5rem;
-  overflow-x: hidden;
+  gap: clamp(var(--space-8), 7vw, var(--space-20));
+  padding: clamp(var(--space-12), 9vw, var(--space-24)) 0;
+  border-top: 1px solid var(--border-primary);
 }
 
 .showcase-section.reversed {
-  flex-direction: row-reverse;
+  grid-template-columns: minmax(0, 1.6fr) minmax(14rem, 0.7fr);
 }
 
-/* Initial hidden state */
-.showcase-text,
-.showcase-media {
-  opacity: 0;
-  transition:
-    opacity 0.7s ease-out,
-    transform 0.7s ease-out;
+.showcase-section.reversed .showcase-copy {
+  order: 2;
 }
 
-/* Text starts from left, media from right (default) */
-.showcase-section:not(.reversed) .showcase-text {
-  transform: translateX(-60px);
-}
-.showcase-section:not(.reversed) .showcase-media {
-  transform: translateX(60px);
-}
-
-/* Reversed: media from left, text from right */
-.showcase-section.reversed .showcase-media {
-  transform: translateX(-60px);
-}
-.showcase-section.reversed .showcase-text {
-  transform: translateX(60px);
+.section-index {
+  color: var(--brass);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.11em;
 }
 
-/* Visible state */
-.showcase-section.visible .showcase-text,
-.showcase-section.visible .showcase-media {
-  opacity: 1;
-  transform: translateX(0);
+h3 {
+  margin: var(--space-3) 0 var(--space-4);
+  font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+  font-weight: 600;
+  line-height: var(--leading-snug);
 }
 
-.showcase-text {
-  flex: 0 0 35%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.showcase-title {
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 700;
-  color: var(--text-primary);
+p {
+  max-width: 32rem;
   margin: 0;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
 }
 
-.showcase-desc {
-  font-size: 1rem;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.7;
-  max-width: 440px;
-}
-
-.showcase-media {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-}
-
-@media (max-width: 960px) {
+@media (max-width: 48rem) {
   .showcase-section,
   .showcase-section.reversed {
-    flex-direction: column;
-    gap: 2.5rem;
-    text-align: center;
-    padding: 4rem 1.5rem;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .showcase-text {
-    flex: none;
-    width: 100%;
-  }
-
-  .showcase-desc {
-    max-width: 540px;
-    margin: 0 auto;
-  }
-
-  .showcase-media {
-    order: -1;
-    width: 100%;
-  }
-
-  /* Mobile: both slide up instead */
-  .showcase-section:not(.reversed) .showcase-text,
-  .showcase-section:not(.reversed) .showcase-media,
-  .showcase-section.reversed .showcase-text,
-  .showcase-section.reversed .showcase-media {
-    transform: translateY(40px);
-  }
-
-  .showcase-section.visible .showcase-text,
-  .showcase-section.visible .showcase-media {
-    transform: translateY(0);
+  .showcase-section.reversed .showcase-copy {
+    order: 0;
   }
 }
 </style>

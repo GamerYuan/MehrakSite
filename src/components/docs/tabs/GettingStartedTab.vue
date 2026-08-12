@@ -6,9 +6,7 @@ import Step from "primevue/step";
 import StepItem from "primevue/stepitem";
 import StepPanel from "primevue/steppanel";
 import Stepper from "primevue/stepper";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
+import { RouterLink } from "vue-router";
 </script>
 
 <template>
@@ -18,7 +16,7 @@ const router = useRouter();
         <i class="pi pi-book"></i>
       </div>
       <div>
-        <h1 class="gs-title">Getting Started</h1>
+        <h2 class="gs-title">Getting Started</h2>
         <p class="gs-sub">
           Learn how to install and use Mehrak in your Discord server or user profile.
         </p>
@@ -30,7 +28,7 @@ const router = useRouter();
       <div class="gs-card-head">
         <div class="gs-step-num">1</div>
         <div>
-          <h2 class="gs-card-title">Inviting to Discord Server</h2>
+          <h3 class="gs-card-title">Inviting to Discord Server</h3>
           <p class="gs-card-sub">Add Mehrak to any Discord server you manage.</p>
         </div>
       </div>
@@ -100,7 +98,7 @@ const router = useRouter();
       <div class="gs-card-head">
         <div class="gs-step-num">2</div>
         <div>
-          <h2 class="gs-card-title">Installing to User Profile</h2>
+          <h3 class="gs-card-title">Installing to User Profile</h3>
           <p class="gs-card-sub">Use Mehrak in any server or DMs as a User Application.</p>
         </div>
       </div>
@@ -152,7 +150,7 @@ const router = useRouter();
           <i class="pi pi-hashtag"></i>
         </div>
         <div>
-          <h2 class="gs-card-title">Using Commands</h2>
+          <h3 class="gs-card-title">Using Commands</h3>
           <p class="gs-card-sub">Mehrak uses Discord slash commands.</p>
         </div>
       </div>
@@ -169,7 +167,7 @@ const router = useRouter();
           <i class="pi pi-user"></i>
         </div>
         <div>
-          <h2 class="gs-card-title">Adding a Profile</h2>
+          <h3 class="gs-card-title">Adding a Profile</h3>
           <p class="gs-card-sub">Connect your HoYoLAB account to use game-related commands.</p>
         </div>
       </div>
@@ -200,7 +198,7 @@ const router = useRouter();
       <div class="gs-divider"></div>
 
       <!-- HoYoLAB UID -->
-      <h3 class="gs-section-title">HoYoLAB UID</h3>
+      <h4 class="gs-section-title">HoYoLAB UID</h4>
 
       <Stepper value="1">
         <StepItem value="1">
@@ -280,16 +278,15 @@ const router = useRouter();
       <div class="gs-divider"></div>
 
       <!-- HoYoLAB Cookies -->
-      <h3 class="gs-section-title">HoYoLAB Cookies</h3>
+      <h4 class="gs-section-title">HoYoLAB Cookies</h4>
 
       <p class="gs-text">
         Mehrak requires your HoYoLAB cookies to retrieve in-game information for other commands. You
         are strongly advised to read the
-        <a
-          href="#"
-          @click.prevent="router.push('/docs?tab=appendix&section=cookies')"
+        <RouterLink
+          :to="{ name: 'docs', query: { tab: 'appendix', section: 'cookies' } }"
           class="gs-link"
-          >About HoYoLAB Cookies</a
+          >About HoYoLAB Cookies</RouterLink
         >
         page before providing this data.
       </p>
@@ -414,7 +411,7 @@ const router = useRouter();
       <div class="gs-divider"></div>
 
       <!-- Passphrase -->
-      <h3 class="gs-section-title">Passphrase</h3>
+      <h4 class="gs-section-title">Passphrase</h4>
 
       <p class="gs-text">
         To protect stored cookies, Mehrak requires a passphrase that is used to encrypt your cookie

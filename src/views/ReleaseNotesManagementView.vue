@@ -1,55 +1,38 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import Button from "primevue/button";
-import Card from "primevue/card";
 import Dialog from "primevue/dialog";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
+import Message from "primevue/message";
 import ProgressSpinner from "primevue/progressspinner";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { useConfirm } from "primevue/useconfirm";
-import { useReleaseNotes } from "../composables/useReleaseNotes";
 import { useToast } from "primevue/usetoast";
+import { useReleaseNotes } from "../composables/useReleaseNotes";
 
 const { fetchAll, createVersion, updateVersion, deleteVersion } = useReleaseNotes();
 const confirm = useConfirm();
 const toast = useToast();
-
 const releases = ref([]);
 const loading = ref(false);
+const saving = ref(false);
 const showModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
 const error = ref(null);
-
-const emptySection = () => ({
-  name: "",
-  notes: [emptyNote()],
-});
-
-const emptyNote = () => ({
-  type: "feature",
-  text: "",
-});
-
-const form = ref({
-  version: "",
-  date: "",
-  displayOrder: 0,
-  sections: [emptySection()],
-});
-
+const emptyNote = () => ({ type: "feature", text: "" });
+const emptySection = () => ({ name: "", notes: [emptyNote()] });
+const form = ref({ version: "", date: "", displayOrder: 0, sections: [emptySection()] });
 const noteTypes = [
   { label: "Feature", value: "feature" },
   { label: "Improvement", value: "improvement" },
   { label: "Fix", value: "fix" },
 ];
-
-const sortedReleases = computed(() => 
-  [...releases.value].toSorted((a, b) => b.displayOrder - a.displayOrder)
+const sortedReleases = computed(() =>
+  [...releases.value].toSorted((a, b) => b.displayOrder - a.displayOrder),
 );
-
 const loadReleases = async () => {
   loading.value = true;
   error.value = null;
@@ -61,20 +44,18 @@ const loadReleases = async () => {
     loading.value = false;
   }
 };
-
 const openAddModal = () => {
   isEditing.value = false;
   editingId.value = null;
-  const maxOrder = releases.value.reduce((max, r) => Math.max(max, r.displayOrder), 0);
   form.value = {
     version: "",
     date: "",
-    displayOrder: maxOrder + 1,
+    displayOrder:
+      releases.value.reduce((max, release) => Math.max(max, release.displayOrder), 0) + 1,
     sections: [emptySection()],
   };
   showModal.value = true;
 };
-
 const openEditModal = (release) => {
   isEditing.value = true;
   editingId.value = release.id;
@@ -82,322 +63,533 @@ const openEditModal = (release) => {
     version: release.version,
     date: release.date,
     displayOrder: release.displayOrder,
-    sections: release.sections.map((s) => ({
-      name: s.name,
-      notes: s.notes.map((n) => ({
-        type: n.type,
-        text: n.text,
-      })),
+    sections: release.sections.map((section) => ({
+      name: section.name,
+      notes: section.notes.map((note) => ({ type: note.type, text: note.text })),
     })),
   };
   showModal.value = true;
 };
-
-const addSection = () => {
-  form.value.sections.push(emptySection());
-};
-
-const removeSection = (index) => {
-  form.value.sections.splice(index, 1);
-};
-
-const addNote = (sectionIndex) => {
-  form.value.sections[sectionIndex].notes.push(emptyNote());
-};
-
-const removeNote = (sectionIndex, noteIndex) => {
+const addSection = () => form.value.sections.push(emptySection());
+const removeSection = (index) => form.value.sections.splice(index, 1);
+const addNote = (sectionIndex) => form.value.sections[sectionIndex].notes.push(emptyNote());
+const removeNote = (sectionIndex, noteIndex) =>
   form.value.sections[sectionIndex].notes.splice(noteIndex, 1);
-};
-
+const warn = (detail) => toast.add({ severity: "warn", summary: "Validation", detail, life: 3000 });
 const handleSave = async () => {
-  if (!form.value.version.trim()) {
-    toast.add({
-      severity: "warn",
-      summary: "Validation",
-      detail: "Version is required",
-      life: 3000,
-    });
-    return;
-  }
-
+  if (!form.value.version.trim()) return warn("Version is required");
   const payload = {
     version: form.value.version.trim(),
     date: form.value.date?.trim() || "",
     displayOrder: form.value.displayOrder,
     sections: form.value.sections
-      .filter((s) => s.name.trim())
-      .map((s) => ({
-        name: s.name.trim(),
-        notes: s.notes
-          .filter((n) => n.text.trim())
-          .map((n) => ({
-            type: n.type.trim().toLowerCase(),
-            text: n.text.trim(),
-          })),
+      .filter((section) => section.name.trim())
+      .map((section) => ({
+        name: section.name.trim(),
+        notes: section.notes
+          .filter((note) => note.text.trim())
+          .map((note) => ({ type: note.type.trim().toLowerCase(), text: note.text.trim() })),
       })),
   };
-
-  if (payload.sections.length === 0) {
-    toast.add({
-      severity: "warn",
-      summary: "Validation",
-      detail: "At least one section is required",
-      life: 3000,
-    });
-    return;
-  }
-
-  const success = isEditing.value
-    ? await updateVersion(editingId.value, payload)
-    : await createVersion(payload);
-
-  if (success) {
-    showModal.value = false;
-    await loadReleases();
+  if (!payload.sections.length) return warn("At least one section is required");
+  saving.value = true;
+  try {
+    const success = isEditing.value
+      ? await updateVersion(editingId.value, payload)
+      : await createVersion(payload);
+    if (success) {
+      showModal.value = false;
+      await loadReleases();
+    }
+  } finally {
+    saving.value = false;
   }
 };
-
-const confirmDelete = (release) => {
+const confirmDelete = (release) =>
   confirm.require({
     message: `Are you sure you want to delete version ${release.version}?`,
     header: "Confirm Delete",
     icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Delete", severity: "danger" },
     accept: async () => {
-      const success = await deleteVersion(release.id);
-      if (success) {
-        await loadReleases();
-      }
+      if (await deleteVersion(release.id)) await loadReleases();
     },
   });
-};
-
 onMounted(loadReleases);
 </script>
 
 <template>
-  <div class="management-page space-y-6">
-    <Card class="card-elevated">
-      <template #content>
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 class="page-title">Release Notes Management</h1>
-            <p class="page-subtitle">Add, edit, or remove release versions and their notes.</p>
-          </div>
-          <Button icon="pi pi-plus" label="Add Version" outlined @click="openAddModal" />
-        </div>
-      </template>
-    </Card>
-
-    <div v-if="loading" class="flex justify-center py-12">
-      <ProgressSpinner />
+  <div class="management-page">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Global management · Transmission log</p>
+        <h1 class="page-title">Release notes</h1>
+        <p class="page-subtitle">
+          Publish the version history presented in the public field guide.
+        </p>
+      </div>
+      <Button icon="pi pi-plus" label="Add version" @click="openAddModal" />
+    </header>
+    <div v-if="loading" class="state-panel" role="status">
+      <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" /><span
+        >Loading transmission history…</span
+      >
     </div>
-
-    <div v-else-if="error" class="empty-state text-red-500">
-      {{ error }}
-    </div>
-
+    <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
     <div v-else-if="!sortedReleases.length" class="empty-state">
-      No release versions found. Click "Add Version" to create one.
+      <span class="empty-mark"><i class="pi pi-megaphone" aria-hidden="true"></i></span>
+      <h2>No releases on record</h2>
+      <p>Create the first version to begin the public change log.</p>
+      <Button label="Add first version" icon="pi pi-plus" text @click="openAddModal" />
     </div>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-      <aside class="h-fit">
-        <Card class="card-elevated">
-          <template #content>
-            <h4
-              class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3"
-            >
-              Versions
-            </h4>
-            <nav class="flex flex-col gap-1 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
-              <button
-                v-for="release in sortedReleases"
-                :key="release.id"
-                type="button"
-                class="text-left px-3 py-2 rounded-lg text-sm transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-raised)] border border-transparent hover:border-[var(--border-primary)]"
-                @click="openEditModal(release)"
-              >
-                <span class="font-mono text-xs">{{ release.version }}</span>
-                <span v-if="release.date" class="text-[var(--text-muted)] text-xs ml-2">{{
-                  release.date
-                }}</span>
-              </button>
-            </nav>
-          </template>
-        </Card>
+    <div v-else class="release-workspace">
+      <aside class="release-index" aria-labelledby="version-index-title">
+        <div class="panel-heading">
+          <span>INDEX / {{ String(sortedReleases.length).padStart(2, "0") }}</span>
+          <h2 id="version-index-title">Versions</h2>
+        </div>
+        <nav aria-label="Release versions">
+          <a v-for="release in sortedReleases" :key="release.id" :href="`#release-${release.id}`"
+            ><strong>{{ release.version }}</strong
+            ><time v-if="release.date">{{ release.date }}</time></a
+          >
+        </nav>
       </aside>
-
-      <div class="flex flex-col gap-4">
-        <Card v-for="release in sortedReleases" :key="release.id" class="card-elevated">
-          <template #content>
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-xl font-bold text-[var(--text-primary)] font-mono">
-                  {{ release.version }}
-                </h3>
-                <span v-if="release.date" class="text-sm text-[var(--text-muted)]">{{
-                  release.date
-                }}</span>
-              </div>
-              <div class="flex gap-2">
-                <Button
-                  icon="pi pi-pencil"
-                  severity="secondary"
-                  text
-                  aria-label="Edit release"
-                  class="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  @click="openEditModal(release)"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  text
-                  aria-label="Delete release"
-                  class="text-red-500"
-                  @click="confirmDelete(release)"
-                />
-              </div>
-            </div>
-
-            <div
-              v-for="section in release.sections"
-              :key="section.name"
-              class="flex flex-col gap-2 mb-4"
-            >
-              <h4
-                class="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider border-b border-[var(--border-primary)] pb-2"
+      <div class="release-list">
+        <article
+          v-for="(release, releaseIndex) in sortedReleases"
+          :id="`release-${release.id}`"
+          :key="release.id"
+          class="release-card"
+        >
+          <header>
+            <div>
+              <span class="release-number"
+                >LOG {{ String(releaseIndex + 1).padStart(2, "0") }}</span
               >
-                {{ section.name }}
-              </h4>
-              <ul class="flex flex-col gap-1.5">
-                <li v-for="(note, idx) in section.notes" :key="idx" class="flex items-start gap-2">
-                  <span
-                    :class="[
-                      'text-xs font-semibold px-2 py-0.5 rounded shrink-0 mt-0.5',
-                      note.type === 'feature'
-                        ? 'bg-[rgba(var(--accent-rgb),0.2)] text-[var(--accent-strong)] dark:text-[var(--accent)]'
-                        : note.type === 'improvement'
-                          ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300'
-                          : 'bg-orange-500/20 text-orange-700 dark:text-orange-300',
-                    ]"
-                  >
-                    {{ note.type }}
-                  </span>
-                  <span class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap">{{
-                    note.text
-                  }}</span>
-                </li>
-              </ul>
+              <h2>{{ release.version }}</h2>
+              <time v-if="release.date">{{ release.date }}</time>
             </div>
-          </template>
-        </Card>
+            <div class="row-actions">
+              <Button
+                icon="pi pi-pencil"
+                severity="secondary"
+                text
+                rounded
+                aria-label="Edit release"
+                @click="openEditModal(release)"
+              /><Button
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                rounded
+                aria-label="Delete release"
+                @click="confirmDelete(release)"
+              />
+            </div>
+          </header>
+          <section v-for="section in release.sections" :key="section.name" class="note-section">
+            <h3>{{ section.name }}</h3>
+            <ul>
+              <li v-for="(note, noteIndex) in section.notes" :key="noteIndex">
+                <span class="note-type" :class="`note-type--${note.type}`">{{ note.type }}</span
+                ><span>{{ note.text }}</span>
+              </li>
+            </ul>
+          </section>
+        </article>
       </div>
     </div>
 
     <Dialog
       v-model:visible="showModal"
-      :header="isEditing ? 'Edit Release Version' : 'Add Release Version'"
+      :header="isEditing ? 'Edit release version' : 'Add release version'"
       modal
-      :style="{ width: '700px' }"
+      :style="{ width: '46rem' }"
     >
-      <div class="flex flex-col gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label class="text-sm text-[var(--text-muted)]">Version</label>
-            <InputText v-model="form.version" placeholder="e.g. v1.2.0" class="w-full" />
+      <form class="release-form" @submit.prevent="handleSave">
+        <div class="release-meta">
+          <div class="field">
+            <label for="release-version">Version</label
+            ><InputText
+              id="release-version"
+              v-model="form.version"
+              placeholder="v1.2.0"
+              required
+              fluid
+            />
           </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-sm text-[var(--text-muted)]">Date</label>
-            <InputText v-model="form.date" placeholder="e.g. 2024-01-15" class="w-full" />
+          <div class="field">
+            <label for="release-date">Date</label
+            ><InputText id="release-date" v-model="form.date" placeholder="2026-08-12" fluid />
           </div>
         </div>
-
-        <div class="flex flex-col gap-2">
-          <label class="text-sm text-[var(--text-muted)]">Display Order</label>
-          <InputNumber v-model="form.displayOrder" class="w-full" />
+        <div class="field">
+          <label for="release-order">Display order</label
+          ><InputNumber inputId="release-order" v-model="form.displayOrder" fluid />
         </div>
-
-        <div class="flex flex-col gap-4">
-          <div
-            v-for="(section, sIndex) in form.sections"
-            :key="sIndex"
-            class="flex flex-col gap-3 p-4 rounded-xl bg-[var(--bg-surface-raised)] border border-[var(--border-primary)]"
+        <div class="sections-editor">
+          <section
+            v-for="(section, sectionIndex) in form.sections"
+            :key="sectionIndex"
+            class="section-editor"
           >
-            <div class="flex items-center justify-between gap-2">
+            <header>
               <InputText
                 v-model="section.name"
-                placeholder="Section name (e.g. Common)"
-                class="flex-1"
-              />
-              <Button
+                :aria-label="`Section ${sectionIndex + 1} name`"
+                placeholder="Section name"
+                fluid
+              /><Button
+                type="button"
                 icon="pi pi-trash"
                 severity="danger"
                 text
+                rounded
                 aria-label="Remove section"
-                class="text-red-500 shrink-0"
-                @click="removeSection(sIndex)"
+                @click="removeSection(sectionIndex)"
               />
-            </div>
-
-            <div class="flex flex-col gap-2 pl-4 border-l-2 border-[var(--border-primary)]">
-              <div
-                v-for="(note, nIndex) in section.notes"
-                :key="nIndex"
-                class="flex flex-col gap-2"
-              >
-                <div class="flex items-start gap-2">
-                  <Select
-                    v-model="note.type"
-                    :options="noteTypes"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="Type"
-                    class="w-36 shrink-0"
-                  />
-                  <Textarea
-                    v-model="note.text"
-                    placeholder="Note text"
-                    rows="2"
-                    class="flex-1 min-w-0"
-                  />
-                  <Button
-                    icon="pi pi-trash"
-                    severity="danger"
-                    text
-                    aria-label="Remove note"
-                    class="text-red-500 shrink-0"
-                    @click="removeNote(sIndex, nIndex)"
-                  />
-                </div>
+            </header>
+            <div class="notes-editor">
+              <div v-for="(note, noteIndex) in section.notes" :key="noteIndex" class="note-editor">
+                <Select
+                  v-model="note.type"
+                  :options="noteTypes"
+                  option-label="label"
+                  option-value="value"
+                  aria-label="Note type"
+                /><Textarea
+                  v-model="note.text"
+                  :aria-label="`Note ${noteIndex + 1} text`"
+                  placeholder="Describe the change"
+                  rows="2"
+                  fluid
+                /><Button
+                  type="button"
+                  icon="pi pi-times"
+                  severity="danger"
+                  text
+                  rounded
+                  aria-label="Remove note"
+                  @click="removeNote(sectionIndex, noteIndex)"
+                />
               </div>
               <Button
+                type="button"
                 icon="pi pi-plus"
-                label="Add Note"
+                label="Add note"
                 text
-                class="text-[var(--accent)] justify-start"
-                @click="addNote(sIndex)"
+                size="small"
+                @click="addNote(sectionIndex)"
               />
             </div>
-          </div>
+          </section>
         </div>
-
         <Button
+          type="button"
           icon="pi pi-plus"
-          label="Add Section"
+          label="Add section"
           text
-          class="text-[var(--accent)] justify-start"
+          class="add-section"
           @click="addSection"
         />
-
-        <div class="flex justify-end gap-2 pt-2 border-t border-[var(--border-primary)]">
-          <Button label="Cancel" severity="secondary" text @click="showModal = false" />
+        <div class="form-actions">
           <Button
-            label="Save"
-            class="bg-[rgba(var(--accent-rgb),0.2)]! border-[rgba(var(--accent-rgb),0.5)]! text-[var(--accent)]!"
-            @click="handleSave"
-          />
+            type="button"
+            label="Cancel"
+            severity="secondary"
+            outlined
+            @click="showModal = false"
+          /><Button type="submit" label="Save release" :loading="saving" />
         </div>
-      </div>
+      </form>
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+.management-page {
+  max-width: 86rem;
+  margin: 0 auto;
+}
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.page-title {
+  font-size: clamp(2.15rem, 4vw, 3.5rem);
+  font-weight: 500;
+}
+.state-panel {
+  display: flex;
+  min-height: 14rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border: 1px dashed var(--border-secondary);
+  color: var(--text-muted);
+}
+.empty-state {
+  background: var(--bg-surface);
+}
+.empty-state h2 {
+  margin: var(--space-3) 0 var(--space-1);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.empty-state p {
+  margin: 0;
+}
+.empty-mark {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto;
+  place-items: center;
+  border: 1px solid var(--brass);
+  border-radius: 50%;
+  color: var(--brass);
+}
+.release-workspace {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+.release-index {
+  position: sticky;
+  top: var(--space-5);
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-surface);
+}
+.panel-heading {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-surface-sunken);
+}
+.panel-heading span,
+.release-number {
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+}
+.panel-heading h2 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+}
+.release-index nav {
+  display: flex;
+  max-height: calc(100vh - 15rem);
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+.release-index a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.release-index a:hover {
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+}
+.release-index strong {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.release-index time {
+  color: var(--text-muted);
+  font-size: 0.625rem;
+}
+.release-list {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.release-card {
+  scroll-margin-top: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+.release-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+}
+.release-card h2 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+}
+.release-card time {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.row-actions {
+  display: flex;
+}
+.note-section {
+  margin-top: var(--space-5);
+}
+.note-section h3 {
+  margin: 0 0 var(--space-3);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+}
+.note-section ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.note-section li {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: var(--space-3);
+  align-items: start;
+  color: var(--text-secondary);
+}
+.note-type {
+  width: fit-content;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.note-type--feature {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.note-type--improvement {
+  border-color: var(--info);
+  color: var(--info);
+}
+.note-type--fix {
+  border-color: var(--brass);
+  color: var(--brass);
+}
+.release-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.release-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.field label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.sections-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.section-editor {
+  padding: var(--space-4);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-raised);
+}
+.section-editor > header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+}
+.notes-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border-secondary);
+}
+.note-editor {
+  display: grid;
+  grid-template-columns: 9rem 1fr auto;
+  gap: var(--space-2);
+  align-items: start;
+}
+.add-section {
+  align-self: flex-start;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+}
+@media (max-width: 760px) {
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .page-header :deep(.p-button) {
+    width: 100%;
+  }
+  .release-workspace {
+    grid-template-columns: 1fr;
+  }
+  .release-index {
+    position: static;
+  }
+  .release-index nav {
+    max-height: 12rem;
+  }
+  .release-meta,
+  .note-editor {
+    grid-template-columns: 1fr;
+  }
+  .note-editor :deep(.p-button) {
+    justify-self: end;
+  }
+  .note-section li {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}
+</style>

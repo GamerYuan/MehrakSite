@@ -1,11 +1,9 @@
 <script setup>
-import { RouterLink, useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
 import Accordion from "primevue/accordion";
 import AccordionContent from "primevue/accordioncontent";
 import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
-
-const router = useRouter();
 
 const faqItems = [
   {
@@ -53,7 +51,7 @@ const faqItems = [
         <i class="pi pi-question-circle"></i>
       </div>
       <div>
-        <h1 class="faq-title">FAQ</h1>
+        <h2 class="faq-title">FAQ</h2>
         <p class="faq-sub">Frequently asked questions about Mehrak.</p>
       </div>
     </div>

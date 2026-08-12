@@ -54,11 +54,6 @@ const typeStyle = (t) =>
     fix: { label: "Fix", cls: "tp-fix" },
   })[t] || { label: t, cls: "tp-def" };
 
-const scrollToVersion = (v) => {
-  selectedVersion.value = v;
-  document.getElementById(`release-${v}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-};
-
 onMounted(async () => {
   try {
     releases.value = await fetchAll();
@@ -78,15 +73,15 @@ onMounted(async () => {
         <i class="pi pi-calendar"></i>
       </div>
       <div>
-        <h1 class="rn-title">Release Notes</h1>
+        <h3 class="rn-title">Release Notes</h3>
         <p class="rn-sub">Track documentation updates and behavior changes between bot releases.</p>
       </div>
     </div>
 
-    <div v-if="loading" class="rn-state">
+    <div v-if="loading" class="rn-state" role="status" aria-live="polite">
       <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="3" />
     </div>
-    <div v-else-if="error" class="rn-state">{{ error }}</div>
+    <div v-else-if="error" class="rn-state" role="alert">{{ error }}</div>
     <div v-else-if="!sortedReleases.length" class="rn-state">No release notes available.</div>
 
     <div v-else class="rn-layout">
@@ -129,15 +124,15 @@ onMounted(async () => {
         <div class="rn-versions-card">
           <h4 class="rn-versions-label">Versions</h4>
           <nav class="rn-versions-nav">
-            <button
+            <a
               v-for="r in sortedReleases"
               :key="r.version"
-              type="button"
+              :href="`#release-${r.version}`"
               :class="['rn-ver-btn', { active: selectedVersion === r.version }]"
-              @click="scrollToVersion(r.version)"
+              @click="selectedVersion = r.version"
             >
               {{ r.version }}
-            </button>
+            </a>
           </nav>
         </div>
       </aside>
@@ -357,6 +352,7 @@ onMounted(async () => {
   border: none;
   cursor: pointer;
   transition: all 0.1s ease;
+  text-decoration: none;
 }
 
 .rn-ver-btn:hover {

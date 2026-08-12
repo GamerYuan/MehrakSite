@@ -16,11 +16,20 @@ const gv = useGameViewInject();
 
 <template>
   <Card class="game-card">
+    <template #title>
+      <div class="command-heading">
+        <div>
+          <span class="surface-kicker">Command protocol</span>
+          <span class="command-title">{{ tabConfig?.name }}</span>
+        </div>
+        <span class="command-endpoint">POST {{ gv.config.endpoint }}/{{ tabConfig?.id }}</span>
+      </div>
+    </template>
     <template #content>
-      <form @submit.prevent="gv.executeCommand()">
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col md:flex-row gap-4">
-            <div class="flex flex-col gap-2 flex-1">
+      <form class="command-form" @submit.prevent="gv.executeCommand()">
+        <div class="command-fields">
+          <div class="field-grid">
+            <div class="field-group">
               <label :for="`${tabConfig?.id}-profile-id`">Profile ID (1-10)</label>
               <InputNumber
                 :inputId="`${tabConfig?.id}-profile-id`"
@@ -31,7 +40,7 @@ const gv = useGameViewInject();
                 fluid
               />
             </div>
-            <div class="flex flex-col gap-2 flex-1">
+            <div class="field-group">
               <label :for="`${tabConfig?.id}-server`">Server</label>
               <Select
                 :inputId="`${tabConfig?.id}-server`"
@@ -45,7 +54,7 @@ const gv = useGameViewInject();
             </div>
           </div>
 
-          <div v-if="tabConfig?.hasCharacterInput" class="flex flex-col gap-2">
+          <div v-if="tabConfig?.hasCharacterInput" class="field-group">
             <label :for="`${tabConfig?.id}-character-name`">
               {{ tabConfig?.characterLabel || "Character Name" }}
             </label>
@@ -60,7 +69,7 @@ const gv = useGameViewInject();
             />
           </div>
 
-          <div v-if="tabConfig?.hasFloorInput" class="flex flex-col gap-2">
+          <div v-if="tabConfig?.hasFloorInput" class="field-group">
             <label :for="`${tabConfig?.id}-floor`"
               >Floor ({{ tabConfig.floorMin }}-{{ tabConfig.floorMax }})</label
             >
@@ -76,9 +85,11 @@ const gv = useGameViewInject();
 
           <Button
             type="submit"
-            :label="gv.loading[tabConfig?.id] ? 'Executing...' : 'Execute'"
+            :label="gv.loading[tabConfig?.id] ? 'Transmitting...' : 'Generate card'"
             :loading="gv.loading[tabConfig?.id]"
             fluid
+            icon="pi pi-bolt"
+            class="execute-button"
           />
         </div>
       </form>
@@ -88,3 +99,70 @@ const gv = useGameViewInject();
     </template>
   </Card>
 </template>
+
+<style scoped>
+.command-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.command-title {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+}
+
+.command-endpoint {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.command-form {
+  padding-top: 0.25rem;
+}
+
+.command-fields,
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.command-fields {
+  gap: 1.25rem;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+label {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.execute-button {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 560px) {
+  .command-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
