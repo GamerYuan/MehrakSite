@@ -5,6 +5,8 @@ import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
+import PageHeader from "../../ui/PageHeader.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
 
 const cookieActions = [
   { action: "Login to your game account", canDo: false },
@@ -39,17 +41,14 @@ const faqItems = [
 
 <template>
   <div class="cookies">
-    <div class="cookies-hero">
-      <div class="cookies-hero-icon">
-        <i class="pi pi-shield"></i>
-      </div>
-      <div>
-        <h3 class="cookies-title">HoYoLAB Cookies</h3>
-        <p class="cookies-sub">Understanding how Mehrak uses your HoYoLAB cookies.</p>
-      </div>
-    </div>
+    <PageHeader
+      as="h3"
+      icon="pi pi-shield"
+      title="HoYoLAB Cookies"
+      subtitle="What Mehrak can access, how credentials are protected, and how to revoke them."
+    />
 
-    <section class="cookies-card">
+    <SurfaceCard>
       <h4 class="cookies-card-title">Disclaimer</h4>
       <p class="cookies-text">
         Mehrak does not force its users to provide their HoYoLAB Cookies without consent. While many
@@ -64,9 +63,9 @@ const faqItems = [
         By providing your HoYoLAB Cookies, you consent to our
         <RouterLink to="/privacy" class="cookies-link">Privacy Policy</RouterLink>.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
+    <SurfaceCard>
       <h4 class="cookies-card-title">What are cookies?</h4>
       <p class="cookies-text">
         Cookies are traces of information left on your browser when you access online services. They
@@ -89,9 +88,9 @@ const faqItems = [
         in to HoYoLAB. Mehrak requires this cookie as it uses services provided by HoYoLAB for its
         services.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
+    <SurfaceCard>
       <h4 class="cookies-card-title">What can HoYoLAB Cookies do?</h4>
       <p class="cookies-text">
         The HoYoLAB Cookies Mehrak requires contains your login session. These are the things that
@@ -112,9 +111,9 @@ const faqItems = [
         In short, the cookies provided can only be used to access services provided by HoYoLAB, and
         cannot be used for other services provided by HoYoverse.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
+    <SurfaceCard>
       <h4 class="cookies-card-title">How are my Cookies stored?</h4>
       <p class="cookies-text">
         The official Mehrak bot runs on a Virtual Private Server (VPS) hosted by Hetzner. Several
@@ -135,9 +134,9 @@ const faqItems = [
         In the case of a data breach, your encrypted cookies might be obtained, but will be nearly
         uncrackable if you follow the best practices when creating a passphrase.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
+    <SurfaceCard>
       <h4 class="cookies-card-title">Our commitment</h4>
       <p class="cookies-text">
         We, as the developer team, is committed to providing users with secure and convenient
@@ -159,9 +158,9 @@ const faqItems = [
           >Official Discord Server</a
         >.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
+    <SurfaceCard>
       <h4 class="cookies-card-title">Other Facts about HoYoLAB Cookies</h4>
       <Accordion value="" multiple expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
         <AccordionPanel v-for="(item, index) in faqItems" :key="index" :value="index">
@@ -171,7 +170,7 @@ const faqItems = [
           </AccordionContent>
         </AccordionPanel>
       </Accordion>
-    </section>
+    </SurfaceCard>
   </div>
 </template>
 
@@ -180,47 +179,6 @@ const faqItems = [
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.cookies-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.cookies-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.cookies-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.cookies-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.cookies-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
 }
 
 .cookies-card-title {
@@ -270,7 +228,7 @@ const faqItems = [
 }
 
 .cookies-table {
-  background: transparent !important;
+  background: var(--card-surface) !important;
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -310,7 +268,7 @@ const faqItems = [
 }
 
 .icon-no {
-  color: #ef4444;
+  color: var(--danger);
   font-size: 1rem;
 }
 

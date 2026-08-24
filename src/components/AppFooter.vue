@@ -11,14 +11,18 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
           <img src="/logo.webp" alt="" />
           <span>MehrakBot</span>
         </RouterLink>
-        <p>An open-source HoYoverse toolbox for Discord, built by GamerYuan.</p>
+        <p>Open-source Discord commands for HoYoverse builds, rosters, and endgame records.</p>
       </div>
 
-      <nav aria-label="Explore">
-        <strong>Explore</strong>
-        <RouterLink to="/docs">Field guide</RouterLink>
-        <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer">Invite bot</a>
-        <a :href="githubUrl" target="_blank" rel="noopener noreferrer">GitHub source</a>
+      <nav aria-label="Product">
+        <strong>Product</strong>
+        <RouterLink to="/docs">Documentation</RouterLink>
+        <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer">
+          Invite bot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+        </a>
+        <a :href="githubUrl" target="_blank" rel="noopener noreferrer">
+          GitHub source <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+        </a>
       </nav>
 
       <nav aria-label="Legal">
@@ -28,7 +32,7 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
       </nav>
     </div>
     <div class="footer-notes">
-      <span>GPL-3.0 licensed.</span>
+      <span>GPL-3.0 licensed. Built by GamerYuan.</span>
       <span>MehrakBot is not affiliated with HoYoverse.</span>
     </div>
   </footer>
@@ -36,7 +40,7 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 
 <style scoped>
 .footer {
-  padding: var(--space-12) max(var(--space-4), calc((100% - 90rem) / 2));
+  padding: var(--space-16) max(var(--space-4), calc((100% - 90rem) / 2)) var(--space-8);
   border-top: 1px solid var(--border-primary);
   background: var(--footer-bg);
 }
@@ -65,7 +69,7 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 }
 
 .footer-brand p {
-  max-width: 30rem;
+  max-width: 32rem;
   margin: var(--space-4) 0 0;
   color: var(--text-secondary);
 }
@@ -87,6 +91,9 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 }
 
 .footer nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--text-secondary);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.25em;
@@ -94,6 +101,10 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 
 .footer nav a:hover {
   color: var(--accent-strong);
+}
+
+.footer nav i {
+  font-size: var(--text-xs);
 }
 
 .footer-notes {

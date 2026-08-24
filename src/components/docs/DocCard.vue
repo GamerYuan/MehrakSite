@@ -1,27 +1,23 @@
 <script setup>
 import GameTag from "./GameTag.vue";
+import SurfaceCard from "../ui/SurfaceCard.vue";
 
 defineProps({
   doc: { type: Object, required: true },
-  index: { type: Number, required: true },
 });
 
 const emit = defineEmits(["click"]);
 </script>
 
 <template>
-  <button type="button" class="doc-card" @click="emit('click', doc)">
-    <span class="card-index" aria-hidden="true">/{{ String(index).padStart(2, "0") }}</span>
+  <SurfaceCard as="button" type="button" class="doc-card" interactive @click="emit('click', doc)">
     <span class="card-top">
       <strong class="card-name">/{{ doc.name }}</strong>
       <GameTag :game="doc.game" size="small" />
     </span>
     <span class="card-desc">{{ doc.description }}</span>
-    <span class="card-foot">
-      <span>Open field note</span>
-      <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
-    </span>
-  </button>
+    <span class="card-foot">View command details <i class="pi pi-arrow-right" aria-hidden="true"></i></span>
+  </SurfaceCard>
 </template>
 
 <style scoped>
@@ -29,57 +25,17 @@ const emit = defineEmits(["click"]);
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 11rem;
+  min-height: 9.5rem;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5);
-  overflow: hidden;
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  background: var(--card-surface);
-  box-shadow: var(--shadow-sm);
   color: inherit;
   cursor: pointer;
   text-align: left;
-  transition:
-    border-color var(--motion-base) var(--ease-standard),
-    box-shadow var(--motion-base) var(--ease-standard),
-    transform var(--motion-base) var(--ease-standard);
-}
-
-.doc-card::after {
-  position: absolute;
-  right: -2.75rem;
-  bottom: -3.75rem;
-  width: 8rem;
-  height: 8rem;
-  border: 1px solid var(--border-primary);
-  border-radius: 50%;
-  content: "";
-  opacity: 0.65;
-}
-
-.doc-card:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.card-index {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-3);
-  color: var(--border-secondary);
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  line-height: 1;
-  opacity: 0.45;
 }
 
 .card-top,
 .card-foot {
-  position: relative;
-  z-index: 1;
   display: flex;
   gap: var(--space-3);
   align-items: center;
@@ -87,7 +43,6 @@ const emit = defineEmits(["click"]);
 }
 
 .card-top {
-  padding-right: var(--space-8);
   align-items: flex-start;
 }
 
@@ -100,8 +55,6 @@ const emit = defineEmits(["click"]);
 }
 
 .card-desc {
-  position: relative;
-  z-index: 1;
   display: -webkit-box;
   flex: 1;
   overflow: hidden;
@@ -113,11 +66,14 @@ const emit = defineEmits(["click"]);
 }
 
 .card-foot {
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
+  margin-top: auto;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  transition: color var(--motion-fast) var(--ease-standard);
+}
+
+.doc-card:hover .card-foot {
+  color: var(--accent-strong);
 }
 </style>

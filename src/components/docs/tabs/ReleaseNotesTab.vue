@@ -2,6 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import ProgressSpinner from "primevue/progressspinner";
 import { useReleaseNotes } from "../../../composables/useReleaseNotes";
+import EmptyState from "../../ui/EmptyState.vue";
+import PageHeader from "../../ui/PageHeader.vue";
+import StatusPill from "../../ui/StatusPill.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
 
 const { fetchAll } = useReleaseNotes();
 
@@ -49,10 +53,10 @@ const parseNote = (text) => {
 
 const typeStyle = (t) =>
   ({
-    feature: { label: "Feature", cls: "tp-feat" },
-    improvement: { label: "Improvement", cls: "tp-imp" },
-    fix: { label: "Fix", cls: "tp-fix" },
-  })[t] || { label: t, cls: "tp-def" };
+    feature: { label: "Feature", tone: "brand" },
+    improvement: { label: "Improvement", tone: "info" },
+    fix: { label: "Fix", tone: "danger" },
+  })[t] || { label: t, tone: "neutral" };
 
 onMounted(async () => {
   try {
@@ -68,29 +72,29 @@ onMounted(async () => {
 
 <template>
   <div class="rn">
-    <div class="rn-hero">
-      <div class="rn-hero-icon">
-        <i class="pi pi-calendar"></i>
-      </div>
-      <div>
-        <h3 class="rn-title">Release Notes</h3>
-        <p class="rn-sub">Track documentation updates and behavior changes between bot releases.</p>
-      </div>
-    </div>
+    <PageHeader
+      as="h3"
+      icon="pi pi-calendar"
+      title="Release Notes"
+      subtitle="Review command, documentation, and behavior changes by version."
+    />
 
     <div v-if="loading" class="rn-state" role="status" aria-live="polite">
       <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="3" />
     </div>
     <div v-else-if="error" class="rn-state" role="alert">{{ error }}</div>
-    <div v-else-if="!sortedReleases.length" class="rn-state">No release notes available.</div>
+    <EmptyState
+      v-else-if="!sortedReleases.length"
+      icon="pi pi-calendar"
+      title="No release notes available"
+    />
 
     <div v-else class="rn-layout">
       <div class="rn-list">
-        <article
+        <SurfaceCard
           v-for="release in sortedReleases"
           :key="release.version"
           :id="'release-' + release.version"
-          class="rn-card"
         >
           <div class="rn-card-head">
             <span class="rn-ver">{{ release.version }}</span>
@@ -102,9 +106,9 @@ onMounted(async () => {
             <ul class="rn-notes">
               <li v-for="(note, i) in section.notes" :key="i" class="rn-note">
                 <div class="rn-note-meta">
-                  <span :class="['rn-type', typeStyle(note.type).cls]">{{
+                  <StatusPill :tone="typeStyle(note.type).tone">{{
                     typeStyle(note.type).label
-                  }}</span>
+                  }}</StatusPill>
                   <template v-for="(part, pi) in note.parts" :key="pi">
                     <span v-if="part.type === 'cmd'" class="rn-cmd">{{ part.text }}</span>
                   </template>
@@ -117,11 +121,11 @@ onMounted(async () => {
               </li>
             </ul>
           </div>
-        </article>
+        </SurfaceCard>
       </div>
 
       <aside class="rn-versions">
-        <div class="rn-versions-card">
+        <SurfaceCard as="div" compact class="rn-versions-card">
           <h4 class="rn-versions-label">Versions</h4>
           <nav class="rn-versions-nav">
             <a
@@ -134,7 +138,7 @@ onMounted(async () => {
               {{ r.version }}
             </a>
           </nav>
-        </div>
+        </SurfaceCard>
       </aside>
     </div>
   </div>
@@ -145,40 +149,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.rn-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.rn-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.rn-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.rn-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
 }
 
 .rn-state {
@@ -199,13 +169,6 @@ onMounted(async () => {
   gap: 1rem;
 }
 
-.rn-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-}
-
 .rn-card-head {
   display: flex;
   align-items: center;
@@ -219,7 +182,7 @@ onMounted(async () => {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-primary);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
 }
 
 .rn-date {
@@ -267,39 +230,14 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-.rn-type {
-  font-size: 0.625rem;
-  font-weight: 700;
-  padding: 0.0625rem 0.375rem;
-  border-radius: 0.1875rem;
-  letter-spacing: 0.02em;
-}
-
-.tp-feat {
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--accent);
-}
-.tp-imp {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
-}
-.tp-fix {
-  background: rgba(249, 115, 22, 0.12);
-  color: #f97316;
-}
-.tp-def {
-  background: var(--bg-surface);
-  color: var(--text-muted);
-}
-
 .rn-cmd {
   font-size: 0.625rem;
   font-weight: 700;
   padding: 0.0625rem 0.375rem;
   border-radius: 0.1875rem;
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  background: var(--info-soft);
+  color: var(--info);
+  font-family: var(--font-mono);
 }
 
 .rn-note-text {
@@ -314,13 +252,6 @@ onMounted(async () => {
 .rn-versions {
   position: sticky;
   top: 5.5rem;
-}
-
-.rn-versions-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1rem;
 }
 
 .rn-versions-label {
@@ -346,7 +277,7 @@ onMounted(async () => {
   padding: 0.3125rem 0.5rem;
   border-radius: 0.3125rem;
   font-size: 0.75rem;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   color: var(--text-muted);
   background: transparent;
   border: none;
@@ -362,7 +293,7 @@ onMounted(async () => {
 
 .rn-ver-btn.active {
   color: var(--accent);
-  background: rgba(34, 197, 94, 0.08);
+  background: var(--accent-soft);
 }
 
 @media (max-width: 1024px) {

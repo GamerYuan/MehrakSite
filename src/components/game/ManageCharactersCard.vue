@@ -23,9 +23,11 @@ const listItems = computed(() => {
   }));
 });
 
+const statFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+
 const formatStat = (value) => {
   const number = typeof value === "number" ? value : Number(value || 0);
-  return number === 0 ? "-" : number;
+  return number === 0 ? "-" : statFormatter.format(number);
 };
 </script>
 
@@ -35,7 +37,7 @@ const formatStat = (value) => {
       <div class="management-heading">
         <div>
           <span class="surface-kicker">{{
-            personalPortraits ? "Personal portraits" : "Roster operations"
+            personalPortraits ? "Personal portraits" : "Character management"
           }}</span>
           <span>{{ personalPortraits ? "Choose a character" : "Characters" }}</span>
         </div>
@@ -66,7 +68,7 @@ const formatStat = (value) => {
           <InputText
             id="character-search"
             v-model="gv.manageSearchQuery"
-            placeholder="Search characters..."
+            placeholder="Search characters"
             fluid
           />
           <div
@@ -144,7 +146,6 @@ const formatStat = (value) => {
     modal
     header="Portrait Not Found"
     :style="{ width: 'min(24rem, calc(100vw - 2rem))' }"
-    class="operation-dialog"
   >
     <div class="flex flex-col gap-4">
       <p class="text-(--text-secondary)">

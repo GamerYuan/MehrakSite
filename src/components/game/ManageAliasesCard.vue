@@ -16,7 +16,7 @@ const gv = useGameViewInject();
     <template #title>
       <div class="management-heading">
         <div>
-          <span class="surface-kicker">Lookup operations</span>
+          <span class="surface-kicker">Alias management</span>
           <span>Aliases</span>
         </div>
         <span class="record-count">{{ gv.filteredAliases.length }} entries</span>
@@ -29,7 +29,7 @@ const gv = useGameViewInject();
           <InputText
             id="alias-search"
             v-model="gv.aliasSearchQuery"
-            placeholder="Search names or aliases..."
+            placeholder="Search names or aliases"
             fluid
           />
           <Button
@@ -44,7 +44,7 @@ const gv = useGameViewInject();
           paginator
           :rows="10"
           responsiveLayout="scroll"
-          class="operations-table"
+          class="management-table"
         >
           <Column field="name" header="Character Name" sortable></Column>
           <Column header="Aliases">
@@ -81,7 +81,6 @@ const gv = useGameViewInject();
     modal
     :header="gv.isEditingAlias ? 'Edit Alias' : 'Add Alias'"
     :style="{ width: 'min(30rem, calc(100vw - 2rem))' }"
-    class="operation-dialog"
   >
     <form @submit.prevent="gv.handleAliasSubmit()">
       <div class="flex flex-col gap-4">
@@ -162,7 +161,7 @@ const gv = useGameViewInject();
   border-radius: var(--radius-lg);
 }
 
-.operations-table {
+.management-table {
   overflow: hidden;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);

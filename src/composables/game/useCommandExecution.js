@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { useApi } from "../useApi";
 
-export function useCommandExecution(config, activeTab) {
+export function useCommandExecution(config, activeTab, onSuccess) {
   const { buildError, handleApiError, apiFetch } = useApi();
 
   const loading = ref({});
@@ -67,6 +67,7 @@ export function useCommandExecution(config, activeTab) {
         const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
         resultImages.value[currentTab] = `${backendUrl}/attachments/${data.storageFileName}`;
       }
+      await onSuccess?.();
     } catch (error) {
       if (handleApiError(error)) return;
       errorMsg.value[currentTab] = error.message;

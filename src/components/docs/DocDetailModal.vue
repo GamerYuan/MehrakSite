@@ -24,9 +24,12 @@ const emit = defineEmits(["update:visible"]);
     class="doc-modal"
   >
     <template #header>
-      <h2 id="doc-detail-modal-title" class="modal-title">
-        {{ doc?.name || "Documentation" }}
-      </h2>
+      <div class="modal-heading">
+        <h2 id="doc-detail-modal-title" class="modal-title">
+          /{{ doc?.name || "documentation" }}
+        </h2>
+        <GameTag v-if="doc" :game="doc.game" size="small" />
+      </div>
     </template>
     <div v-if="loading" class="modal-loader" role="status" aria-live="polite">
       <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="3" />
@@ -36,10 +39,6 @@ const emit = defineEmits(["update:visible"]);
     <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
 
     <div v-else-if="doc" class="modal-body">
-      <div class="modal-badge-row">
-        <GameTag :game="doc.game" full />
-      </div>
-
       <section class="modal-section">
         <h3 class="modal-label">Description</h3>
         <p class="modal-text">{{ doc.description }}</p>
@@ -96,7 +95,17 @@ const emit = defineEmits(["update:visible"]);
 
 .modal-title {
   margin: 0;
-  font-size: var(--text-xl);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.modal-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .modal-body {
@@ -116,12 +125,12 @@ const emit = defineEmits(["update:visible"]);
 }
 
 .modal-label {
-  font-size: 0.6875rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--accent);
-  margin: 0;
 }
 
 .modal-text {
@@ -179,7 +188,7 @@ const emit = defineEmits(["update:visible"]);
   font-size: 0.625rem;
   font-weight: 600;
   padding: 0.0625rem 0.375rem;
-  background: rgba(34, 197, 94, 0.1);
+  background: var(--accent-soft);
   color: var(--accent);
   border-radius: 0.1875rem;
   font-family: var(--font-mono);
@@ -189,7 +198,7 @@ const emit = defineEmits(["update:visible"]);
   font-size: 0.5625rem;
   font-weight: 700;
   padding: 0.0625rem 0.3125rem;
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--danger-soft);
   color: var(--danger);
   border-radius: 0.1875rem;
   text-transform: uppercase;

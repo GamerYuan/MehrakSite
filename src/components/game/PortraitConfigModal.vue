@@ -5,11 +5,7 @@ import Checkbox from "primevue/checkbox";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import Tab from "primevue/tab";
-import TabList from "primevue/tablist";
-import TabPanel from "primevue/tabpanel";
-import TabPanels from "primevue/tabpanels";
-import Tabs from "primevue/tabs";
+import { useConfirm } from "primevue/useconfirm";
 import UserPortraitUploadModal from "./UserPortraitUploadModal.vue";
 import { previewConfigs } from "../../configs/gamePreviews/index.js";
 import { renderPortrait } from "../../configs/gamePreviews/renderPortrait.js";
@@ -17,6 +13,7 @@ import { useApi } from "../../composables/useApi";
 import { useGameViewInject } from "../../composables/game/injectKey";
 
 const gv = useGameViewInject();
+const confirm = useConfirm();
 const { apiFetch, showErrorToast, showSuccessToast, handleApiError } = useApi();
 
 const canvasRef = ref(null);
@@ -69,7 +66,7 @@ const bgUrl = computed(() => previewConfig.value?.background ?? "");
 
 const portraitOptions = computed(() =>
   (gv.portraitConfigEntries || []).map((e) => ({
-    label: e.subId != null ? `ID: ${e.serverId} · Outfit ${e.subId}` : `ID: ${e.serverId}`,
+    label: e.subId != null ? `ID: ${e.serverId} / Outfit ${e.subId}` : `ID: ${e.serverId}`,
     value: e,
   })),
 );
@@ -609,18 +606,29 @@ const onUpload = async (file) => {
   }
 };
 
-const onDeleteUserPortrait = async () => {
-  if (gv.userPortraitsLoading || !gv.userPortraitId) return;
-  if (!confirm("Delete this portrait? This cannot be undone.")) return;
+const deleteUserPortrait = async (portraitId) => {
   try {
-    await gv.deleteUserPortrait(gv.userPortraitId);
+    await gv.deleteUserPortrait(portraitId);
     showSuccessToast("Portrait deleted");
-    gv.userPortraitId = null;
+    if (gv.userPortraitId === portraitId) gv.userPortraitId = null;
     cleanupPortrait();
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
   } catch (error) {
     handleApiError(error);
   }
+};
+
+const onDeleteUserPortrait = () => {
+  if (gv.userPortraitsLoading || !gv.userPortraitId) return;
+  const portraitId = gv.userPortraitId;
+  confirm.require({
+    message: "Delete this portrait? This cannot be undone.",
+    header: "Delete Portrait",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Delete", severity: "danger" },
+    accept: () => deleteUserPortrait(portraitId),
+  });
 };
 
 onUnmounted(() => {
@@ -655,135 +663,37 @@ onUnmounted(() => {
               id="portrait-char"
               :value="gv.portraitConfigCharacter"
               disabled
-              class="w-full rounded border bg-gray-100 dark:bg-gray-700 px-3 py-2 text-sm"
+              class="w-full rounded-(--radius-md) border border-(--border-primary) bg-(--bg-surface-sunken) px-3 py-2 text-sm text-(--text-muted)"
             />
           </div>
 
-          <Tabs
-            v-if="gv.canManage && !gv.isPersonalPortraitWorkspace"
-            v-model:value="activeModalTab"
-          >
-            <TabList>
-              <Tab value="default" :disabled="gv.userPortraitsLoading">Default Portraits</Tab>
-              <Tab value="user" :disabled="gv.userPortraitsLoading">User Portraits</Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel value="default">
-                <div class="flex flex-col gap-3">
-                  <div
-                    v-if="gv.portraitConfigEntries && gv.portraitConfigEntries.length > 1"
-                    class="flex flex-col gap-2"
-                  >
-                    <label for="portrait-server-id">Portrait (Server ID)</label>
-                    <Select
-                      id="portrait-server-id"
-                      v-model="gv.portraitConfigSelection"
-                      :options="portraitOptions"
-                      optionLabel="label"
-                      optionValue="value"
-                      placeholder="Select portrait"
-                      fluid
-                      :disabled="gv.userPortraitsLoading"
-                    />
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox
-                      v-model="localFlipX"
-                      binary
-                      inputId="portrait-flip-x"
-                      :disabled="gv.userPortraitsLoading"
-                    />
-                    <label for="portrait-flip-x">Flip Horizontal</label>
-                  </div>
-                </div>
-              </TabPanel>
-
-              <TabPanel value="user">
-                <div class="flex flex-col gap-3">
-                  <div class="flex flex-col gap-2">
-                    <label for="user-portrait-select">Your Portraits</label>
-                    <div class="flex gap-2">
-                      <Select
-                        id="user-portrait-select"
-                        v-model="gv.userPortraitId"
-                        :options="userPortraitOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Select your portrait"
-                        class="w-full lg:w-55"
-                        :disabled="gv.userPortraitsLoading || !userPortraitOptions.length"
-                      />
-                      <Button
-                        type="button"
-                        icon="pi pi-trash"
-                        severity="danger"
-                        outlined
-                        class="shrink-0"
-                        :disabled="gv.userPortraitsLoading || !gv.userPortraitId"
-                        @click="onDeleteUserPortrait"
-                        aria-label="Delete selected portrait"
-                      />
-                      <Button
-                        v-if="isPortraitActive"
-                        type="button"
-                        icon="pi pi-minus-circle"
-                        severity="warn"
-                        outlined
-                        class="shrink-0"
-                        :disabled="gv.userPortraitsLoading || !gv.userPortraitId"
-                        @click="onSetInactiveUserPortrait"
-                        aria-label="Set selected portrait inactive"
-                      />
-                      <Button
-                        v-else
-                        type="button"
-                        icon="pi pi-check"
-                        severity="success"
-                        outlined
-                        class="shrink-0"
-                        :disabled="gv.userPortraitsLoading || !gv.userPortraitId"
-                        @click="onSetActiveUserPortrait"
-                        aria-label="Set selected portrait active"
-                      />
-                    </div>
-                    <div class="flex items-center justify-between text-xs text-gray-500">
-                      <span
-                        >{{ gv.userPortraits?.length || 0 }} / {{ gv.MAX_PER_CHARACTER }} used</span
-                      >
-                      <Button
-                        type="button"
-                        label="Add Image"
-                        icon="pi pi-plus"
-                        size="small"
-                        :disabled="gv.userPortraitsLoading || remainingSlots <= 0"
-                        @click="showUploadModal = true"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox
-                      v-model="localFlipX"
-                      binary
-                      inputId="user-portrait-flip-x"
-                      :disabled="gv.userPortraitsLoading"
-                    />
-                    <label for="user-portrait-flip-x">Flip Horizontal</label>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label for="user-portrait-artist">Artist Tag (Optional)</label>
-                    <InputText
-                      id="user-portrait-artist"
-                      v-model="localArtistAttribution"
-                      placeholder="e.g. @artist"
-                      :maxlength="15"
-                      class="w-full"
-                      :disabled="gv.userPortraitsLoading"
-                    />
-                  </div>
-                </div>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
+          <div v-if="gv.canManage && !gv.isPersonalPortraitWorkspace" class="flex flex-col gap-3">
+            <div
+              v-if="gv.portraitConfigEntries && gv.portraitConfigEntries.length > 1"
+              class="flex flex-col gap-2"
+            >
+              <label for="portrait-server-id">Portrait (Server ID)</label>
+              <Select
+                id="portrait-server-id"
+                v-model="gv.portraitConfigSelection"
+                :options="portraitOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select portrait"
+                fluid
+                :disabled="gv.userPortraitsLoading"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <Checkbox
+                v-model="localFlipX"
+                binary
+                inputId="portrait-flip-x"
+                :disabled="gv.userPortraitsLoading"
+              />
+              <label for="portrait-flip-x">Flip Horizontal</label>
+            </div>
+          </div>
 
           <template v-if="!gv.canManage || gv.isPersonalPortraitWorkspace">
             <div class="flex flex-col gap-2">
@@ -832,7 +742,7 @@ onUnmounted(() => {
                   aria-label="Set selected portrait active"
                 />
               </div>
-              <div class="flex items-center justify-between text-xs text-gray-500">
+              <div class="flex items-center justify-between text-xs text-(--text-muted)">
                 <span>{{ gv.userPortraits?.length || 0 }} / {{ gv.MAX_PER_CHARACTER }} used</span>
                 <Button
                   type="button"
@@ -884,13 +794,13 @@ onUnmounted(() => {
         </div>
 
         <div class="flex-1 min-w-0 min-h-0 flex flex-col gap-2 overflow-y-auto">
-          <label class="text-sm text-gray-500">Preview</label>
+          <label class="text-sm text-(--text-muted)">Preview</label>
           <div
-            class="relative flex border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[55vh] items-center justify-center"
+            class="relative flex max-h-[55vh] items-center justify-center overflow-hidden rounded-(--radius-lg) border border-(--border-primary) bg-(--bg-surface-sunken)"
           >
             <div
               v-if="isFetching"
-              class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/20"
+              class="absolute inset-0 z-10 flex items-center justify-center rounded-(--radius-lg) bg-(--bg-overlay)"
             >
               <i class="pi pi-spin pi-spinner text-xl"></i>
             </div>
@@ -916,9 +826,9 @@ onUnmounted(() => {
               :disabled="gv.userPortraitsLoading"
               @click="resetToDefault"
             />
-            <span class="text-xs text-gray-400">Drag to move, scroll to zoom</span>
+            <span class="text-xs text-(--text-muted)">Drag to move, scroll to zoom</span>
           </div>
-          <div v-if="portraitError" class="text-sm text-red-500 text-center italic">
+          <div v-if="portraitError" class="text-center text-sm text-(--danger) italic">
             Portrait image not available
           </div>
         </div>

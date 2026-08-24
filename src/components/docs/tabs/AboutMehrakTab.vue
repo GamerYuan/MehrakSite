@@ -1,25 +1,25 @@
-<script setup></script>
+<script setup>
+import PageHeader from "../../ui/PageHeader.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
+</script>
 
 <template>
   <div class="about">
-    <div class="about-hero">
-      <div class="about-hero-icon">
-        <i class="pi pi-heart"></i>
-      </div>
-      <div>
-        <h3 class="about-title">About Mehrak</h3>
-        <p class="about-sub">Your all-in-one HoYoverse games toolbox.</p>
-      </div>
-    </div>
+    <PageHeader
+      as="h3"
+      icon="pi pi-heart"
+      title="About Mehrak"
+      subtitle="One command center for your HoYoverse games."
+    />
 
-    <section class="about-card">
+    <SurfaceCard>
       <p class="about-lead">
         Mehrak is committed to provide the best user experience to all our users through convenient
         commands and powerful utilities.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="about-card">
+    <SurfaceCard>
       <h4 class="about-card-title">Why Mehrak?</h4>
 
       <div class="feature-grid">
@@ -80,9 +80,9 @@
           </div>
         </div>
       </div>
-    </section>
+    </SurfaceCard>
 
-    <section class="about-card">
+    <SurfaceCard>
       <h4 class="about-card-title">Self-Hosting</h4>
       <p class="about-text">
         We will not provide any instructions to self-host Mehrak. However, with the source code
@@ -102,7 +102,7 @@
         developers do not have control over what modifications have been made with self-hosted
         Mehrak instances.
       </p>
-    </section>
+    </SurfaceCard>
   </div>
 </template>
 
@@ -111,47 +111,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.about-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.about-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.about-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.about-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.about-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
 }
 
 .about-lead {
@@ -212,7 +171,7 @@
   display: grid;
   place-items: center;
   border-radius: 0.5rem;
-  background: rgba(34, 197, 94, 0.08);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 0.875rem;
   flex-shrink: 0;

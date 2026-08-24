@@ -5,6 +5,7 @@ import Card from "primevue/card";
 import InputNumber from "primevue/inputnumber";
 import Message from "primevue/message";
 import Select from "primevue/select";
+import { computed } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 
 defineProps({
@@ -12,6 +13,26 @@ defineProps({
 });
 
 const gv = useGameViewInject();
+
+const profileOptions = computed(() =>
+  (gv.profiles || []).map((profile) => ({
+    profileId: Number(profile.profileId),
+    ltUid: profile.ltUid,
+  })),
+);
+
+const profileLabel = (profile) => `Profile ${profile.profileId} - ${profile.ltUid}`;
+
+const serverOptions = computed(() => {
+  const gameUids = gv.selectedProfile?.gameUids?.[gv.config.id] || {};
+  return gv.config.servers.map((server) => ({
+    value: server.value,
+    label:
+      gameUids[server.value] != null
+        ? `${server.label} - ${gameUids[server.value]}`
+        : server.label,
+  }));
+});
 </script>
 
 <template>
@@ -19,10 +40,9 @@ const gv = useGameViewInject();
     <template #title>
       <div class="command-heading">
         <div>
-          <span class="surface-kicker">Command protocol</span>
+          <span class="surface-kicker">Card command</span>
           <span class="command-title">{{ tabConfig?.name }}</span>
         </div>
-        <span class="command-endpoint">POST {{ gv.config.endpoint }}/{{ tabConfig?.id }}</span>
       </div>
     </template>
     <template #content>
@@ -30,22 +50,40 @@ const gv = useGameViewInject();
         <div class="command-fields">
           <div class="field-grid">
             <div class="field-group">
-              <label :for="`${tabConfig?.id}-profile-id`">Profile ID (1-10)</label>
-              <InputNumber
+              <label :for="`${tabConfig?.id}-profile-id`">Profile</label>
+              <Select
                 :inputId="`${tabConfig?.id}-profile-id`"
                 v-model="gv.profileId"
-                showButtons
-                :min="1"
-                :max="10"
+                :options="profileOptions"
+                :optionLabel="profileLabel"
+                optionValue="profileId"
+                placeholder="Select a profile"
+                :loading="gv.profilesLoading"
+                :disabled="gv.profilesLoading || !profileOptions.length"
                 fluid
-              />
+                @update:model-value="gv.selectProfile"
+                >
+                <template #option="slotProps">
+                  <div class="profile-option">
+                    <strong>{{ profileLabel(slotProps.option) }}</strong>
+                  </div>
+                </template>
+              </Select>
+              <p v-if="gv.profilesLoading" class="field-help">Loading profiles...</p>
+              <p v-else-if="!profileOptions.length" class="field-help">
+                No profiles are registered.
+              </p>
+              <RouterLink class="registry-link" to="/dashboard">
+                <i class="pi pi-users" aria-hidden="true"></i>
+                Open profile registry
+              </RouterLink>
             </div>
             <div class="field-group">
               <label :for="`${tabConfig?.id}-server`">Server</label>
               <Select
                 :inputId="`${tabConfig?.id}-server`"
                 v-model="gv.server"
-                :options="gv.config.servers"
+                :options="serverOptions"
                 optionLabel="label"
                 optionValue="value"
                 fluid
@@ -85,8 +123,9 @@ const gv = useGameViewInject();
 
           <Button
             type="submit"
-            :label="gv.loading[tabConfig?.id] ? 'Transmitting...' : 'Generate card'"
+            :label="gv.loading[tabConfig?.id] ? 'Generating...' : 'Generate card'"
             :loading="gv.loading[tabConfig?.id]"
+            :disabled="gv.profilesLoading || !profileOptions.length"
             fluid
             icon="pi pi-bolt"
             class="execute-button"
@@ -113,12 +152,6 @@ const gv = useGameViewInject();
   margin-top: 0.2rem;
   color: var(--text-primary);
   font-size: var(--text-xl);
-}
-
-.command-endpoint {
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
 }
 
 .command-form {
@@ -153,6 +186,31 @@ label {
 
 .execute-button {
   margin-top: 0.25rem;
+}
+
+.profile-option {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field-help {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.field-help {
+  margin: 0;
+}
+
+.registry-link {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  width: fit-content;
+  color: var(--accent-strong);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 @media (max-width: 560px) {

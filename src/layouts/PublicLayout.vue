@@ -35,14 +35,7 @@ watch(
   min-height: 100vh;
   flex-direction: column;
   overflow: clip;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0 8%,
-      rgba(var(--accent-rgb), 0.07) 8% calc(8% + 1px),
-      transparent calc(8% + 1px)
-    ),
-    var(--page-gradient);
+  background: var(--page-gradient);
 }
 
 .public-main {

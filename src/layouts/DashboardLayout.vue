@@ -73,7 +73,7 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
         <img src="/logo.webp" alt="" />
         <span>MehrakBot</span>
       </a>
-      <span class="mobile-station">Field station</span>
+      <span class="mobile-context">Dashboard</span>
     </header>
 
     <Sidebar
@@ -89,17 +89,14 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
 
   <div v-else class="dashboard-state" role="status" aria-live="polite">
     <i v-if="loading" class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-    <span>{{ loading ? "Establishing station link…" : "Redirecting to login…" }}</span>
+    <span>{{ loading ? "Loading dashboard..." : "Redirecting to login..." }}</span>
   </div>
 </template>
 
 <style scoped>
 .dashboard-layout {
   min-height: 100vh;
-  background:
-    linear-gradient(90deg, transparent 24px, rgba(var(--accent-rgb), 0.035) 25px, transparent 26px),
-    var(--bg-page);
-  background-size: 7.5rem 100%;
+  background: var(--bg-page);
 }
 
 .mobile-topbar {
@@ -186,7 +183,7 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
     height: 1.75rem;
     border-radius: var(--radius-sm);
   }
-  .mobile-station {
+  .mobile-context {
     color: var(--text-muted);
     font-size: var(--text-xs);
     text-transform: uppercase;
@@ -199,7 +196,7 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
 }
 
 @media (max-width: 420px) {
-  .mobile-station {
+  .mobile-context {
     display: none;
   }
 }

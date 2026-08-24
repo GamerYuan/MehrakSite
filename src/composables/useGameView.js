@@ -67,13 +67,26 @@ export function getGameWorkspaceTabs(config, user) {
   return tabs;
 }
 
+export function resolveProfileSelection(config, profiles, profileId) {
+  const selected =
+    profiles.find((profile) => Number(profile.profileId) === Number(profileId)) || profiles[0];
+  const region = selected?.lastUsedRegions?.[config.id];
+  return {
+    profileId: selected ? Number(selected.profileId) : null,
+    region: config.servers.some((server) => server.value === region) ? region : null,
+  };
+}
+
 export function useGameView(config) {
   const route = useRoute();
   const activeTab = ref(resolveGameTab(config, route) || "character");
 
-  const { profiles, fetchProfiles } = useProfileManagement();
+  const { profiles, loading: profilesLoading, fetchProfiles } = useProfileManagement();
 
-  const command = useCommandExecution(config, activeTab);
+  const command = useCommandExecution(config, activeTab, async () => {
+    const gameUids = selectedProfile.value?.gameUids?.[config.id] || {};
+    if (gameUids[command.server.value] == null) await fetchProfiles();
+  });
   const characters = useCharacterManagement(config, activeTab);
   const aliases = useAliasManagement(config, activeTab);
   const portrait = usePortraitConfig(config);
@@ -104,12 +117,25 @@ export function useGameView(config) {
   const isPersonalPortraitWorkspace = computed(() => activeTab.value === personalTabRoute.id);
   const getTabLocation = (tabId) => getGameTabLocation(config, tabId);
 
+  const selectedProfile = computed(() =>
+    profiles.value.find((profile) => Number(profile.profileId) === Number(command.profileId.value)),
+  );
+
+  // Manual server picks win: refetched profiles never revert the selection.
   let serverManuallyChanged = false;
+
+  const selectProfile = (profileId) => {
+    const selection = resolveProfileSelection(config, profiles.value, profileId);
+    if (selection.profileId == null) return;
+    command.profileId.value = selection.profileId;
+    if (selection.region) command.server.value = selection.region;
+  };
+
   watch(
     () => command.server.value,
     (newRegion) => {
       serverManuallyChanged = true;
-      const p = profiles.value?.[0];
+      const p = selectedProfile.value;
       if (p && newRegion) {
         p.lastUsedRegions = { ...p.lastUsedRegions, [config.id]: newRegion };
       }
@@ -131,11 +157,8 @@ export function useGameView(config) {
   });
 
   watch(profiles, (newProfiles) => {
-    if (serverManuallyChanged) return;
-    const region = newProfiles?.[0]?.lastUsedRegions?.[config.id];
-    if (region) {
-      command.server.value = region;
-    }
+    if (!newProfiles?.length || serverManuallyChanged) return;
+    selectProfile(command.profileId.value);
   });
 
   watch(
@@ -226,6 +249,9 @@ export function useGameView(config) {
     canManageCapability,
     openUserPortraitConfigModal,
     profiles,
+    profilesLoading,
+    selectedProfile,
+    selectProfile,
 
     ...command,
     ...characters,

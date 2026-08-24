@@ -1,64 +1,62 @@
 <script setup>
-import HeroShowcase from "../components/HeroShowcase.vue";
-import ShowcaseSection from "../components/ShowcaseSection.vue";
+import { nextTick, ref, watch } from "vue";
 import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 import { gameConfigs } from "../configs/gameConfigs";
 
-const heroImages = [
+const games = Object.values(gameConfigs).filter((game) => game.routeKey);
+
+const features = [
   {
-    src: "/showcase/builds-1.webp",
-    alt: "Generated Genshin Impact build card for Nahida with equipment and character stats",
+    title: "Build card",
+    description:
+      "Character, weapon, equipment, talents, and stats rendered into one image made for sharing in Discord.",
+    image: "/showcase/builds-2.webp",
+    alt: "Generated Genshin Impact build card with equipment and stats",
+    layout: "wide",
+    fit: "cover",
   },
   {
-    src: "/showcase/endgame-3.webp",
-    alt: "Generated Honkai: Star Rail Memory of Chaos clear record",
-  },
-  {
-    src: "/showcase/list-2.webp",
+    title: "Roster summaries",
+    description: "Character levels, progression, and key equipment in a compact account overview.",
+    image: "/showcase/list-1.webp",
     alt: "Generated character roster summary card",
+    layout: "wide",
+    fit: "height",
+  },
+  {
+    title: "Endgame records",
+    description: "Clear records with teams and results for supported endgame modes.",
+    image: "/showcase/endgame-2.webp",
+    alt: "Generated endgame clear record card",
+    layout: "tall",
+    fit: "width",
   },
 ];
 
-const games = Object.values(gameConfigs).map(({ routeKey, logo, label }, index) => ({
-  routeKey,
-  logo,
-  label,
-  index: String(index + 1).padStart(2, "0"),
-}));
+const expandedFeature = ref(null);
+const activeFeatureButton = ref(null);
+const closeButton = ref(null);
 
-const showcases = [
-  {
-    index: "01",
-    title: "Build records, ready to share",
-    description:
-      "Turn character, weapon, equipment, talent, and stat data into a single visual record made for Discord.",
-    images: [
-      "/showcase/builds-1.webp",
-      "/showcase/builds-2.webp",
-      "/showcase/builds-3.webp",
-      "/showcase/builds-4.webp",
-    ],
-  },
-  {
-    index: "02",
-    title: "A roster at a glance",
-    description:
-      "Collect character levels, progression, and key equipment into a compact overview of your account.",
-    images: ["/showcase/list-1.webp", "/showcase/list-2.webp", "/showcase/list-3.webp"],
-    reversed: true,
-  },
-  {
-    index: "03",
-    title: "Endgame runs, kept in context",
-    description:
-      "Generate clear records with teams and results for supported endgame modes, without leaving Discord.",
-    images: [
-      "/showcase/endgame-1.webp",
-      "/showcase/endgame-2.webp",
-      "/showcase/endgame-3.webp",
-      "/showcase/endgame-4.webp",
-    ],
-  },
+const openFeature = (feature, event) => {
+  activeFeatureButton.value = event.currentTarget;
+  expandedFeature.value = feature;
+};
+
+const closeFeature = () => {
+  expandedFeature.value = null;
+  nextTick(() => activeFeatureButton.value?.focus());
+};
+
+watch(expandedFeature, async (feature) => {
+  if (!feature) return;
+  await nextTick();
+  closeButton.value?.focus();
+});
+
+const steps = [
+  { title: "Run a command", text: "Pick a command like /build or /abyss in Discord." },
+  { title: "MehrakBot fetches your data", text: "It pulls the relevant records from your account." },
+  { title: "Get a card", text: "A finished image is posted back, ready to share." },
 ];
 </script>
 
@@ -66,11 +64,10 @@ const showcases = [
   <article class="home">
     <section class="hero" aria-labelledby="home-title">
       <div class="hero-copy">
-        <p class="eyebrow">ORBITAL FIELD NOTE · MEHRAK / 01</p>
-        <h1 id="home-title">Your game records, observed from Discord.</h1>
+        <h1 id="home-title">HoYoverse game cards, straight from Discord.</h1>
         <p class="hero-lede">
-          MehrakBot turns HoYoverse account data into clear, shareable build, roster, and endgame
-          cards—right where your community already gathers.
+          MehrakBot turns your game data into clean, shareable cards — builds, rosters, and endgame
+          records — without leaving your server.
         </p>
         <div class="hero-actions">
           <a
@@ -79,430 +76,574 @@ const showcases = [
             rel="noopener noreferrer"
             class="primary-action"
           >
-            Add MehrakBot <span aria-hidden="true">↗</span>
+            Invite bot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
           </a>
-          <RouterLink to="/docs" class="text-action">Read the field guide →</RouterLink>
+          <RouterLink to="/docs" class="secondary-action">
+            Browse commands <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </RouterLink>
         </div>
-        <dl class="hero-notes">
-          <div>
-            <dt>Signal</dt>
-            <dd>Discord commands</dd>
-          </div>
-          <div>
-            <dt>Output</dt>
-            <dd>Generated game cards</dd>
-          </div>
-          <div>
-            <dt>Access</dt>
-            <dd>Open source</dd>
-          </div>
-        </dl>
       </div>
-      <HeroShowcase :images="heroImages" />
+      <figure class="hero-figure">
+        <img
+          src="/showcase/builds-1.webp"
+          alt="Generated Genshin Impact build card for Nahida with equipment and stats"
+        />
+      </figure>
     </section>
 
-    <section class="game-index" aria-labelledby="games-title">
-      <div class="section-heading">
-        <span>SUPPORTED OBSERVATORIES</span>
-        <h2 id="games-title">Four worlds. One field station.</h2>
-      </div>
-      <ol class="game-list">
-        <li v-for="game in games" :key="game.routeKey">
-          <span class="game-number">{{ game.index }}</span>
+    <section class="games" aria-labelledby="games-title">
+      <h2 id="games-title">Supported games</h2>
+      <ul class="game-list">
+        <li v-for="game in games" :key="game.routeKey" :style="game.gameColorStyle">
           <img :src="game.logo" alt="" />
-          <strong>{{ game.label }}</strong>
-          <span class="game-status">Command suite active</span>
+          <span>{{ game.label }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section id="features" class="features" aria-labelledby="features-title">
+      <h2 id="features-title">What MehrakBot can do</h2>
+      <div class="feature-grid">
+        <button
+          v-for="feature in features"
+          :key="feature.title"
+          type="button"
+          class="feature-module"
+          :class="[`feature-module--${feature.layout}`, `feature-module--fit-${feature.fit}`]"
+          :aria-label="`Expand ${feature.title} image`"
+          @click="openFeature(feature, $event)"
+        >
+          <img :src="feature.image" :alt="feature.alt" loading="lazy" />
+          <span class="feature-module__caption">
+            <strong>{{ feature.title }}</strong>
+            <span>{{ feature.description }}</span>
+            <span class="feature-module__expand">
+              View full image <i class="pi pi-expand" aria-hidden="true"></i>
+            </span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <Transition name="feature-lightbox">
+      <div
+        v-if="expandedFeature"
+        class="feature-lightbox"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="expanded-feature-title"
+        @keydown.esc.window="closeFeature"
+      >
+        <button
+          type="button"
+          class="feature-lightbox__backdrop"
+          aria-label="Close expanded image"
+          @click="closeFeature"
+        ></button>
+        <div class="feature-lightbox__panel">
+          <header class="feature-lightbox__header">
+            <div>
+              <span class="surface-kicker">Feature preview</span>
+              <h3 id="expanded-feature-title">{{ expandedFeature.title }}</h3>
+            </div>
+            <button
+              ref="closeButton"
+              type="button"
+              class="feature-lightbox__close"
+              aria-label="Close expanded image"
+              @click="closeFeature"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          </header>
+          <img
+            class="feature-lightbox__image"
+            :src="expandedFeature.image"
+            :alt="expandedFeature.alt"
+          />
+          <p>{{ expandedFeature.description }}</p>
+        </div>
+      </div>
+    </Transition>
+
+    <section class="how-it-works" aria-labelledby="how-title">
+      <h2 id="how-title">How it works</h2>
+      <ol class="step-list">
+        <li v-for="(step, index) in steps" :key="step.title">
+          <span class="step-number" aria-hidden="true">{{ index + 1 }}</span>
+          <strong>{{ step.title }}</strong>
+          <p>{{ step.text }}</p>
         </li>
       </ol>
     </section>
 
-    <section id="features" class="capabilities" aria-labelledby="capabilities-title">
-      <div class="capability-intro">
-        <span class="eyebrow">CAPABILITY LOG</span>
-        <h2 id="capabilities-title">From live account data to a record worth keeping.</h2>
-        <p>
-          MehrakBot brings the recurring work—looking up builds, surveying a roster, checking an
-          endgame run—into repeatable Discord commands and visual outputs.
-        </p>
-      </div>
-      <div class="capability-steps" aria-label="How MehrakBot works">
-        <div>
-          <span>01</span><strong>Request</strong>
-          <p>Run a supported command in Discord.</p>
-        </div>
-        <div>
-          <span>02</span><strong>Observe</strong>
-          <p>MehrakBot retrieves the relevant game data.</p>
-        </div>
-        <div>
-          <span>03</span><strong>Record</strong>
-          <p>Receive a generated card ready to share.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="gallery" aria-labelledby="gallery-title">
-      <div class="gallery-heading">
-        <span class="eyebrow">COLLECTED SPECIMENS</span>
-        <h2 id="gallery-title">Designed around the details players look for.</h2>
-      </div>
-      <ShowcaseSection v-for="item in showcases" :key="item.index" v-bind="item" />
-    </section>
-
-    <section class="trust" aria-labelledby="trust-title">
-      <div>
-        <span class="eyebrow">OPEN INSTRUMENTS</span>
-        <h2 id="trust-title">Inspect the source. Keep control of your profile.</h2>
-      </div>
-      <div class="trust-copy">
-        <p>
-          MehrakBot is GPL-3.0 licensed and its source is available on GitHub. Profile management
-          and documentation are available through this site; account access uses Discord login.
-        </p>
-        <a :href="githubUrl" target="_blank" rel="noopener noreferrer">Review the source ↗</a>
-        <RouterLink to="/privacy">Read the privacy policy →</RouterLink>
-      </div>
-    </section>
-
     <section class="cta" aria-labelledby="cta-title">
-      <span class="cta-mark" aria-hidden="true">✦</span>
-      <div>
-        <span class="eyebrow">ESTABLISH CONTACT</span>
-        <h2 id="cta-title">Bring the field station to your server.</h2>
+      <h2 id="cta-title">Add MehrakBot to your Discord server.</h2>
+      <p>Free and open source (GPL-3.0).</p>
+      <div class="cta-actions">
+        <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer" class="primary-action">
+          Invite bot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+        </a>
+        <a :href="githubUrl" target="_blank" rel="noopener noreferrer" class="secondary-action">
+          View source <i class="pi pi-github" aria-hidden="true"></i>
+        </a>
       </div>
-      <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer" class="primary-action">
-        Invite MehrakBot <span aria-hidden="true">↗</span>
-      </a>
     </section>
   </article>
 </template>
 
 <style scoped>
 .home {
-  width: min(100% - 2rem, 90rem);
+  width: min(100% - 2rem, 72rem);
   margin: 0 auto;
 }
 
+/* Hero */
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.2fr);
-  min-height: calc(100svh - 4.75rem);
+  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 1fr);
+  min-height: min(calc(100svh - 4.75rem), 42rem);
   align-items: center;
-  gap: clamp(var(--space-10), 6vw, var(--space-20));
-  padding: clamp(var(--space-12), 8vw, var(--space-24)) 0;
-}
-
-.hero-copy {
-  position: relative;
-  z-index: 1;
-  animation: arrive var(--motion-slow) var(--ease-enter) both;
-}
-
-.eyebrow,
-.section-heading > span {
-  color: var(--brass);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  gap: clamp(var(--space-8), 5vw, var(--space-16));
+  padding: clamp(var(--space-12), 7vw, var(--space-20)) 0;
+  box-sizing: border-box;
 }
 
 h1 {
-  max-width: 11ch;
-  margin: var(--space-4) 0 var(--space-6);
-  font-size: var(--text-4xl);
-  font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: var(--leading-tight);
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .hero-lede {
-  max-width: 35rem;
-  margin: 0;
+  max-width: 32rem;
+  margin: var(--space-5) 0 0;
   color: var(--text-secondary);
   font-size: var(--text-lg);
 }
 
-.hero-actions {
+.hero-actions,
+.cta-actions {
   display: flex;
-  margin-top: var(--space-8);
-  align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-5);
+  gap: var(--space-3);
 }
 
-.primary-action {
+.hero-actions {
+  margin-top: var(--space-8);
+}
+
+.primary-action,
+.secondary-action {
   display: inline-flex;
-  min-height: 3rem;
+  min-height: 2.75rem;
   padding: 0 var(--space-5);
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
-  border: 1px solid var(--accent-strong);
-  border-radius: var(--radius-sm);
-  background: var(--accent-strong);
-  color: var(--accent-contrast);
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
   font-weight: 600;
   text-decoration: none;
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard);
+}
+
+.primary-action {
+  border: 1px solid var(--accent-strong);
+  background: var(--accent-strong);
+  color: var(--accent-contrast);
 }
 
 .primary-action:hover {
   background: var(--accent);
 }
 
-.text-action,
-.trust-copy a {
+.secondary-action {
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-surface);
   color: var(--text-primary);
-  font-weight: 600;
-  text-decoration-color: var(--border-secondary);
-  text-underline-offset: 0.35em;
 }
 
-.hero-notes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: var(--space-10) 0 0;
-  padding-top: var(--space-4);
+.secondary-action:hover {
+  border-color: var(--accent);
+}
+
+.hero-figure {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-figure::before {
+  position: absolute;
+  inset: -10%;
+  z-index: 0;
+  content: "";
+  background: radial-gradient(closest-side, color-mix(in oklch, var(--accent) 22%, transparent), transparent 72%);
+}
+
+.hero-figure img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  border-radius: calc(var(--radius-lg) - 1px);
+}
+
+/* Section scaffolding */
+section {
+  padding: var(--space-12) 0;
+}
+
+section + section {
   border-top: 1px solid var(--border-primary);
-  gap: var(--space-3);
 }
 
-.hero-notes div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.hero-notes dt,
-.game-number {
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.hero-notes dd {
+h2 {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-.game-index,
-.capabilities,
-.trust,
-.cta {
-  border-top: 1px solid var(--border-secondary);
-}
-
-.game-index {
-  display: grid;
-  grid-template-columns: minmax(14rem, 0.8fr) minmax(0, 1.5fr);
-  gap: clamp(var(--space-8), 7vw, var(--space-20));
-  padding: var(--space-16) 0;
-}
-
-.section-heading h2,
-.capability-intro h2,
-.gallery-heading h2,
-.trust h2,
-.cta h2 {
-  margin: var(--space-3) 0 0;
-  font-size: clamp(var(--text-2xl), 4.5vw, 3.6rem);
-  font-weight: 600;
-  line-height: var(--leading-snug);
-}
-
+/* Games */
 .game-list {
-  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  margin: var(--space-6) 0 0;
   padding: 0;
+  gap: var(--space-3);
   list-style: none;
 }
 
 .game-list li {
-  display: grid;
-  grid-template-columns: 2rem 2.5rem minmax(8rem, 1fr) auto;
-  min-height: 4.5rem;
+  display: flex;
+  min-height: 4rem;
+  padding: var(--space-3) var(--space-4);
   align-items: center;
-  gap: var(--space-4);
-  border-bottom: 1px solid var(--border-primary);
+  gap: var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--game-color) 38%, var(--border-primary));
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--game-color) 7%, var(--bg-surface));
+  box-shadow: inset 3px 0 var(--game-color);
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard);
 }
 
-.game-list li:first-child {
-  border-top: 1px solid var(--border-primary);
+.game-list li:hover {
+  background: color-mix(in oklch, var(--game-color) 12%, var(--bg-surface));
+  transform: translateY(-1px);
 }
 
 .game-list img {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: var(--radius-sm);
   object-fit: cover;
 }
 
-.game-list strong {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
+.game-list span {
+  font-weight: 600;
 }
 
-.game-status {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-}
-
-.capabilities {
+/* Features */
+.feature-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(var(--space-8), 8vw, var(--space-24));
-  padding: var(--space-20) 0;
-}
-
-.capability-intro p,
-.trust-copy > p {
-  max-width: 38rem;
-  color: var(--text-secondary);
-  font-size: var(--text-base);
-}
-
-.capability-steps {
-  display: grid;
-  align-content: center;
-}
-
-.capability-steps > div {
-  display: grid;
-  grid-template-columns: 2.5rem 7rem 1fr;
-  padding: var(--space-5) 0;
-  align-items: baseline;
-  border-bottom: 1px solid var(--border-primary);
-  gap: var(--space-3);
-}
-
-.capability-steps span {
-  color: var(--brass);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-}
-
-.capability-steps p {
-  margin: 0;
-  color: var(--text-muted);
-}
-
-.gallery {
-  padding-top: var(--space-16);
-}
-
-.gallery-heading {
-  display: grid;
-  grid-template-columns: minmax(10rem, 0.7fr) minmax(0, 1.3fr);
-  align-items: end;
-}
-
-.gallery-heading h2 {
-  max-width: 15ch;
-}
-
-.trust {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: clamp(var(--space-8), 8vw, var(--space-24));
-  padding: var(--space-20) 0;
-}
-
-.trust-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 0.85fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  height: clamp(36rem, 54vw, 46rem);
+  margin-top: var(--space-6);
   gap: var(--space-4);
 }
 
-.trust-copy > p {
-  margin: 0 0 var(--space-2);
-}
-
-.cta {
+.feature-module {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  min-height: 20rem;
-  padding: var(--space-20) 0;
-  align-items: center;
-  gap: var(--space-10);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: zoom-in;
+  transition:
+    border-color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard);
 }
 
-.cta h2 {
-  max-width: 15ch;
+.feature-module--tall {
+  grid-column: 2;
+  grid-row: 1 / -1;
 }
 
-.cta-mark {
+.feature-module:hover,
+.feature-module:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-0.15rem);
+}
+
+.feature-module img {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: auto;
+  padding: 0;
+  object-fit: contain;
+  background: var(--bg-surface-sunken);
+  transition: transform var(--motion-slow) var(--ease-enter);
+}
+
+.feature-module--fit-cover img {
+  object-fit: cover;
+}
+
+.feature-module--fit-height img {
+  width: auto;
+  max-width: 100%;
+  align-self: center;
+}
+
+.feature-module--fit-width img {
+  flex: 0 0 auto;
+  height: auto;
+  object-fit: initial;
+}
+
+.feature-module:hover img,
+.feature-module:focus-visible img {
+  transform: scale(1.025);
+}
+
+.feature-module__caption {
   position: absolute;
-  right: 12%;
-  color: var(--brass);
-  font-size: 14rem;
-  line-height: 1;
-  opacity: 0.08;
-  pointer-events: none;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-8) var(--space-5) var(--space-5);
+  background: linear-gradient(180deg, transparent, var(--bg-overlay) 42%);
 }
 
-@keyframes arrive {
-  from {
-    opacity: 0;
-    translate: -2rem 0;
+.feature-module__caption strong {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+}
+
+.feature-module__caption > span:not(.feature-module__expand) {
+  max-width: 42rem;
+  color: var(--text-primary);
+}
+
+.feature-module__expand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.feature-lightbox {
+  position: fixed;
+  z-index: 110;
+  top: calc(4.75rem + var(--space-2));
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  padding: var(--space-6);
+  place-items: center;
+  background: var(--bg-overlay);
+  overflow: auto;
+}
+
+.feature-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: zoom-out;
+}
+
+.feature-lightbox__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 68rem);
+  max-height: calc(100svh - 4.75rem - var(--space-2) - var(--space-8) - var(--space-4));
+  overflow: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-dialog);
+}
+
+.feature-lightbox__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-2) var(--space-4);
+}
+
+.feature-lightbox__header h3 {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xl);
+}
+
+.feature-lightbox__close {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.feature-lightbox__close:hover {
+  border-color: var(--accent);
+}
+
+.feature-lightbox__image {
+  display: block;
+  width: 100%;
+  max-height: calc(100svh - 13rem);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-sunken);
+  object-fit: contain;
+}
+
+.feature-lightbox__panel p {
+  margin: var(--space-4) var(--space-2) var(--space-2);
+  color: var(--text-secondary);
+}
+
+.feature-lightbox-enter-active,
+.feature-lightbox-leave-active {
+  transition: opacity var(--motion-base) var(--ease-standard);
+}
+
+.feature-lightbox-enter-from,
+.feature-lightbox-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-module,
+  .feature-module img,
+  .feature-lightbox-enter-active,
+  .feature-lightbox-leave-active {
+    transition: none;
   }
+}
+
+/* How it works */
+.step-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  gap: var(--space-4);
+  list-style: none;
+  counter-reset: step;
+}
+
+.step-list li {
+  padding: var(--space-5);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+}
+
+.step-number {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: var(--space-3);
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.step-list p {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+}
+
+/* CTA */
+.cta {
+  margin-bottom: var(--space-16);
+  padding: var(--space-12) var(--space-6);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  text-align: center;
+}
+
+.cta p {
+  margin: var(--space-3) 0 var(--space-6);
+  color: var(--text-secondary);
+}
+
+.cta-actions {
+  justify-content: center;
 }
 
 @media (max-width: 56rem) {
-  .hero,
-  .game-index,
-  .capabilities,
-  .trust {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .hero {
-    padding-top: var(--space-16);
-  }
-
-  .gallery-heading {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 40rem) {
-  .home {
-    width: min(100% - 1.5rem, 90rem);
-  }
-
   .hero {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .hero-notes,
-  .cta {
-    grid-template-columns: 1fr;
+  .hero-figure {
+    max-width: 30rem;
   }
 
-  .hero-notes {
-    gap: var(--space-3);
+  .feature-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    height: auto;
   }
 
-  .game-list li {
-    grid-template-columns: 1.5rem 2.5rem minmax(0, 1fr);
+  .feature-module {
+    min-height: 17rem;
   }
 
-  .game-status {
-    display: none;
+  .feature-module--tall {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 32rem;
   }
 
-  .capability-steps > div {
-    grid-template-columns: 2rem 1fr;
-  }
-
-  .capability-steps p {
-    grid-column: 2;
-  }
-
-  .cta {
-    align-items: start;
+  .step-list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>

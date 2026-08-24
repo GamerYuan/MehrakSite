@@ -10,6 +10,8 @@ import TabPanel from "primevue/tabpanel";
 import TabPanels from "primevue/tabpanels";
 import Tabs from "primevue/tabs";
 import Tag from "primevue/tag";
+import EmptyState from "../../ui/EmptyState.vue";
+import PageHeader from "../../ui/PageHeader.vue";
 import { gameConfigs } from "../../../configs/gameConfigs";
 import { useAlias } from "../../../composables/useAlias";
 
@@ -33,15 +35,11 @@ const filteredAliases = computed(() => {
 
 <template>
   <div class="alias">
-    <div class="alias-hero">
-      <div class="alias-hero-icon">
-        <i class="pi pi-tags"></i>
-      </div>
-      <div>
-        <h2 class="alias-title">Character Aliases</h2>
-        <p class="alias-sub">View supported aliases for characters across different games.</p>
-      </div>
-    </div>
+    <PageHeader
+      icon="pi pi-tags"
+      title="Character Aliases"
+      subtitle="Check the alternate names accepted by each game's commands."
+    />
 
     <div class="alias-search-wrap">
       <label for="alias-search">Search aliases</label>
@@ -71,20 +69,19 @@ const filteredAliases = computed(() => {
         </TabList>
         <TabPanels>
           <TabPanel v-for="game in games" :key="game.id" :value="game.id">
-            <div
+            <EmptyState
               v-if="
                 !aliases[game.id] || (aliases[game.id].length === 0 && searchQuery.length === 0)
               "
-              class="alias-empty"
-            >
-              <i class="pi pi-inbox" style="font-size: 1.5rem; opacity: 0.3"></i>
-              <p>No aliases for this game yet.</p>
-            </div>
-            <div v-else-if="filteredAliases.length === 0" class="alias-empty">
-              <Message severity="warn" :closable="false" icon="pi pi-search"
-                >No results found for '{{ searchQuery }}'.</Message
-              >
-            </div>
+              title="No aliases available"
+              description="This game does not have alias records yet."
+            />
+            <EmptyState
+              v-else-if="filteredAliases.length === 0"
+              icon="pi pi-search"
+              title="No aliases matched"
+              :description="`No results found for '${searchQuery}'.`"
+            />
             <DataTable
               v-else
               :value="filteredAliases"
@@ -130,40 +127,6 @@ const filteredAliases = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.alias-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.alias-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.alias-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.alias-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
 }
 
 .alias-search-wrap {
@@ -219,15 +182,6 @@ const filteredAliases = computed(() => {
   color: var(--text-muted);
 }
 
-.alias-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 3rem 2rem;
-  color: var(--text-muted);
-}
-
 .alias-tabs :deep(.p-tabs) {
   border-radius: 0.75rem;
 }
@@ -241,7 +195,7 @@ const filteredAliases = computed(() => {
   color: var(--text-secondary);
 }
 
-.alias-tabs :deep(.p-tab.p-highlight) {
+.alias-tabs :deep(.p-tab.p-tab-active) {
   color: var(--accent);
 }
 
@@ -251,7 +205,7 @@ const filteredAliases = computed(() => {
 }
 
 .alias-table {
-  background: transparent !important;
+  background: var(--card-surface) !important;
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   overflow: hidden;

@@ -12,12 +12,35 @@ const menuButtonRef = ref(null);
 const accountButtonRef = ref(null);
 const mobileMenuOpen = ref(false);
 const accountOpen = ref(false);
+const featuresVisible = ref(false);
+let featuresObserver = null;
 
 const navLinks = [
-  { label: "Home", to: "/" },
-  { label: "Capabilities", to: "/#features" },
-  { label: "Field guide", to: "/docs" },
+  { label: "Home", to: "/", key: "home" },
+  { label: "Features", to: "/#features", key: "features" },
+  { label: "Documentation", to: "/docs", key: "docs" },
 ];
+
+const isLinkActive = (key) => {
+  if (key === "home") return route.path === "/" && !featuresVisible.value;
+  if (key === "features") return route.path === "/" && featuresVisible.value;
+  return route.path.startsWith(`/${key}`);
+};
+
+function observeFeatures() {
+  featuresObserver?.disconnect();
+  featuresObserver = null;
+  if (route.path !== "/") {
+    featuresVisible.value = false;
+    return;
+  }
+  const target = document.getElementById("features");
+  if (!target) return;
+  featuresObserver = new IntersectionObserver(([entry]) => (featuresVisible.value = entry.isIntersecting), {
+    rootMargin: "-30% 0px -60% 0px",
+  });
+  featuresObserver.observe(target);
+}
 
 function closeMenus() {
   mobileMenuOpen.value = false;
@@ -44,17 +67,26 @@ function handleOutsideClick(event) {
   if (!navRef.value?.contains(event.target)) closeMenus();
 }
 
-watch(() => route.fullPath, closeMenus);
+watch(
+  () => route.fullPath,
+  async () => {
+    closeMenus();
+    await nextTick();
+    observeFeatures();
+  },
+);
 
 onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
   document.addEventListener("click", handleOutsideClick);
   fetchUser();
+  observeFeatures();
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeydown);
   document.removeEventListener("click", handleOutsideClick);
+  featuresObserver?.disconnect();
 });
 </script>
 
@@ -64,15 +96,20 @@ onUnmounted(() => {
       <RouterLink class="brand" to="/" aria-label="MehrakBot home">
         <img src="/logo.webp" alt="" class="brand-mark" />
         <span class="brand-name">MehrakBot</span>
-        <span class="brand-index" aria-hidden="true">FIELD / 01</span>
       </RouterLink>
 
       <div class="desktop-links">
-        <RouterLink v-for="link in navLinks" :key="link.label" :to="link.to" class="nav-link">
+        <RouterLink
+          v-for="link in navLinks"
+          :key="link.label"
+          :to="link.to"
+          class="nav-link"
+          :class="{ active: isLinkActive(link.key) }"
+        >
           {{ link.label }}
         </RouterLink>
         <a :href="githubUrl" target="_blank" rel="noopener noreferrer" class="nav-link">
-          Source <span aria-hidden="true">↗</span>
+          Source <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
         </a>
       </div>
 
@@ -93,7 +130,7 @@ onUnmounted(() => {
           >
             <img v-if="user.avatarUrl" :src="user.avatarUrl" alt="" />
             <span>{{ user.username }}</span>
-            <span aria-hidden="true">⌄</span>
+            <i class="pi pi-chevron-down" aria-hidden="true"></i>
           </button>
           <div v-show="accountOpen" id="account-menu" class="account-menu">
             <RouterLink to="/dashboard">Open dashboard</RouterLink>
@@ -106,12 +143,12 @@ onUnmounted(() => {
           ref="menuButtonRef"
           type="button"
           class="menu-button"
-          aria-label="Toggle navigation menu"
+          :aria-label="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
           aria-controls="public-mobile-menu"
           :aria-expanded="mobileMenuOpen"
           @click.stop="toggleMobileMenu"
         >
-          <span></span><span></span><span></span>
+          <i :class="mobileMenuOpen ? 'pi pi-times' : 'pi pi-bars'" aria-hidden="true"></i>
         </button>
       </div>
     </nav>
@@ -120,8 +157,12 @@ onUnmounted(() => {
       <RouterLink v-for="link in navLinks" :key="link.label" :to="link.to">
         {{ link.label }}
       </RouterLink>
-      <a :href="githubUrl" target="_blank" rel="noopener noreferrer">Source ↗</a>
-      <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer">Invite bot ↗</a>
+      <a :href="githubUrl" target="_blank" rel="noopener noreferrer">
+        Source <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+      </a>
+      <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer">
+        Invite bot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+      </a>
       <RouterLink v-if="user" to="/dashboard">Dashboard</RouterLink>
       <button v-if="user" type="button" @click="logout">Log out</button>
       <button v-else type="button" @click="login">Log in with Discord</button>
@@ -136,6 +177,8 @@ onUnmounted(() => {
   z-index: 100;
   border-bottom: 1px solid var(--border-primary);
   background: var(--navbar-bg);
+  backdrop-filter: blur(1rem) saturate(140%);
+  -webkit-backdrop-filter: blur(1rem) saturate(140%);
 }
 
 .nav {
@@ -152,7 +195,7 @@ onUnmounted(() => {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   color: var(--text-primary);
   text-decoration: none;
 }
@@ -164,18 +207,11 @@ onUnmounted(() => {
 }
 
 .brand-name {
+  display: block;
   font-family: var(--font-display);
   font-size: var(--text-xl);
   font-weight: 700;
   line-height: 1;
-}
-
-.brand-index {
-  margin-left: var(--space-2);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.12em;
 }
 
 .desktop-links,
@@ -193,7 +229,11 @@ onUnmounted(() => {
 }
 
 .nav-link {
+  position: relative;
+  display: inline-flex;
   padding: var(--space-2) 0;
+  align-items: center;
+  gap: var(--space-1);
   color: var(--text-secondary);
   font-size: var(--text-xs);
   font-weight: 600;
@@ -203,8 +243,29 @@ onUnmounted(() => {
 }
 
 .nav-link:hover,
-.nav-link.router-link-exact-active {
+.nav-link.active {
   color: var(--accent-strong);
+}
+
+.nav-link::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--accent-strong);
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition:
+    opacity var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .invite-link,
@@ -230,12 +291,28 @@ onUnmounted(() => {
   background: var(--accent);
 }
 
+.invite-link,
+.login-button,
+.account-trigger,
+.menu-button {
+  transition:
+    border-color var(--motion-base) var(--ease-standard),
+    background var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard);
+}
+
 .login-button,
 .account-trigger {
   padding: 0 var(--space-3);
   background: var(--bg-surface);
   color: var(--text-primary);
   cursor: pointer;
+}
+
+.login-button:hover,
+.account-trigger:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface-raised);
 }
 
 .account {
@@ -300,15 +377,13 @@ onUnmounted(() => {
   border: 1px solid var(--border-secondary);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
-.menu-button span {
-  display: block;
-  width: 100%;
-  height: 1px;
-  margin: 0.25rem 0;
-  background: var(--text-primary);
+.menu-button:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface-raised);
 }
 
 .mobile-menu {
@@ -316,7 +391,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 68rem) {
-  .brand-index,
   .desktop-links,
   .nav-actions > .invite-link,
   .nav-actions > .account,
@@ -331,23 +405,46 @@ onUnmounted(() => {
   .mobile-menu {
     display: grid;
     width: min(100% - 2rem, 90rem);
-    margin: 0 auto;
-    padding: var(--space-2) 0 var(--space-5);
-    gap: var(--space-1);
+    margin: var(--space-2) auto var(--space-4);
+    padding: var(--space-2);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    gap: 0;
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-lg);
+    animation: menu-enter var(--motion-base) var(--ease-enter) both;
   }
 
   .mobile-menu a,
   .mobile-menu button {
     width: 100%;
-    padding: var(--space-3) var(--space-2);
+    min-height: 3rem;
+    padding: var(--space-3);
     border: 0;
     border-bottom: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-primary);
     font-weight: 600;
     text-align: left;
     text-decoration: none;
     cursor: pointer;
+  }
+
+  .mobile-menu :where(a, button):hover {
+    background: var(--bg-surface-raised);
+    color: var(--accent-strong);
+  }
+
+  .mobile-menu :where(a, button):last-child {
+    border-bottom: 0;
+  }
+}
+
+@keyframes menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-2)));
   }
 }
 

@@ -3,7 +3,6 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import ThemeToggle from "./ThemeToggle.vue";
 import {
-  canManageGameCapability,
   gameMeta,
   hasAnyGamePermission,
   isSuperAdminUser,
@@ -27,30 +26,9 @@ const emit = defineEmits(["update:modelValue", "close"]);
 const games = Object.values(gameMeta).filter(
   (game) => game.routeKey && game.capabilities?.commands,
 );
-const managementDestinations = [
-  { capability: "characters", label: "Characters", suffix: "manage", icon: "pi-users" },
-  { capability: "aliases", label: "Aliases", suffix: "manage/aliases", icon: "pi-tags" },
-  { capability: "codes", label: "Codes", suffix: "manage/codes", icon: "pi-ticket" },
-  {
-    capability: "weaponIcons",
-    label: "Weapon icons",
-    suffix: "manage/weapon-icons",
-    icon: "pi-images",
-  },
-];
 
 const isSuperAdmin = computed(() => isSuperAdminUser(props.userInfo));
 const hasGlobalManagement = computed(() => hasAnyGamePermission(props.userInfo));
-const managedGames = computed(() =>
-  games
-    .map((game) => ({
-      game,
-      links: managementDestinations.filter((item) =>
-        canManageGameCapability(props.userInfo, game.id, item.capability),
-      ),
-    }))
-    .filter((game) => game.links.length),
-);
 
 const close = (restoreFocus = false) => {
   const wasOpen = props.modelValue;
@@ -100,7 +78,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
     <div class="sidebar-header">
       <a href="/" class="brand" aria-label="MehrakBot home">
         <img src="/logo.webp" alt="" class="brand-mark" />
-        <span><strong>MehrakBot</strong><small>Celestial field station</small></span>
+        <span><strong>MehrakBot</strong><small>Dashboard</small></span>
       </a>
       <button
         ref="closeButton"
@@ -113,7 +91,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
       </button>
     </div>
 
-    <nav class="sidebar-nav" aria-label="Operations console">
+    <nav class="sidebar-nav" aria-label="Dashboard">
       <section class="nav-group" aria-labelledby="nav-account">
         <h2 id="nav-account">Account</h2>
         <router-link
@@ -134,38 +112,12 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
           :to="`/dashboard/${game.routeKey}`"
           class="nav-item game-item"
           :class="{ active: isActive(`/dashboard/${game.routeKey}`) }"
-          :style="{ '--game-color': `var(--game-${game.routeKey})` }"
+          :style="game.gameColorStyle"
           @click="close(true)"
         >
           <img :src="game.logo" :alt="`${game.label} logo`" />
-          <span>{{ game.label }}</span
-          ><span class="signal" aria-hidden="true"></span>
+          <span>{{ game.label }}</span>
         </router-link>
-      </section>
-
-      <section v-if="managedGames.length" class="nav-group" aria-labelledby="nav-game-management">
-        <h2 id="nav-game-management">Game management</h2>
-        <details
-          v-for="entry in managedGames"
-          :key="entry.game.id"
-          :open="route.path.startsWith(`/dashboard/${entry.game.routeKey}/manage`)"
-          class="game-management"
-        >
-          <summary>
-            <img :src="entry.game.logo" alt="" /><span>{{ entry.game.shortLabel }}</span
-            ><i class="pi pi-chevron-down" aria-hidden="true"></i>
-          </summary>
-          <router-link
-            v-for="item in entry.links"
-            :key="item.capability"
-            :to="`/dashboard/${entry.game.routeKey}/${item.suffix}`"
-            class="management-link"
-            :class="{ active: isActive(`/dashboard/${entry.game.routeKey}/${item.suffix}`) }"
-            @click="close(true)"
-          >
-            <i class="pi" :class="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span>
-          </router-link>
-        </details>
       </section>
 
       <section v-if="hasGlobalManagement" class="nav-group" aria-labelledby="nav-global-management">
@@ -220,8 +172,8 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
           :alt="`${userInfo.username} avatar`"
         />
         <span
-          ><strong>{{ userInfo.username || "Discord operator" }}</strong
-          ><small>{{ isSuperAdmin ? "Super administrator" : "Station operator" }}</small></span
+          ><strong>{{ userInfo.username || "Discord user" }}</strong
+          ><small>{{ isSuperAdmin ? "Super administrator" : "Dashboard user" }}</small></span
         >
         <ThemeToggle />
       </div>
@@ -242,12 +194,6 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   flex-direction: column;
   border-right: 1px solid var(--border-primary);
   background: var(--bg-surface);
-  box-shadow: var(--shadow-md);
-}
-.sidebar::before {
-  content: "";
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--brass), transparent);
 }
 .sidebar-header {
   display: flex;
@@ -315,8 +261,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
-.nav-item,
-.management-link {
+.nav-item {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -329,27 +274,27 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
     background var(--motion-fast),
     color var(--motion-fast);
 }
-.nav-item:hover,
-.management-link:hover {
+.nav-item:hover {
   background: var(--bg-surface-raised);
   color: var(--text-primary);
 }
-.nav-item.active,
-.management-link.active {
+.nav-item.active {
   background: var(--accent-soft);
   color: var(--accent-strong);
   font-weight: 600;
 }
-.nav-item i,
-.management-link i {
+.nav-item.game-item.active {
+  background: color-mix(in oklch, var(--game-color) 14%, transparent);
+  color: var(--text-primary);
+}
+.nav-item i {
   width: 1rem;
   text-align: center;
 }
 .game-item {
   --game-color: var(--accent);
 }
-.game-item img,
-.game-management img {
+.game-item img {
   width: 1.4rem;
   height: 1.4rem;
   border-radius: var(--radius-sm);
@@ -357,48 +302,6 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
 }
 .game-item.active {
   box-shadow: inset 3px 0 var(--game-color);
-}
-.signal {
-  width: 0.4rem;
-  height: 0.4rem;
-  margin-left: auto;
-  border-radius: 50%;
-  background: var(--game-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--game-color) 18%, transparent);
-}
-.game-management {
-  margin-bottom: var(--space-1);
-}
-.game-management summary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  cursor: pointer;
-  list-style: none;
-}
-.game-management summary::-webkit-details-marker {
-  display: none;
-}
-.game-management summary:hover {
-  background: var(--bg-surface-raised);
-  color: var(--text-primary);
-}
-.game-management summary i {
-  margin-left: auto;
-  font-size: 0.7rem;
-  transition: transform var(--motion-fast);
-}
-.game-management[open] summary i {
-  transform: rotate(180deg);
-}
-.management-link {
-  min-height: 2.15rem;
-  margin-left: 1.25rem;
-  padding-left: var(--space-4);
-  font-size: var(--text-xs);
 }
 .sidebar-footer {
   padding: var(--space-4);

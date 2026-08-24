@@ -4,6 +4,8 @@ import Accordion from "primevue/accordion";
 import AccordionContent from "primevue/accordioncontent";
 import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
+import PageHeader from "../../ui/PageHeader.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
 
 const faqItems = [
   {
@@ -46,17 +48,13 @@ const faqItems = [
 
 <template>
   <div class="faq">
-    <div class="faq-hero">
-      <div class="faq-hero-icon">
-        <i class="pi pi-question-circle"></i>
-      </div>
-      <div>
-        <h2 class="faq-title">FAQ</h2>
-        <p class="faq-sub">Frequently asked questions about Mehrak.</p>
-      </div>
-    </div>
+    <PageHeader
+      icon="pi pi-question-circle"
+      title="FAQ"
+      subtitle="Direct answers to common setup, privacy, and command questions."
+    />
 
-    <div class="faq-card">
+    <SurfaceCard as="div" compact>
       <Accordion value="" multiple expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
         <AccordionPanel v-for="(item, index) in faqItems" :key="index" :value="index">
           <AccordionHeader>{{ item.question }}</AccordionHeader>
@@ -78,7 +76,7 @@ const faqItems = [
           </AccordionContent>
         </AccordionPanel>
       </Accordion>
-    </div>
+    </SurfaceCard>
   </div>
 </template>
 
@@ -87,47 +85,6 @@ const faqItems = [
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.faq-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.faq-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.faq-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.faq-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.faq-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 0.25rem;
 }
 
 .faq-answer {

@@ -11,9 +11,9 @@ import {
 import { gameConfigs } from "./gameConfigs";
 
 describe("gameMeta derived exports", () => {
-  it("availablePermissions excludes Unsupported but includes TearsOfThemis", () => {
+  it("availablePermissions only includes games with routes", () => {
     expect(availablePermissions).toContain("Genshin");
-    expect(availablePermissions).toContain("TearsOfThemis");
+    expect(availablePermissions).not.toContain("TearsOfThemis");
     expect(availablePermissions).not.toContain("Unsupported");
   });
 
@@ -22,9 +22,10 @@ describe("gameMeta derived exports", () => {
     expect(permissionLabels.HonkaiStarRail).toBe("Honkai: Star Rail");
   });
 
-  it("gameOptions includes all games plus Miscellaneous", () => {
+  it("gameOptions includes routed games plus Miscellaneous", () => {
     const values = gameOptions.map((o) => o.value);
     expect(values).toContain("Genshin");
+    expect(values).not.toContain("TearsOfThemis");
     expect(values).toContain("Unsupported");
   });
 
@@ -34,6 +35,7 @@ describe("gameMeta derived exports", () => {
 
   it("gameLabels maps all keys including Unsupported", () => {
     expect(gameLabels.Unsupported).toBe("Miscellaneous");
+    expect(gameLabels.TearsOfThemis).toBe("Tears of Themis");
     expect(gameLabels.Genshin).toBe("Genshin Impact");
   });
 
@@ -44,6 +46,16 @@ describe("gameMeta derived exports", () => {
     expect(getGameCapabilities("genshin").management.weaponIcons).toBe(true);
     expect(gameConfigs.hi3.hasCodesManagement).toBe(false);
     expect(gameConfigs.genshin.label).toBe("Genshin Impact");
+  });
+
+  it("derives scoped and compatibility colors from one light/dark pair", () => {
+    const config = gameConfigs.genshin;
+
+    expect(config.gameColor).toBe(`light-dark(${config.colors.light}, ${config.colors.dark})`);
+    expect(config.gameColorStyle).toEqual({ "--game-color": config.gameColor });
+    expect(config.lightColor).toBe(config.colors.light);
+    expect(config.color).toBe(config.gameColor);
+    expect(config.bgColor).toContain(config.gameColor);
   });
 
   it("accepts route keys while checking PascalCase permissions", () => {

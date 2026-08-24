@@ -21,10 +21,9 @@ const handleVisibleUpdate = (value) => {
     modal
     header="Profile Authentication Required"
     :style="{ width: 'min(25rem, calc(100vw - 2rem))' }"
-    class="operation-dialog"
   >
     <p class="auth-context">
-      Command transmission paused. Authenticate profile
+      Card generation is paused. Authenticate profile
       <strong>#{{ gv.authProfileId }}</strong> to retry automatically.
     </p>
 

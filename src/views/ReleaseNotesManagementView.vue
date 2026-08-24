@@ -10,6 +10,10 @@ import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
+import EmptyState from "../components/ui/EmptyState.vue";
+import PageHeader from "../components/ui/PageHeader.vue";
+import StatusPill from "../components/ui/StatusPill.vue";
+import SurfaceCard from "../components/ui/SurfaceCard.vue";
 import { useReleaseNotes } from "../composables/useReleaseNotes";
 
 const { fetchAll, createVersion, updateVersion, deleteVersion } = useReleaseNotes();
@@ -30,6 +34,8 @@ const noteTypes = [
   { label: "Improvement", value: "improvement" },
   { label: "Fix", value: "fix" },
 ];
+const noteTone = (type) =>
+  ({ feature: "brand", improvement: "info", fix: "danger" })[type] || "neutral";
 const sortedReleases = computed(() =>
   [...releases.value].toSorted((a, b) => b.displayOrder - a.displayOrder),
 );
@@ -121,33 +127,36 @@ onMounted(loadReleases);
 
 <template>
   <div class="management-page">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Global management · Transmission log</p>
-        <h1 class="page-title">Release notes</h1>
-        <p class="page-subtitle">
-          Publish the version history presented in the public field guide.
-        </p>
-      </div>
-      <Button icon="pi pi-plus" label="Add version" @click="openAddModal" />
-    </header>
-    <div v-if="loading" class="state-panel" role="status">
+    <PageHeader
+      as="h1"
+      eyebrow="Administration / Releases"
+      title="Release notes"
+      subtitle="Publish the version history shown in public documentation."
+      icon="pi pi-megaphone"
+      class="management-header"
+    >
+      <template #actions>
+        <Button icon="pi pi-plus" label="Add version" @click="openAddModal" />
+      </template>
+    </PageHeader>
+    <SurfaceCard v-if="loading" class="state-panel" role="status">
       <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" /><span
-        >Loading transmission history…</span
+        >Loading release history...</span
       >
-    </div>
+    </SurfaceCard>
     <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
-    <div v-else-if="!sortedReleases.length" class="empty-state">
-      <span class="empty-mark"><i class="pi pi-megaphone" aria-hidden="true"></i></span>
-      <h2>No releases on record</h2>
-      <p>Create the first version to begin the public change log.</p>
+    <EmptyState
+      v-else-if="!sortedReleases.length"
+      icon="pi pi-megaphone"
+      title="No releases published"
+      description="Create the first version to begin the public change log."
+    >
       <Button label="Add first version" icon="pi pi-plus" text @click="openAddModal" />
-    </div>
+    </EmptyState>
 
     <div v-else class="release-workspace">
-      <aside class="release-index" aria-labelledby="version-index-title">
+      <SurfaceCard as="aside" compact class="release-index" aria-labelledby="version-index-title">
         <div class="panel-heading">
-          <span>INDEX / {{ String(sortedReleases.length).padStart(2, "0") }}</span>
           <h2 id="version-index-title">Versions</h2>
         </div>
         <nav aria-label="Release versions">
@@ -156,19 +165,17 @@ onMounted(loadReleases);
             ><time v-if="release.date">{{ release.date }}</time></a
           >
         </nav>
-      </aside>
+      </SurfaceCard>
       <div class="release-list">
-        <article
-          v-for="(release, releaseIndex) in sortedReleases"
+        <SurfaceCard
+          v-for="release in sortedReleases"
           :id="`release-${release.id}`"
           :key="release.id"
+          as="article"
           class="release-card"
         >
           <header>
             <div>
-              <span class="release-number"
-                >LOG {{ String(releaseIndex + 1).padStart(2, "0") }}</span
-              >
               <h2>{{ release.version }}</h2>
               <time v-if="release.date">{{ release.date }}</time>
             </div>
@@ -194,12 +201,12 @@ onMounted(loadReleases);
             <h3>{{ section.name }}</h3>
             <ul>
               <li v-for="(note, noteIndex) in section.notes" :key="noteIndex">
-                <span class="note-type" :class="`note-type--${note.type}`">{{ note.type }}</span
+                <StatusPill :tone="noteTone(note.type)">{{ note.type }}</StatusPill
                 ><span>{{ note.text }}</span>
               </li>
             </ul>
           </section>
-        </article>
+        </SurfaceCard>
       </div>
     </div>
 
@@ -314,24 +321,8 @@ onMounted(loadReleases);
   max-width: 86rem;
   margin: 0 auto;
 }
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-6);
+.management-header {
   margin-bottom: var(--space-8);
-}
-.eyebrow {
-  margin: 0 0 var(--space-2);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.page-title {
-  font-size: clamp(2.15rem, 4vw, 3.5rem);
-  font-weight: 500;
 }
 .state-panel {
   display: flex;
@@ -339,29 +330,7 @@ onMounted(loadReleases);
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  border: 1px dashed var(--border-secondary);
   color: var(--text-muted);
-}
-.empty-state {
-  background: var(--bg-surface);
-}
-.empty-state h2 {
-  margin: var(--space-3) 0 var(--space-1);
-  color: var(--text-primary);
-  font-family: var(--font-display);
-}
-.empty-state p {
-  margin: 0;
-}
-.empty-mark {
-  display: grid;
-  width: 3.5rem;
-  height: 3.5rem;
-  margin: 0 auto;
-  place-items: center;
-  border: 1px solid var(--brass);
-  border-radius: 50%;
-  color: var(--brass);
 }
 .release-workspace {
   display: grid;
@@ -373,20 +342,12 @@ onMounted(loadReleases);
   position: sticky;
   top: var(--space-5);
   overflow: hidden;
-  border: 1px solid var(--border-primary);
-  background: var(--bg-surface);
+  padding: 0;
 }
 .panel-heading {
   padding: var(--space-4);
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-surface-sunken);
-}
-.panel-heading span,
-.release-number {
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.1em;
 }
 .panel-heading h2 {
   margin: var(--space-1) 0 0;
@@ -431,10 +392,6 @@ onMounted(loadReleases);
 }
 .release-card {
   scroll-margin-top: var(--space-6);
-  padding: var(--space-5);
-  border: 1px solid var(--border-primary);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-sm);
 }
 .release-card > header {
   display: flex;
@@ -480,29 +437,6 @@ onMounted(loadReleases);
   gap: var(--space-3);
   align-items: start;
   color: var(--text-secondary);
-}
-.note-type {
-  width: fit-content;
-  padding: 0.15rem 0.45rem;
-  border: 1px solid var(--border-secondary);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-.note-type--feature {
-  border-color: var(--accent);
-  color: var(--accent-strong);
-}
-.note-type--improvement {
-  border-color: var(--info);
-  color: var(--info);
-}
-.note-type--fix {
-  border-color: var(--brass);
-  color: var(--brass);
 }
 .release-form {
   display: flex;
@@ -564,11 +498,7 @@ onMounted(loadReleases);
   border-top: 1px solid var(--border-primary);
 }
 @media (max-width: 760px) {
-  .page-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .page-header :deep(.p-button) {
+  .management-header :deep(.page-header-actions .p-button) {
     width: 100%;
   }
   .release-workspace {

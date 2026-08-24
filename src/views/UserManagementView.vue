@@ -7,8 +7,11 @@ import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
-import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
+import EmptyState from "../components/ui/EmptyState.vue";
+import PageHeader from "../components/ui/PageHeader.vue";
+import StatusPill from "../components/ui/StatusPill.vue";
+import SurfaceCard from "../components/ui/SurfaceCard.vue";
 import { availablePermissions, permissionLabels } from "../configs/gameMeta";
 import { normalizeUser } from "../composables/useAuth";
 import { useApi } from "../composables/useApi";
@@ -211,21 +214,24 @@ onMounted(fetchUsers);
 
 <template>
   <div class="management-page">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Global management · Access roster</p>
-        <h1 class="page-title">User clearance</h1>
-        <p class="page-subtitle">Invite operators and assign administrative game access.</p>
-      </div>
-      <Button label="Add user" icon="pi pi-plus" @click="openAddModal" />
-    </header>
+    <PageHeader
+      as="h1"
+      eyebrow="Administration / Users"
+      title="Access management"
+      subtitle="Add administrators and assign game write permissions."
+      icon="pi pi-users"
+      class="management-header"
+    >
+      <template #actions>
+        <Button label="Add user" icon="pi pi-plus" @click="openAddModal" />
+      </template>
+    </PageHeader>
     <Message v-if="errorMsg" severity="error" :closable="false">{{ errorMsg }}</Message>
 
-    <section class="filter-panel" aria-labelledby="filters-title">
+    <SurfaceCard compact class="filter-panel" aria-labelledby="filters-title">
       <div class="panel-heading">
         <div>
-          <span>01</span>
-          <h2 id="filters-title">Filter roster</h2>
+          <h2 id="filters-title">Filters</h2>
         </div>
         <strong>{{ filteredUsers.length }} / {{ users.length }}</strong>
       </div>
@@ -264,13 +270,12 @@ onMounted(fetchUsers);
           </div>
         </div>
       </div>
-    </section>
+    </SurfaceCard>
 
-    <section class="table-panel" aria-labelledby="roster-title">
+    <SurfaceCard compact class="table-panel" aria-labelledby="directory-title">
       <div class="panel-heading">
         <div>
-          <span>02</span>
-          <h2 id="roster-title">Operator roster</h2>
+          <h2 id="directory-title">User directory</h2>
         </div>
         <small>Root accounts are immutable</small>
       </div>
@@ -281,12 +286,14 @@ onMounted(fetchUsers);
         size="small"
         class="management-table"
       >
-        <template #empty
-          ><div class="table-empty">
-            <i class="pi pi-users" aria-hidden="true"></i><strong>No matching operators</strong
-            ><span>Adjust the search or permission filters.</span>
-          </div></template
-        >
+        <template #empty>
+          <EmptyState
+            class="table-empty"
+            icon="pi pi-users"
+            title="No matching users"
+            description="Adjust the search or permission filters."
+          />
+        </template>
         <Column field="discordUserId" header="Discord ID"
           ><template #body="{ data }"
             ><span class="mono-text">{{ data.discordUserId }}</span></template
@@ -294,27 +301,24 @@ onMounted(fetchUsers);
         >
         <Column header="Role" style="width: 9rem"
           ><template #body="{ data }"
-            ><Tag
-              v-if="data.isRootUser"
-              severity="danger"
-              icon="pi pi-star-fill"
-              value="Root User" /><Tag
-              v-else-if="data.isSuperAdmin"
-              severity="success"
-              icon="pi pi-shield"
-              value="Super Admin" /><Tag v-else severity="secondary" value="Operator" /></template
-        ></Column>
+            ><StatusPill v-if="data.isRootUser" tone="danger" icon="pi pi-star-fill"
+              >Root user</StatusPill
+            ><StatusPill v-else-if="data.isSuperAdmin" tone="success" icon="pi pi-shield"
+              >Super admin</StatusPill
+            ><StatusPill v-else>User</StatusPill></template
+          ></Column
+        >
         <Column header="Game permissions"
           ><template #body="{ data }"
             ><div v-if="data.gameWritePermissions?.length" class="tag-list">
-              <Tag
+              <StatusPill
                 v-for="permission in data.gameWritePermissions"
                 :key="permission"
-                :value="formatPermission(permission)"
-                severity="info"
-              />
+                tone="info"
+                >{{ formatPermission(permission) }}</StatusPill
+              >
             </div>
-            <span v-else class="muted-text">Command access only</span></template
+            <span v-else class="muted-text">No game permissions</span></template
           ></Column
         >
         <Column header="Actions" style="width: 7rem"
@@ -339,9 +343,9 @@ onMounted(fetchUsers);
               /></div></template
         ></Column>
       </DataTable>
-    </section>
+    </SurfaceCard>
 
-    <Dialog v-model:visible="showAddModal" modal header="Add operator" :style="{ width: '28rem' }"
+    <Dialog v-model:visible="showAddModal" modal header="Add user" :style="{ width: '28rem' }"
       ><form class="management-form" @submit.prevent="handleAddUser">
         <div class="field">
           <label for="discordId">Discord ID</label
@@ -385,14 +389,10 @@ onMounted(fetchUsers);
             severity="secondary"
             outlined
             @click="showAddModal = false"
-          /><Button type="submit" label="Save operator" :loading="saving" />
+          /><Button type="submit" label="Save user" :loading="saving" />
         </div></form
     ></Dialog>
-    <Dialog
-      v-model:visible="showUpdateModal"
-      modal
-      header="Update operator"
-      :style="{ width: '28rem' }"
+    <Dialog v-model:visible="showUpdateModal" modal header="Update user" :style="{ width: '28rem' }"
       ><form class="management-form" @submit.prevent="handleUpdateUser">
         <div class="field">
           <label for="edit-discordId">Discord ID</label
@@ -447,30 +447,12 @@ onMounted(fetchUsers);
   max-width: 86rem;
   margin: 0 auto;
 }
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-6);
+.management-header {
   margin-bottom: var(--space-8);
-}
-.eyebrow {
-  margin: 0 0 var(--space-2);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.page-title {
-  font-size: clamp(2.15rem, 4vw, 3.5rem);
-  font-weight: 500;
 }
 .filter-panel,
 .table-panel {
-  border: 1px solid var(--border-primary);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-sm);
+  padding: 0;
 }
 .filter-panel {
   margin-bottom: var(--space-4);
@@ -488,11 +470,6 @@ onMounted(fetchUsers);
   display: flex;
   align-items: center;
   gap: var(--space-3);
-}
-.panel-heading span {
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
 }
 .panel-heading h2 {
   margin: 0;
@@ -576,22 +553,9 @@ onMounted(fetchUsers);
   justify-content: flex-end;
 }
 .table-empty {
-  display: flex;
   min-height: 12rem;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  color: var(--text-muted);
-}
-.table-empty i {
-  font-size: var(--text-2xl);
-  color: var(--accent);
-}
-.table-empty strong {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
+  border: 0;
+  border-radius: 0;
 }
 .management-form {
   display: flex;
@@ -637,11 +601,7 @@ fieldset legend {
   clip: rect(0, 0, 0, 0);
 }
 @media (max-width: 640px) {
-  .page-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .page-header :deep(.p-button) {
+  .management-header :deep(.page-header-actions .p-button) {
     width: 100%;
   }
   .permission-grid {

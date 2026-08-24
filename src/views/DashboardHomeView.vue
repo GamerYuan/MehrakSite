@@ -6,7 +6,10 @@ import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Password from "primevue/password";
 import ProgressSpinner from "primevue/progressspinner";
-import Tag from "primevue/tag";
+import EmptyState from "../components/ui/EmptyState.vue";
+import PageHeader from "../components/ui/PageHeader.vue";
+import StatusPill from "../components/ui/StatusPill.vue";
+import SurfaceCard from "../components/ui/SurfaceCard.vue";
 import { gameLabels, permissionLabels } from "../configs/gameMeta";
 import { useAuth } from "../composables/useAuth";
 import { useProfileManagement } from "../composables/useProfileManagement";
@@ -35,62 +38,48 @@ onMounted(fetchProfiles);
 
 <template>
   <div class="dashboard-page">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Station overview · Profile registry</p>
-        <h1 class="page-title">Operator console</h1>
-        <p class="page-subtitle">Maintain the HoYoLAB credentials used for card generation.</p>
-      </div>
-      <div v-if="user" class="access-summary" aria-label="Account access summary">
-        <span
-          ><strong>{{ profiles.length }}</strong> profiles</span
-        >
-        <span
-          ><strong>{{ user.gameWritePermissions?.length || 0 }}</strong> game grants</span
-        >
-      </div>
-    </header>
+    <PageHeader
+      as="h1"
+      eyebrow="Dashboard"
+      title="Your dashboard"
+      subtitle="Manage the HoYoLAB profiles used to generate game cards."
+    />
 
     <div v-if="loading" class="state-panel" role="status">
       <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
-      <span>Reading operator record…</span>
+      <span>Loading account...</span>
     </div>
     <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
 
     <template v-else-if="user">
-      <section class="access-strip" aria-labelledby="access-title">
+      <SurfaceCard
+        v-if="user.isRootUser || user.isSuperAdmin || user.gameWritePermissions?.length"
+        class="access-strip"
+        aria-labelledby="access-title"
+      >
         <div>
-          <p class="section-index">01 / ACCESS</p>
-          <h2 id="access-title">Clearance record</h2>
-          <p class="discord-id">Discord ID · {{ user.discordUserId }}</p>
+          <h2 id="access-title">Permissions</h2>
+          <p class="discord-id">Discord ID: {{ user.discordUserId }}</p>
         </div>
         <div class="access-tags">
-          <Tag v-if="user.isRootUser" icon="pi pi-star-fill" value="Root" severity="warn" />
-          <Tag
-            v-if="user.isSuperAdmin"
-            icon="pi pi-shield"
-            value="Super Admin"
-            severity="success"
-          />
-          <Tag
+          <StatusPill v-if="user.isRootUser" icon="pi pi-star-fill" tone="warn">Root</StatusPill>
+          <StatusPill v-if="user.isSuperAdmin" icon="pi pi-shield" tone="success">
+            Super admin
+          </StatusPill>
+          <StatusPill
             v-for="permission in user.gameWritePermissions || []"
             :key="permission"
             icon="pi pi-key"
-            :value="formatPermission(permission)"
-            severity="info"
-          />
-          <span
-            v-if="!user.isRootUser && !user.isSuperAdmin && !user.gameWritePermissions?.length"
-            class="muted-text"
-            >Standard command access</span
+            tone="info"
           >
+            {{ formatPermission(permission) }}
+          </StatusPill>
         </div>
-      </section>
+      </SurfaceCard>
 
       <section class="registry" aria-labelledby="profiles-title">
         <div class="section-header">
           <div>
-            <p class="section-index">02 / CREDENTIAL VAULT</p>
             <h2 id="profiles-title">HoYoLAB profiles</h2>
             <p>
               Credentials remain concealed and are only submitted when you create or update a
@@ -113,27 +102,33 @@ onMounted(fetchProfiles);
 
         <div v-if="profilesLoading" class="state-panel" role="status">
           <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
-          <span>Synchronizing profile registry…</span>
+          <span>Loading profiles...</span>
         </div>
 
-        <div v-else-if="!profiles.length" class="empty-state">
-          <span class="empty-orbit" aria-hidden="true"><i class="pi pi-user-plus"></i></span>
-          <h3>No profiles in the registry</h3>
-          <p>Add a HoYoLAB profile before generating account-linked cards.</p>
+        <EmptyState
+          v-else-if="!profiles.length"
+          icon="pi pi-user-plus"
+          title="No profiles registered"
+          description="Add a HoYoLAB profile before generating account-linked cards."
+        >
           <a href="/docs" target="_blank" rel="noopener noreferrer"
-            >Open credential guide <i class="pi pi-arrow-up-right" aria-hidden="true"></i
+            >Open profile guide <i class="pi pi-external-link" aria-hidden="true"></i
           ></a>
-        </div>
+        </EmptyState>
 
         <div v-else class="profile-grid">
-          <article v-for="profile in profiles" :key="profile.profileId" class="profile-card">
+          <SurfaceCard
+            v-for="profile in profiles"
+            :key="profile.profileId"
+            as="article"
+            class="profile-card"
+          >
             <header>
               <div>
                 <span class="profile-number"
                   >PROFILE {{ String(profile.profileId).padStart(2, "0") }}</span
                 >
                 <h3>{{ profile.ltUid }}</h3>
-                <span class="uid-label">HoYoLAB UID</span>
               </div>
               <div class="row-actions">
                 <Button
@@ -163,11 +158,9 @@ onMounted(fetchProfiles);
               <section v-for="(regions, game) in profile.gameUids" :key="game" class="game-record">
                 <div class="game-record-title">
                   <strong>{{ gameLabels[game] || game }}</strong>
-                  <Tag
-                    v-if="profile.lastUsedRegions?.[game]"
-                    :value="`Last used · ${profile.lastUsedRegions[game]}`"
-                    severity="secondary"
-                  />
+                  <StatusPill v-if="profile.lastUsedRegions?.[game]"
+                    >Last used: {{ profile.lastUsedRegions[game] }}</StatusPill
+                  >
                 </div>
                 <dl>
                   <div v-for="(uid, region) in regions" :key="region">
@@ -177,7 +170,7 @@ onMounted(fetchProfiles);
                 </dl>
               </section>
             </div>
-          </article>
+          </SurfaceCard>
         </div>
       </section>
 
@@ -301,51 +294,8 @@ onMounted(fetchProfiles);
   max-width: 86rem;
   margin: 0 auto;
 }
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-6);
+.dashboard-page > :deep(.page-header) {
   margin-bottom: var(--space-8);
-}
-.eyebrow,
-.section-index {
-  margin: 0 0 var(--space-2);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.page-title {
-  font-size: clamp(2.25rem, 5vw, 4.25rem);
-  font-weight: 500;
-  line-height: var(--leading-tight);
-}
-.page-subtitle {
-  max-width: 38rem;
-  font-size: var(--text-base);
-}
-.access-summary {
-  display: flex;
-  gap: var(--space-6);
-  padding: var(--space-3) 0;
-  border-block: 1px solid var(--border-primary);
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.access-summary span {
-  display: flex;
-  flex-direction: column;
-}
-.access-summary strong {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 500;
-  letter-spacing: 0;
 }
 .state-panel {
   display: flex;
@@ -362,11 +312,7 @@ onMounted(fetchProfiles);
   grid-template-columns: minmax(15rem, 0.7fr) 1.3fr;
   gap: var(--space-8);
   align-items: center;
-  padding: var(--space-6);
-  border: 1px solid var(--border-primary);
   border-left: 4px solid var(--brass);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-sm);
 }
 .access-strip h2,
 .section-header h2 {
@@ -409,33 +355,11 @@ onMounted(fetchProfiles);
   display: flex;
   gap: var(--space-2);
 }
-.empty-state {
-  background: var(--bg-surface);
-}
-.empty-state h3 {
-  margin: var(--space-3) 0 var(--space-1);
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-}
-.empty-state p {
-  margin: 0 0 var(--space-3);
-}
-.empty-state a,
+.registry :deep(.empty-state-panel) a,
 .form-actions a {
   color: var(--accent-strong);
   font-weight: 600;
   text-decoration: none;
-}
-.empty-orbit {
-  display: grid;
-  width: 3.5rem;
-  height: 3.5rem;
-  margin: 0 auto;
-  place-items: center;
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-  color: var(--accent);
 }
 .profile-grid {
   display: grid;
@@ -445,11 +369,6 @@ onMounted(fetchProfiles);
 .profile-card {
   position: relative;
   overflow: hidden;
-  padding: var(--space-5);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  background: var(--card-surface);
-  box-shadow: var(--shadow-sm);
 }
 .profile-card::after {
   content: "";
@@ -458,7 +377,7 @@ onMounted(fetchProfiles);
   bottom: -3rem;
   width: 8rem;
   height: 8rem;
-  border: 1px solid rgba(var(--accent-rgb), 0.15);
+  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -470,8 +389,7 @@ onMounted(fetchProfiles);
   padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--border-primary);
 }
-.profile-number,
-.uid-label {
+.profile-number {
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.625rem;
@@ -574,14 +492,9 @@ onMounted(fetchProfiles);
   color: var(--text-muted);
 }
 @media (max-width: 700px) {
-  .page-header,
   .section-header {
     align-items: stretch;
     flex-direction: column;
-  }
-  .access-summary {
-    align-self: stretch;
-    justify-content: space-around;
   }
   .access-strip {
     grid-template-columns: 1fr;

@@ -5,6 +5,8 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
 import { useGameViewInject } from "../../composables/game/injectKey";
+import EmptyState from "../ui/EmptyState.vue";
+import StatusPill from "../ui/StatusPill.vue";
 
 const gv = useGameViewInject();
 </script>
@@ -14,10 +16,10 @@ const gv = useGameViewInject();
     <template #title>
       <div class="management-heading">
         <div>
-          <span class="surface-kicker">Redemption operations</span>
+          <span class="surface-kicker">Code management</span>
           <span>Codes</span>
         </div>
-        <span class="record-count">{{ gv.filteredCodes.length }} active</span>
+        <StatusPill>{{ gv.filteredCodes.length }} active</StatusPill>
       </div>
     </template>
     <template #content>
@@ -27,7 +29,7 @@ const gv = useGameViewInject();
           <InputText
             id="new-codes"
             v-model="gv.newCodesInput"
-            placeholder="New Codes (comma-separated)"
+            placeholder="New codes (comma-separated)"
             fluid
             class="flex-1"
           />
@@ -45,12 +47,12 @@ const gv = useGameViewInject();
           <InputText
             id="code-search"
             v-model="gv.codesSearchQuery"
-            placeholder="Search codes..."
+            placeholder="Search codes"
             fluid
             class="flex-1"
           />
           <Button
-            label="Delete Selected"
+            label="Delete selected"
             severity="danger"
             @click="gv.confirmDeleteCodes(gv.selectedCodes.map((c) => c.code))"
             :disabled="!gv.selectedCodes.length"
@@ -65,6 +67,7 @@ const gv = useGameViewInject();
           paginator
           :rows="10"
           responsiveLayout="scroll"
+          class="management-table"
         >
           <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
           <Column field="code" header="Code" sortable></Column>
@@ -81,6 +84,13 @@ const gv = useGameViewInject();
               />
             </template>
           </Column>
+          <template #empty>
+            <EmptyState
+              icon="pi pi-ticket"
+              title="No codes found"
+              description="Add a code or adjust the search."
+            />
+          </template>
         </DataTable>
       </div>
     </template>
@@ -100,15 +110,6 @@ const gv = useGameViewInject();
   font-size: var(--text-xl);
 }
 
-.record-count {
-  padding: 0.25rem 0.55rem;
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-pill);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-}
-
 .management-stack {
   display: grid;
   gap: 1rem;
@@ -124,6 +125,12 @@ const gv = useGameViewInject();
 .action-strip {
   padding: 0.85rem;
   background: var(--bg-surface-raised);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+}
+
+.management-table {
+  overflow: hidden;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
 }

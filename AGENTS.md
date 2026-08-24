@@ -41,7 +41,7 @@
 - Public routes: `/`, `/docs`, `/privacy`, `/terms`
 - Dashboard (auth-guarded): `/dashboard` with children
 - Games: `/dashboard/:game` where `:game` must match a `routeKey` from `gameMeta`
-- Router guard: fetches `/users/me`, normalizes response, syncs with useAuth state. Redirects to Discord OAuth on 401. Checks `meta.requireAuth`, `meta.requireSuperAdmin`, `meta.requireGamePermission`, `meta.requireAnyPermission`
+- Router guard: fetches `/users/me`, normalizes response, syncs with useAuth state. Redirects to Discord OAuth on 401. Checks `meta.requireAuth`, `meta.requireSuperAdmin`, `meta.requireGamePermission`, `meta.requireAnyPermission`, `meta.requireGameCapability`, `meta.requireGameFeature`
 
 ## Game System
 - **Game definitions:** `src/configs/gameMeta.js` — labels, colors, permissions, routeKeys
@@ -51,6 +51,9 @@
 - Per-game UI components live in `src/components/game/`
 
 ## Theme
+- Dark-first command-deck theme: near-black blue-tinted surfaces, layered 1px borders,
+  restrained elevation, and a teal/jade brand accent; light mode is fully supported as a
+  derived counterpart.
 - Light/dark via `useTheme()` composable; toggles `.dark` class on `<html>`
 - CSS custom properties in `src/style.css` define semantic tokens for both themes
 - PrimeVue dark mode tied to `.dark` selector
@@ -59,4 +62,11 @@
 - Tailwind CSS v4 via Vite plugin (no `tailwind.config.js` needed)
 - Custom dark variant: `@custom-variant dark (&:is(.dark *));` in `src/style.css`
 - CSS custom properties (`--bg-page`, `--text-primary`, etc.) for themed values
-- Body uses Inter font at 14px
+- Typography uses Space Grotesk for display, Inter for body, and JetBrains Mono for
+  technical labels; all three are loaded in `index.html`.
+- Shared UI primitives live in `src/components/ui/`: `PageHeader`, `SurfaceCard`,
+  `EmptyState`, `StatusPill`, `SectionRule`, `FileUploadField`, and `LegalLayout`.
+- Game colors have one source of truth in `src/configs/gameConfigs.js` and are exposed
+  through the scoped `--game-color` custom property.
+- No literal hex, rgba, or gray palette colors outside `src/style.css`; use semantic tokens
+  and the game-color custom property instead.

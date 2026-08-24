@@ -218,12 +218,12 @@ const canEditGame = computed(() => {
                 param.name
               }}</span>
               <span
-                class="text-xs px-1.5 py-0.5 bg-[rgba(var(--accent-rgb),0.15)] text-[var(--accent)] rounded font-mono"
+                class="text-xs px-1.5 py-0.5 bg-[var(--accent-soft)] text-[var(--accent)] rounded font-mono"
                 >{{ param.type }}</span
               >
               <span
                 v-if="param.required"
-                class="text-[0.65rem] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded uppercase font-semibold"
+                class="text-[0.65rem] px-1.5 py-0.5 bg-[var(--warn-soft)] text-[var(--warn)] rounded uppercase font-semibold"
                 >Required</span
               >
               <span v-if="param.description" class="flex-1 text-[var(--text-muted)] text-sm">{{

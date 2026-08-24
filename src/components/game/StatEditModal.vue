@@ -14,12 +14,11 @@ const gv = useGameViewInject();
     modal
     header="Edit Character Stats"
     :style="{ width: 'min(30rem, calc(100vw - 2rem))' }"
-    class="operation-dialog"
   >
     <div class="relative">
       <div
         v-if="gv.editStatFetching"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/20"
+        class="absolute inset-0 z-10 flex items-center justify-center rounded-(--radius-lg) bg-(--bg-overlay)"
       >
         <i class="pi pi-spin pi-spinner text-xl"></i>
       </div>

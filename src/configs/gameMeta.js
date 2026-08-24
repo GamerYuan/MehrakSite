@@ -29,7 +29,7 @@ export const canManageGameCapability = (user, game, capability) => {
 
 export const gameOptions = [
   ...Object.entries(gameMeta)
-    .filter(([key]) => key !== "Unsupported")
+    .filter(([, meta]) => Boolean(meta.routeKey))
     .map(([value, meta]) => ({ label: meta.label, value })),
   { label: "Miscellaneous", value: "Unsupported" },
 ];
@@ -38,7 +38,7 @@ export const gameFilterOptions = [{ label: "All Games", value: "All" }, ...gameO
 
 export const permissionLabels = Object.fromEntries(
   Object.entries(gameMeta)
-    .filter(([key]) => key !== "Unsupported")
+    .filter(([, meta]) => Boolean(meta.routeKey))
     .map(([key, meta]) => [key, meta.label]),
 );
 

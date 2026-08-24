@@ -1,7 +1,6 @@
 <script setup>
 import AuthModal from "./AuthModal.vue";
 import Button from "primevue/button";
-import Card from "primevue/card";
 import CommandCard from "./CommandCard.vue";
 import Image from "primevue/image";
 import ManageAliasesCard from "./ManageAliasesCard.vue";
@@ -12,27 +11,13 @@ import PortraitConfigModal from "./PortraitConfigModal.vue";
 import StatEditModal from "./StatEditModal.vue";
 import { computed } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
+import SurfaceCard from "../ui/SurfaceCard.vue";
 
 const gv = useGameViewInject();
 
 const getTabConfig = (tabId) => gv.config.tabs.find((t) => t.id === tabId);
 
-const gameColor = computed(() => gv.config.color || "var(--accent)");
 const gameLogo = computed(() => gv.config.logo);
-const workspaceTitle = computed(() => {
-  if (gv.isManagementWorkspace) return "Management workspace";
-  if (gv.isPersonalPortraitWorkspace) return "Personal portrait workspace";
-  return "Command workspace";
-});
-const workspaceSubtitle = computed(() => {
-  if (gv.isManagementWorkspace) {
-    return "Maintain game data, portraits, aliases, and operational assets.";
-  }
-  if (gv.isPersonalPortraitWorkspace) {
-    return "Choose a character and manage portraits owned by your account.";
-  }
-  return "Configure a profile request and generate a fresh game card.";
-});
 
 const clearResult = () => {
   gv.resultImages[gv.activeTab] = null;
@@ -40,19 +25,11 @@ const clearResult = () => {
 </script>
 
 <template>
-  <section class="game-view" :style="{ '--game-color': gameColor }">
+  <section class="game-view" :style="gv.config.gameColorStyle">
     <header class="game-header">
       <div class="game-identity">
         <img v-if="gameLogo" :src="gameLogo" alt="" class="game-logo" />
-        <div class="game-title-block">
-          <span class="game-kicker">Field station / {{ workspaceTitle }}</span>
-          <h1 class="game-title">{{ gv.config.title }}</h1>
-          <p class="game-subtitle">{{ workspaceSubtitle }}</p>
-        </div>
-      </div>
-      <div class="station-status" aria-label="Workspace status">
-        <span class="status-dot"></span>
-        <span>{{ gv.isManagementWorkspace ? "Write access" : "Authenticated" }}</span>
+        <h1 class="game-title">{{ gv.config.title }}</h1>
       </div>
     </header>
 
@@ -114,32 +91,28 @@ const clearResult = () => {
         <CommandCard v-else :tabConfig="getTabConfig(gv.activeTab)" />
 
         <div v-if="gv.resultImages[gv.activeTab]" class="result-container">
-          <Card class="result-card">
-            <template #title>
-              <div class="result-header">
-                <div>
-                  <span class="surface-kicker">Generated specimen</span>
-                  <span class="result-title">Command result</span>
-                </div>
-                <Button
-                  icon="pi pi-times"
-                  text
-                  rounded
-                  size="small"
-                  aria-label="Clear result"
-                  @click="clearResult"
-                />
+          <SurfaceCard class="result-card">
+            <div class="result-header">
+              <div>
+                <span class="surface-kicker">Generated card</span>
+                <h2 class="result-title">Command result</h2>
               </div>
-            </template>
-            <template #content>
-              <Image
-                :src="gv.resultImages[gv.activeTab]"
-                alt="Generated game card result"
-                preview
-                width="100%"
+              <Button
+                icon="pi pi-times"
+                text
+                rounded
+                size="small"
+                aria-label="Clear result"
+                @click="clearResult"
               />
-            </template>
-          </Card>
+            </div>
+            <Image
+              :src="gv.resultImages[gv.activeTab]"
+              alt="Generated game card result"
+              preview
+              width="100%"
+            />
+          </SurfaceCard>
         </div>
       </div>
     </div>
@@ -163,14 +136,11 @@ const clearResult = () => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.5rem clamp(1rem, 3vw, 2rem);
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--game-color) 12%, transparent), transparent 42%),
-    var(--bg-surface);
+  padding: 1.25rem clamp(1rem, 3vw, 1.75rem);
+  background: var(--bg-surface);
   border: 1px solid var(--border-primary);
   border-top: 3px solid var(--game-color);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
   margin-bottom: 1rem;
 }
 
@@ -192,17 +162,7 @@ const clearResult = () => {
   flex-shrink: 0;
 }
 
-.game-kicker,
-.nav-label {
-  display: block;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-}
-
+.nav-label,
 .game-view :deep(.surface-kicker) {
   display: block;
   color: var(--text-muted);
@@ -219,35 +179,6 @@ const clearResult = () => {
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.02em;
-}
-
-.game-subtitle {
-  max-width: 42rem;
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin: 0.125rem 0 0;
-}
-
-.station-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.7rem;
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-pill);
-  color: var(--text-secondary);
-  background: var(--bg-overlay);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  white-space: nowrap;
-}
-
-.status-dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--success) 16%, transparent);
 }
 
 .workspace-grid {
@@ -327,7 +258,7 @@ const clearResult = () => {
 .game-view :deep(.game-card) {
   background: var(--card-surface) !important;
   border: 1px solid var(--card-border) !important;
-  border-radius: var(--radius-xl) !important;
+  border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
@@ -336,10 +267,7 @@ const clearResult = () => {
 }
 
 .result-card {
-  background: var(--card-surface) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: var(--radius-xl) !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: var(--shadow-md);
 }
 
 .result-header {
@@ -349,7 +277,7 @@ const clearResult = () => {
 }
 
 .result-title {
-  display: block;
+  margin: 0;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -365,13 +293,9 @@ const clearResult = () => {
     padding: 1rem;
   }
 
-  .station-status {
-    display: none;
-  }
-
   .game-logo {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3rem;
+    height: 3rem;
   }
 
   .game-title {
@@ -386,23 +310,24 @@ const clearResult = () => {
     position: static;
     display: flex;
     overflow-x: auto;
-    padding: 0.6rem;
+    padding: 0.4rem;
+    gap: 0.25rem;
     scrollbar-width: thin;
   }
 
   .nav-group {
     display: flex;
     flex: 0 0 auto;
+    gap: 0.25rem;
   }
 
   .nav-label {
-    align-self: center;
-    writing-mode: vertical-rl;
+    display: none;
   }
 
   .management-group,
   .personal-group {
-    padding: 0 0 0 0.75rem;
+    padding-left: 0.5rem;
     border-top: 0;
     border-left: 1px solid var(--border-primary);
   }
@@ -414,12 +339,9 @@ const clearResult = () => {
 
 @media (max-width: 420px) {
   .game-logo {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
-  .game-subtitle {
-    font-size: var(--text-xs);
-  }
 }
 </style>

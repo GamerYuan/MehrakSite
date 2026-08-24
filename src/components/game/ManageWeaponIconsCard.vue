@@ -15,6 +15,7 @@ import Tabs from "primevue/tabs";
 import { onBeforeUnmount, ref } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 import { RARITIES, WEAPON_TYPES } from "../../composables/game/useWeaponIcons";
+import FileUploadField from "../ui/FileUploadField.vue";
 
 const gv = useGameViewInject();
 
@@ -33,6 +34,8 @@ const filePreviewUrl = ref(null);
 const processedBlobUrl = ref(null);
 const processing = ref(false);
 const uploading = ref(false);
+const processFileInput = ref(null);
+const directFileInput = ref(null);
 
 // Ponytail: temp processed result shown in main view before server upload
 const tempProcessedUrl = ref(null);
@@ -46,11 +49,9 @@ const weaponTypeLabel = (id) => {
 
 const weaponRarity = (id) => Math.floor(id / 100) % 10;
 
-const formatWeaponOption = (w) => `${w.id} (${weaponTypeLabel(w.id)} ${weaponRarity(w.id)}★)`;
+const formatWeaponOption = (w) => `${w.id} (${weaponTypeLabel(w.id)}, ${weaponRarity(w.id)} star)`;
 
-const onFileSelect = (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+const onFileSelect = (file) => {
   selectedFile.value = file;
   if (filePreviewUrl.value) URL.revokeObjectURL(filePreviewUrl.value);
   filePreviewUrl.value = URL.createObjectURL(file);
@@ -68,7 +69,9 @@ const handleProcess = async () => {
   // Convert blob URL to File for later upload
   const resp = await fetch(blobUrl);
   const blob = await resp.blob();
-  const file = new globalThis.File([blob], `weapon_ascended_${gv.selectedWeaponId}.png`, { type: "image/png" });
+  const file = new globalThis.File([blob], `weapon_ascended_${gv.selectedWeaponId}.png`, {
+    type: "image/png",
+  });
 
   // Set temp state and close modal
   if (tempProcessedUrl.value) URL.revokeObjectURL(tempProcessedUrl.value);
@@ -80,7 +83,10 @@ const handleProcess = async () => {
 const handleTempUpload = async () => {
   if (!gv.selectedWeaponId || !tempProcessedFile.value) return;
   uploading.value = true;
-  const ok = await gv.confirmUploadWeaponIcon(`weapon_ascended_${gv.selectedWeaponId}.png`, tempProcessedFile.value);
+  const ok = await gv.confirmUploadWeaponIcon(
+    `weapon_ascended_${gv.selectedWeaponId}.png`,
+    tempProcessedFile.value,
+  );
   uploading.value = false;
   if (ok) clearTempProcessed();
 };
@@ -109,6 +115,8 @@ const closeUploadModal = () => {
   processing.value = false;
   uploading.value = false;
   uploadTab.value = "0";
+  processFileInput.value?.clear();
+  directFileInput.value?.clear();
 };
 
 // Clear temp when weapon selection changes
@@ -128,7 +136,7 @@ onBeforeUnmount(() => {
     <template #title>
       <div class="management-heading">
         <div>
-          <span class="surface-kicker">Asset pipeline</span>
+          <span class="surface-kicker">Icon management</span>
           <span>Weapon icons</span>
         </div>
         <span class="record-count">{{ gv.filteredWeapons.length }} weapons</span>
@@ -185,7 +193,7 @@ onBeforeUnmount(() => {
                 v-if="tempProcessedUrl || gv.hasAscended"
                 :src="tempProcessedUrl || gv.ascendedImageUrl"
                 class="rounded border object-contain"
-                :class="tempProcessedUrl && 'ring-2 ring-amber-400'"
+                :class="tempProcessedUrl && 'ring-2 ring-(--warn)'"
                 width="200"
                 height="200"
                 alt="Ascended weapon icon"
@@ -244,7 +252,7 @@ onBeforeUnmount(() => {
         <span class="text-sm font-medium">Rarity</span>
         <div v-for="r in RARITIES" :key="r" class="flex items-center gap-2">
           <Checkbox v-model="gv.selectedRarities" :inputId="`r-${r}`" :value="r" />
-          <label :for="`r-${r}`" class="text-sm">{{ r }}★</label>
+          <label :for="`r-${r}`" class="text-sm">{{ r }} star</label>
         </div>
       </div>
       <div class="flex items-center gap-2 border-t pt-2">
@@ -284,9 +292,9 @@ onBeforeUnmount(() => {
     <div class="relative">
       <div
         v-if="processing || uploading"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/30"
+        class="absolute inset-0 z-10 flex items-center justify-center rounded-(--radius-lg) bg-(--bg-overlay)"
       >
-        <i class="pi pi-spin pi-spinner text-2xl text-white"></i>
+        <i class="pi pi-spin pi-spinner text-2xl text-(--text-primary)" aria-hidden="true"></i>
       </div>
 
       <Tabs v-model:value="uploadTab">
@@ -305,28 +313,22 @@ onBeforeUnmount(() => {
                 </div>
               </Message>
 
-              <div class="flex flex-col gap-2">
-                <label for="weapon-file-process">Source image</label>
-                <input
-                  id="weapon-file-process"
-                  type="file"
-                  accept="image/png"
-                  :disabled="processing"
-                  @change="onFileSelect"
-                  class="block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gray-200 dark:file:bg-gray-700 file:text-sm file:font-medium cursor-pointer disabled:opacity-50"
-                />
-              </div>
+              <FileUploadField
+                ref="processFileInput"
+                input-id="weapon-file-process"
+                label="Source image"
+                accept="image/png"
+                :disabled="processing"
+                :status="processing ? 'Processing image...' : ''"
+                @select="onFileSelect"
+              />
 
               <!-- Large preview -->
               <div
                 v-if="filePreviewUrl || processedBlobUrl"
-                class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex justify-center"
+                class="flex justify-center overflow-hidden rounded-(--radius-lg) border border-(--border-primary) bg-(--bg-surface-sunken)"
               >
-                <img
-                  :src="processedBlobUrl || filePreviewUrl"
-                  alt="Preview"
-                  class="max-h-64"
-                />
+                <img :src="processedBlobUrl || filePreviewUrl" alt="Preview" class="max-h-64" />
               </div>
 
               <div class="flex justify-end gap-2 mt-2">
@@ -364,22 +366,20 @@ onBeforeUnmount(() => {
                 </div>
               </Message>
 
-              <div class="flex flex-col gap-2">
-                <label for="weapon-file-direct">Processed image</label>
-                <input
-                  id="weapon-file-direct"
-                  type="file"
-                  accept="image/png"
-                  :disabled="uploading"
-                  @change="onFileSelect"
-                  class="block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gray-200 dark:file:bg-gray-700 file:text-sm file:font-medium cursor-pointer disabled:opacity-50"
-                />
-              </div>
+              <FileUploadField
+                ref="directFileInput"
+                input-id="weapon-file-direct"
+                label="Processed image"
+                accept="image/png"
+                :disabled="uploading"
+                :status="uploading ? 'Uploading image...' : ''"
+                @select="onFileSelect"
+              />
 
               <!-- Large preview -->
               <div
                 v-if="filePreviewUrl"
-                class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex justify-center"
+                class="flex justify-center overflow-hidden rounded-(--radius-lg) border border-(--border-primary) bg-(--bg-surface-sunken)"
               >
                 <img :src="filePreviewUrl" alt="Preview" class="max-h-64" />
               </div>

@@ -64,7 +64,7 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
   padding: var(--space-5);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
-  background: var(--bg-surface-raised);
+  background: var(--card-surface);
 }
 
 .search-wrap {

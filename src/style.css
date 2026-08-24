@@ -4,48 +4,88 @@
 :root {
   color-scheme: light;
 
-  /* Celestial field station palette: warm paper, observatory ink, jade, and brass. */
-  --accent: #30826c;
-  --accent-strong: #286b5a;
-  --accent-rgb: 48, 130, 108;
-  --accent-soft: #d5eee5;
-  --accent-contrast: #ffffff;
-  --brass: #94652b;
-  --danger: #b44138;
-  --success: #28745a;
-  --info: #356f82;
+  /* Command-deck palette: dark decisions translated to cool, high-clarity light surfaces. */
+  --surface-0: oklch(100% 0 0);
+  --surface-50: oklch(98% 0.006 240);
+  --surface-100: oklch(96% 0.009 240);
+  --surface-200: oklch(92% 0.012 240);
+  --surface-300: oklch(86% 0.014 240);
+  --surface-400: oklch(71% 0.018 240);
+  --surface-500: oklch(56% 0.02 240);
+  --surface-600: oklch(44% 0.021 240);
+  --surface-700: oklch(34% 0.022 240);
+  --surface-800: oklch(25% 0.021 240);
+  --surface-900: oklch(18% 0.02 240);
+  --surface-950: oklch(12% 0.018 240);
 
-  /* Per-game colors communicate context only. */
-  --game-genshin: #b38314;
-  --game-hsr: #2086a0;
-  --game-zzz: #c45b18;
-  --game-hi3: #b74f7c;
+  --brand-50: oklch(97% 0.025 185);
+  --brand-100: oklch(93% 0.055 185);
+  --brand-200: oklch(87% 0.09 185);
+  --brand-300: oklch(79% 0.115 185);
+  --brand-400: oklch(70% 0.125 185);
+  --brand-500: oklch(61% 0.12 185);
+  --brand-600: oklch(52% 0.105 185);
+  --brand-700: oklch(43% 0.087 185);
+  --brand-800: oklch(34% 0.068 185);
+  --brand-900: oklch(27% 0.052 185);
+  --brand-950: oklch(19% 0.038 185);
+  --accent: var(--brand-600);
+  --accent-strong: var(--brand-700);
+  --accent-rgb: 8, 126, 127;
+  --accent-soft: var(--brand-100);
+  --accent-contrast: var(--surface-0);
 
-  /* Semantic surfaces and text — light theme. */
-  --bg-page: #f3efe5;
-  --bg-surface: #fffdf7;
-  --bg-surface-raised: #eae4d8;
-  --bg-surface-sunken: #e2dccf;
-  --bg-overlay: rgba(255, 253, 247, 0.9);
-  --text-primary: #172522;
-  --text-secondary: #42534f;
-  --text-muted: #5f6d69;
-  --text-inverse: #f8f4e9;
-  --border-primary: #d6cebd;
-  --border-secondary: #b8af9e;
-  --code-bg: #e8e2d5;
-  --navbar-bg: rgba(250, 247, 239, 0.9);
-  --footer-bg: rgba(23, 37, 34, 0.05);
-  --card-surface: #fffdf7;
-  --card-border: #d6cebd;
-  --page-gradient: linear-gradient(160deg, #f8f4e9 0%, #f3efe5 48%, #ebe5d8 100%);
-  --selection-bg: #adddce;
-  --selection-text: #102d27;
+  --success: oklch(50% 0.12 155);
+  --success-soft: oklch(94% 0.045 155);
+  --warn: oklch(57% 0.13 75);
+  --warn-soft: oklch(94% 0.05 75);
+  --danger: oklch(54% 0.18 25);
+  --danger-soft: oklch(95% 0.045 25);
+  --info: oklch(52% 0.13 235);
+  --info-soft: oklch(94% 0.04 235);
+  --brass: var(--warn);
+
+  /* Release and cookie states stay semantic instead of owning another palette. */
+  --release-feature: var(--accent);
+  --release-feature-bg: var(--accent-soft);
+  --release-improvement: var(--info);
+  --release-improvement-bg: var(--info-soft);
+  --release-fix: var(--danger);
+  --release-fix-bg: var(--danger-soft);
+  --cookie-allowed: var(--success);
+  --cookie-allowed-bg: var(--success-soft);
+  --cookie-blocked: var(--danger);
+  --cookie-blocked-bg: var(--danger-soft);
+
+  --bg-page: var(--surface-100);
+  --bg-surface: var(--surface-0);
+  --bg-surface-raised: var(--surface-50);
+  --bg-surface-sunken: var(--surface-200);
+  --bg-overlay: oklch(100% 0 0 / 92%);
+  --text-primary: var(--surface-950);
+  --text-secondary: var(--surface-700);
+  --text-muted: var(--surface-600);
+  --text-inverse: var(--surface-50);
+  --border-primary: var(--surface-400);
+  --border-secondary: var(--surface-500);
+  --code-bg: var(--surface-200);
+  --navbar-bg: oklch(98% 0.006 240 / 94%);
+  --footer-bg: oklch(12% 0.018 240 / 5%);
+  --card-surface: var(--bg-surface);
+  --card-border: var(--border-primary);
+  --page-gradient: linear-gradient(
+    160deg,
+    var(--surface-50),
+    var(--surface-100) 54%,
+    var(--surface-200)
+  );
+  --selection-bg: var(--brand-200);
+  --selection-text: var(--brand-950);
 
   /* Type scale. */
-  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
-  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  --font-display: "Space Grotesk", Inter, "Segoe UI", sans-serif;
+  --font-body: Inter, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -72,19 +112,20 @@
   --space-20: 5rem;
   --space-24: 6rem;
 
+  /* Geometry: 6px controls, 10px cards/panels, 14px dialogs; pills are tags/filters only. */
   --radius-xs: 0.125rem;
   --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px rgba(27, 36, 32, 0.08);
-  --shadow-md: 0 12px 30px -20px rgba(24, 35, 31, 0.38);
-  --shadow-lg: 0 28px 70px -36px rgba(17, 28, 25, 0.48);
-  --shadow-dialog: 0 30px 90px -32px rgba(10, 20, 18, 0.55);
+  --shadow-sm: 0 1px 2px oklch(12% 0.018 240 / 8%);
+  --shadow-md: 0 12px 30px -20px oklch(12% 0.018 240 / 32%);
+  --shadow-lg: 0 28px 70px -36px oklch(12% 0.018 240 / 44%);
+  --shadow-dialog: 0 30px 90px -32px oklch(12% 0.018 240 / 55%);
 
-  --focus-color: #147c9b;
+  --focus-color: var(--info);
   --focus-width: 3px;
   --focus-offset: 3px;
   --motion-fast: 120ms;
@@ -96,46 +137,51 @@
 
 .dark {
   color-scheme: dark;
-  --accent: #7bc7b0;
-  --accent-strong: #adddce;
-  --accent-rgb: 123, 199, 176;
-  --accent-soft: #173e36;
-  --accent-contrast: #0a1815;
-  --brass: #d2a55f;
-  --danger: #ef8b80;
-  --success: #79c8a5;
-  --info: #79b8c9;
+  --accent: var(--brand-400);
+  --accent-strong: var(--brand-300);
+  --accent-rgb: 53, 207, 197;
+  --accent-soft: var(--brand-950);
+  --accent-contrast: var(--surface-950);
 
-  --game-genshin: #e0b64d;
-  --game-hsr: #62c8de;
-  --game-zzz: #e58a4b;
-  --game-hi3: #e183aa;
+  --success: oklch(72% 0.14 155);
+  --success-soft: oklch(25% 0.055 155);
+  --warn: oklch(78% 0.14 75);
+  --warn-soft: oklch(27% 0.055 75);
+  --danger: oklch(72% 0.17 25);
+  --danger-soft: oklch(26% 0.06 25);
+  --info: oklch(75% 0.12 235);
+  --info-soft: oklch(25% 0.05 235);
 
-  --bg-page: #0c1415;
-  --bg-surface: #111d1d;
-  --bg-surface-raised: #192727;
-  --bg-surface-sunken: #081011;
-  --bg-overlay: rgba(12, 20, 21, 0.9);
-  --text-primary: #f2eddf;
-  --text-secondary: #bdc6bf;
-  --text-muted: #98a49e;
-  --text-inverse: #172522;
-  --border-primary: rgba(218, 225, 215, 0.14);
-  --border-secondary: rgba(218, 225, 215, 0.24);
-  --code-bg: #081011;
-  --navbar-bg: rgba(12, 20, 21, 0.9);
-  --footer-bg: rgba(0, 0, 0, 0.22);
-  --card-surface: #111d1d;
-  --card-border: rgba(218, 225, 215, 0.14);
-  --page-gradient: linear-gradient(160deg, #101c1d 0%, #0c1415 54%, #091011 100%);
-  --selection-bg: #286b5a;
-  --selection-text: #f7f3e9;
+  --bg-page: oklch(13% 0.022 250);
+  --bg-surface: oklch(17% 0.025 250);
+  --bg-surface-raised: oklch(21% 0.027 250);
+  --bg-surface-sunken: oklch(10% 0.02 250);
+  --bg-overlay: oklch(13% 0.022 250 / 92%);
+  --text-primary: oklch(94% 0.01 235);
+  --text-secondary: oklch(78% 0.016 235);
+  --text-muted: oklch(66% 0.02 235);
+  --text-inverse: var(--surface-950);
+  --border-primary: oklch(76% 0.025 235 / 16%);
+  --border-secondary: oklch(76% 0.025 235 / 28%);
+  --code-bg: var(--bg-surface-sunken);
+  --navbar-bg: oklch(13% 0.022 250 / 90%);
+  --footer-bg: oklch(5% 0.01 250 / 28%);
+  --card-surface: var(--bg-surface);
+  --card-border: var(--border-primary);
+  --page-gradient: linear-gradient(
+    160deg,
+    var(--bg-surface),
+    var(--bg-page) 54%,
+    var(--bg-surface-sunken)
+  );
+  --selection-bg: var(--brand-700);
+  --selection-text: var(--surface-50);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
-  --shadow-md: 0 14px 34px -20px rgba(0, 0, 0, 0.72);
-  --shadow-lg: 0 30px 74px -34px rgba(0, 0, 0, 0.82);
-  --shadow-dialog: 0 34px 100px -28px rgba(0, 0, 0, 0.9);
-  --focus-color: #68c9e1;
+  --shadow-sm: 0 1px 2px oklch(4% 0.01 250 / 32%);
+  --shadow-md: 0 14px 34px -20px oklch(4% 0.01 250 / 78%);
+  --shadow-lg: 0 30px 74px -34px oklch(4% 0.01 250 / 88%);
+  --shadow-dialog: 0 34px 100px -28px oklch(4% 0.01 250 / 94%);
+  --focus-color: var(--brand-300);
 }
 
 html {
@@ -145,6 +191,10 @@ html {
   scroll-behavior: smooth;
   scrollbar-color: var(--border-secondary) var(--bg-page);
   scrollbar-width: thin;
+}
+
+[id] {
+  scroll-margin-top: calc(4.75rem + var(--space-4));
 }
 
 body {
@@ -214,7 +264,7 @@ li {
   background: var(--text-muted);
 }
 
-/* PrimeVue stays functional while sharing the field-station rhythm and materials. */
+/* PrimeVue stays functional while sharing the command-deck rhythm and materials. */
 .p-component {
   font-family: var(--font-body);
   line-height: var(--leading-body);
@@ -226,22 +276,6 @@ li {
 .p-textarea {
   transition-duration: var(--motion-base);
   transition-timing-function: var(--ease-standard);
-}
-
-.p-card,
-.p-datatable,
-.p-dialog {
-  border-color: var(--border-primary);
-}
-
-.p-dialog {
-  box-shadow: var(--shadow-dialog);
-}
-
-.p-toast-message,
-.p-popover,
-.p-select-overlay {
-  box-shadow: var(--shadow-lg);
 }
 
 .p-dialog-title,

@@ -9,6 +9,9 @@ import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
 import DocFormModal from "../components/docs/DocFormModal.vue";
 import GameTag from "../components/docs/GameTag.vue";
+import EmptyState from "../components/ui/EmptyState.vue";
+import PageHeader from "../components/ui/PageHeader.vue";
+import SurfaceCard from "../components/ui/SurfaceCard.vue";
 import { canManageGame, gameFilterOptions } from "../configs/gameMeta";
 import { useApi } from "../composables/useApi";
 
@@ -123,26 +126,29 @@ const formatDate = (date) =>
         month: "short",
         day: "numeric",
       })
-    : "—";
+    : "Not set";
 onMounted(fetchDocuments);
 </script>
 
 <template>
   <div class="management-page">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Global management · Field guide</p>
-        <h1 class="page-title">Command documents</h1>
-        <p class="page-subtitle">Maintain the public command reference for your permitted games.</p>
-      </div>
-      <Button label="Add document" icon="pi pi-plus" @click="openAddModal" />
-    </header>
+    <PageHeader
+      as="h1"
+      eyebrow="Administration / Documentation"
+      title="Command documentation"
+      subtitle="Create and maintain public command entries for permitted games."
+      icon="pi pi-book"
+      class="management-header"
+    >
+      <template #actions>
+        <Button label="Add document" icon="pi pi-plus" @click="openAddModal" />
+      </template>
+    </PageHeader>
     <Message v-if="errorMsg" severity="error" :closable="false">{{ errorMsg }}</Message>
 
-    <section class="catalog-panel" aria-labelledby="catalog-title">
+    <SurfaceCard compact class="catalog-panel" aria-labelledby="catalog-title">
       <div class="panel-heading">
         <div>
-          <span>CATALOG / 01</span>
           <h2 id="catalog-title">Documentation index</h2>
         </div>
         <strong>{{ filteredDocuments.length }} records</strong>
@@ -169,16 +175,18 @@ onMounted(fetchDocuments);
         size="small"
         class="management-table"
       >
-        <template #empty
-          ><div class="table-empty">
-            <i class="pi pi-book" aria-hidden="true"></i><strong>No documents found</strong
-            ><span>{{
+        <template #empty>
+          <EmptyState
+            class="table-empty"
+            icon="pi pi-book"
+            title="No documents found"
+            :description="
               documents.length
-                ? "Adjust the active filters."
-                : "Add the first command document to this catalog."
-            }}</span>
-          </div></template
-        >
+                ? 'Adjust the active filters.'
+                : 'Add the first command document to this catalog.'
+            "
+          />
+        </template>
         <Column field="name" header="Command"
           ><template #body="{ data }"
             ><strong class="command-name">/{{ data.name }}</strong></template
@@ -219,7 +227,7 @@ onMounted(fetchDocuments);
               /></div></template
         ></Column>
       </DataTable>
-    </section>
+    </SurfaceCard>
     <DocFormModal
       v-model:visible="showModal"
       :doc="selectedDoc"
@@ -235,30 +243,12 @@ onMounted(fetchDocuments);
   max-width: 86rem;
   margin: 0 auto;
 }
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-6);
+.management-header {
   margin-bottom: var(--space-8);
-}
-.eyebrow {
-  margin: 0 0 var(--space-2);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.page-title {
-  font-size: clamp(2.15rem, 4vw, 3.5rem);
-  font-weight: 500;
 }
 .catalog-panel {
   overflow: hidden;
-  border: 1px solid var(--border-primary);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-sm);
+  padding: 0;
 }
 .panel-heading {
   display: flex;
@@ -273,11 +263,6 @@ onMounted(fetchDocuments);
   display: flex;
   align-items: center;
   gap: var(--space-3);
-}
-.panel-heading span {
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
 }
 .panel-heading h2 {
   margin: 0;
@@ -351,22 +336,9 @@ onMounted(fetchDocuments);
   justify-content: flex-end;
 }
 .table-empty {
-  display: flex;
   min-height: 14rem;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  color: var(--text-muted);
-}
-.table-empty i {
-  color: var(--accent);
-  font-size: var(--text-2xl);
-}
-.table-empty strong {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
+  border: 0;
+  border-radius: 0;
 }
 .sr-only {
   position: absolute;
@@ -376,11 +348,7 @@ onMounted(fetchDocuments);
   clip: rect(0, 0, 0, 0);
 }
 @media (max-width: 640px) {
-  .page-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .page-header :deep(.p-button) {
+  .management-header :deep(.page-header-actions .p-button) {
     width: 100%;
   }
   .filters-row {

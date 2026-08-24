@@ -7,24 +7,21 @@ import StepItem from "primevue/stepitem";
 import StepPanel from "primevue/steppanel";
 import Stepper from "primevue/stepper";
 import { RouterLink } from "vue-router";
+import PageHeader from "../../ui/PageHeader.vue";
+import SectionRule from "../../ui/SectionRule.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
 </script>
 
 <template>
   <div class="gs">
-    <div class="gs-hero">
-      <div class="gs-hero-icon">
-        <i class="pi pi-book"></i>
-      </div>
-      <div>
-        <h2 class="gs-title">Getting Started</h2>
-        <p class="gs-sub">
-          Learn how to install and use Mehrak in your Discord server or user profile.
-        </p>
-      </div>
-    </div>
+    <PageHeader
+      icon="pi pi-book"
+      title="Getting Started"
+      subtitle="Install Mehrak, connect a profile, and run your first Discord command."
+    />
 
     <!-- Server Install -->
-    <section class="gs-card">
+    <SurfaceCard>
       <div class="gs-card-head">
         <div class="gs-step-num">1</div>
         <div>
@@ -91,10 +88,10 @@ import { RouterLink } from "vue-router";
           </StepPanel>
         </StepItem>
       </Stepper>
-    </section>
+    </SurfaceCard>
 
     <!-- User Profile Install -->
-    <section class="gs-card">
+    <SurfaceCard>
       <div class="gs-card-head">
         <div class="gs-step-num">2</div>
         <div>
@@ -141,10 +138,10 @@ import { RouterLink } from "vue-router";
           </StepPanel>
         </StepItem>
       </Stepper>
-    </section>
+    </SurfaceCard>
 
     <!-- Using Commands -->
-    <section class="gs-card">
+    <SurfaceCard>
       <div class="gs-card-head">
         <div class="gs-step-num">
           <i class="pi pi-hashtag"></i>
@@ -158,10 +155,10 @@ import { RouterLink } from "vue-router";
         After successful installation, you can access the command list by typing
         <code class="gs-code-inline">/</code> in supported text channels.
       </p>
-    </section>
+    </SurfaceCard>
 
     <!-- Adding a Profile -->
-    <section id="adding-a-profile" class="gs-card">
+    <SurfaceCard id="adding-a-profile">
       <div class="gs-card-head">
         <div class="gs-step-num">
           <i class="pi pi-user"></i>
@@ -195,7 +192,7 @@ import { RouterLink } from "vue-router";
         perform on desktop.
       </Message>
 
-      <div class="gs-divider"></div>
+      <SectionRule class="gs-divider" />
 
       <!-- HoYoLAB UID -->
       <h4 class="gs-section-title">HoYoLAB UID</h4>
@@ -275,7 +272,7 @@ import { RouterLink } from "vue-router";
         </StepItem>
       </Stepper>
 
-      <div class="gs-divider"></div>
+      <SectionRule class="gs-divider" />
 
       <!-- HoYoLAB Cookies -->
       <h4 class="gs-section-title">HoYoLAB Cookies</h4>
@@ -408,7 +405,7 @@ import { RouterLink } from "vue-router";
         </StepItem>
       </Stepper>
 
-      <div class="gs-divider"></div>
+      <SectionRule class="gs-divider" />
 
       <!-- Passphrase -->
       <h4 class="gs-section-title">Passphrase</h4>
@@ -441,7 +438,7 @@ import { RouterLink } from "vue-router";
         cached for 5 minutes before active eviction, allowing additional commands without
         re-entering the passphrase.
       </p>
-    </section>
+    </SurfaceCard>
   </div>
 </template>
 
@@ -450,48 +447,6 @@ import { RouterLink } from "vue-router";
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.gs-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.gs-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.gs-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.gs-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.gs-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
 }
 
 .gs-card-head {
@@ -507,7 +462,7 @@ import { RouterLink } from "vue-router";
   display: grid;
   place-items: center;
   border-radius: 0.5rem;
-  background: rgba(34, 197, 94, 0.1);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -590,9 +545,7 @@ import { RouterLink } from "vue-router";
 }
 
 .gs-divider {
-  height: 1px;
-  background: var(--border-primary);
-  margin: 1.25rem 0;
+  margin: var(--space-5) 0;
 }
 
 .gs-section-title {
@@ -619,11 +572,22 @@ import { RouterLink } from "vue-router";
 .gs-step-btns {
   display: flex;
   gap: 0.5rem;
+  justify-content: flex-end;
   margin-top: 0.25rem;
 }
 
-.gs-step-btns :deep(.p-button) {
-  flex: 1;
+.gs-step :deep(.p-button) {
+  align-self: flex-end;
+  width: fit-content;
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.gs-step :deep(.p-button:hover) {
+  border-color: var(--accent);
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .gs-figure {
@@ -663,8 +627,9 @@ import { RouterLink } from "vue-router";
 
 .gs-tip {
   padding: 1rem 1.25rem;
-  background: rgba(34, 197, 94, 0.05);
-  border: 1px solid rgba(34, 197, 94, 0.15);
+  background: var(--card-surface);
+  border: 1px solid var(--border-secondary);
+  border-left: 3px solid var(--accent);
   border-radius: 0.5rem;
   margin: 0 0 0.75rem 0;
 }

@@ -74,4 +74,23 @@ describe("router beforeEnter game validator", () => {
       "game-weapon-icon-management",
     );
   });
+
+  it("requireSuperAdmin blocks non-admins from user and release-note management", () => {
+    const route = { meta: { requireSuperAdmin: true } };
+
+    expect(canAccessRoute(route, null)).toBe(false);
+    expect(canAccessRoute(route, { isSuperAdmin: false, gameWritePermissions: ["Genshin"] })).toBe(
+      false,
+    );
+    expect(canAccessRoute(route, { isSuperAdmin: true })).toBe(true);
+  });
+
+  it("requireAnyPermission requires any write permission or super admin", () => {
+    const route = { meta: { requireAnyPermission: true } };
+
+    expect(canAccessRoute(route, null)).toBe(false);
+    expect(canAccessRoute(route, { gameWritePermissions: [] })).toBe(false);
+    expect(canAccessRoute(route, { gameWritePermissions: ["Genshin"] })).toBe(true);
+    expect(canAccessRoute(route, { isSuperAdmin: true })).toBe(true);
+  });
 });
