@@ -3,11 +3,16 @@ import { useToast } from "primevue/usetoast";
 const MISSING_BACKEND_URL =
   "VITE_APP_BACKEND_URL is not defined. Check your environment variables.";
 
-const buildError = (message, status) => {
-  const err = new Error(message);
-  err.status = status;
-  return err;
-};
+/**
+ * @typedef {Error & {
+ *   status?: number,
+ *   _redirected?: boolean,
+ *   data?: unknown
+ * }} ApiError
+ */
+
+/** @returns {ApiError} */
+const buildError = (message, status) => Object.assign(new Error(message), { status });
 
 const standaloneApiFetch = async (path, options = {}) => {
   const { skipAuthRedirect, ...fetchOptions } = options;

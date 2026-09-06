@@ -1,4 +1,5 @@
 import { renderPortrait } from "./renderPortrait.js";
+import { getCanvasColor } from "./color.js";
 
 export default {
   width: 1200,
@@ -9,7 +10,7 @@ export default {
     const cw = canvas.width;
     const ch = canvas.height;
     ctx.clearRect(0, 0, cw, ch);
-    ctx.fillStyle = "SlateGray";
+    ctx.fillStyle = getCanvasColor("--preview-genshin-base");
     ctx.fillRect(0, 0, cw, ch);
     ctx.globalCompositeOperation = "overlay";
     ctx.drawImage(background, 0, 0, cw, ch);
@@ -17,7 +18,7 @@ export default {
 
     renderPortrait(ctx, { portrait, x, y, w, h, flipX, fadeX, fadeWidth });
 
-    ctx.fillStyle = "DarkSlateGray";
+    ctx.fillStyle = getCanvasColor("--preview-genshin-detail");
     for (let i = 0; i < 3; i++) {
       ctx.beginPath();
       ctx.arc(120, 900 - i * 150, 60, 0, Math.PI * 2);

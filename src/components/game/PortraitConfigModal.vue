@@ -8,6 +8,7 @@ import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
 import UserPortraitUploadModal from "./UserPortraitUploadModal.vue";
 import { previewConfigs } from "../../configs/gamePreviews/index.js";
+import { resolveCanvasColor } from "../../configs/gamePreviews/color.js";
 import { renderPortrait } from "../../configs/gamePreviews/renderPortrait.js";
 import { useApi } from "../../composables/useApi";
 import { useGameViewInject } from "../../composables/game/injectKey";
@@ -26,6 +27,7 @@ const portraitLoaded = ref(false);
 let renderRaf = 0;
 let portraitLoadToken = 0;
 const pendingUserRender = ref(false);
+const inactivePending = ref(false);
 
 const activeModalTab = ref("default");
 
@@ -42,6 +44,9 @@ const dragStartX = ref(0);
 const dragStartY = ref(0);
 const dragStartOffsetX = ref(0);
 const dragStartOffsetY = ref(0);
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 5;
+const ZOOM_STEP = 0.1;
 
 const revokePortraitBlob = () => {
   if (portraitBlobUrl.value) {
@@ -277,15 +282,42 @@ const onCanvasPointerMove = (e) => {
 };
 
 const onCanvasPointerUp = (e) => {
-  canvasRef.value?.releasePointerCapture(e.pointerId);
+  if (canvasRef.value?.hasPointerCapture(e.pointerId)) {
+    canvasRef.value.releasePointerCapture(e.pointerId);
+  }
   isDragging.value = false;
 };
+
+const setZoom = (value) => {
+  zoomLevel.value = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value));
+};
+
+const zoomIn = () => setZoom(zoomLevel.value + ZOOM_STEP);
+const zoomOut = () => setZoom(zoomLevel.value - ZOOM_STEP);
 
 const onCanvasWheel = (e) => {
   if (gv.userPortraitsLoading) return;
   e.preventDefault();
-  const factor = e.deltaY > 0 ? 0.9 : 1.1;
-  zoomLevel.value = Math.max(0.1, Math.min(5, zoomLevel.value * factor));
+  setZoom(zoomLevel.value * (e.deltaY > 0 ? 0.9 : 1.1));
+};
+
+const onCanvasKeydown = (event) => {
+  if (gv.userPortraitsLoading) return;
+  const panStep = 10;
+  const actions = {
+    ArrowLeft: () => (localOffsetX.value -= panStep),
+    ArrowRight: () => (localOffsetX.value += panStep),
+    ArrowUp: () => (localOffsetY.value -= panStep),
+    ArrowDown: () => (localOffsetY.value += panStep),
+    "+": zoomIn,
+    "=": zoomIn,
+    "-": zoomOut,
+    0: resetToDefault,
+  };
+  const action = actions[event.key];
+  if (!action) return;
+  event.preventDefault();
+  action();
 };
 
 const resetToDefault = () => {
@@ -468,6 +500,7 @@ watch(
       }
     }
   },
+  { immediate: true },
 );
 
 const drawBackgroundOnly = () => {
@@ -480,7 +513,7 @@ const drawBackgroundOnly = () => {
   } else {
     const pc = previewConfig.value;
     if (pc?.bgColor) {
-      ctx.fillStyle = pc.bgColor;
+      ctx.fillStyle = resolveCanvasColor(pc.bgColor);
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   }
@@ -530,13 +563,22 @@ const onSetActiveUserPortrait = async () => {
 };
 
 const onSetInactiveUserPortrait = async () => {
-  if (gv.userPortraitsLoading || !gv.userPortraitId) return;
+  if (inactivePending.value || gv.userPortraitsLoading || !gv.userPortraitId) return;
+  inactivePending.value = true;
   try {
-    await apiFetch(`/user-portraits/${gv.userPortraitId}/inactive`, { method: "PATCH" });
+    const response = await apiFetch(`/user-portraits/${gv.userPortraitId}/inactive`, {
+      method: "PATCH",
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to set portrait inactive");
+    }
     await gv.fetchUserPortraits(gv.portraitConfigCharacter);
     showSuccessToast("Portrait set inactive");
   } catch (error) {
-    handleApiError(error);
+    if (!handleApiError(error)) showErrorToast(error.message || "Failed to set portrait inactive");
+  } finally {
+    inactivePending.value = false;
   }
 };
 const isSaveDisabled = computed(() => {
@@ -726,7 +768,8 @@ onUnmounted(() => {
                   severity="warn"
                   outlined
                   class="shrink-0"
-                  :disabled="gv.userPortraitsLoading || !gv.userPortraitId"
+                  :loading="inactivePending"
+                  :disabled="inactivePending || gv.userPortraitsLoading || !gv.userPortraitId"
                   @click="onSetInactiveUserPortrait"
                   aria-label="Set selected portrait inactive"
                 />
@@ -808,25 +851,47 @@ onUnmounted(() => {
               ref="canvasRef"
               class="max-w-full max-h-full object-contain touch-none"
               :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
+              tabindex="0"
+              aria-label="Portrait preview. Use arrow keys to move, plus and minus to zoom, and zero to reset."
               @pointerdown="onCanvasPointerDown"
               @pointermove="onCanvasPointerMove"
               @pointerup="onCanvasPointerUp"
               @pointercancel="onCanvasPointerUp"
+              @lostpointercapture="isDragging = false"
+              @keydown="onCanvasKeydown"
               @wheel="onCanvasWheel"
             />
           </div>
-          <div class="flex items-center gap-2">
+          <div class="zoom-controls" aria-label="Portrait zoom controls">
+            <Button
+              type="button"
+              icon="pi pi-minus"
+              severity="secondary"
+              outlined
+              aria-label="Zoom out"
+              :disabled="gv.userPortraitsLoading || zoomLevel <= MIN_ZOOM"
+              @click="zoomOut"
+            />
+            <span class="zoom-value" aria-live="polite">{{ Math.round(zoomLevel * 100) }}%</span>
+            <Button
+              type="button"
+              icon="pi pi-plus"
+              severity="secondary"
+              outlined
+              aria-label="Zoom in"
+              :disabled="gv.userPortraitsLoading || zoomLevel >= MAX_ZOOM"
+              @click="zoomIn"
+            />
             <Button
               type="button"
               label="Reset"
               icon="pi pi-refresh"
               severity="secondary"
-              size="small"
               outlined
               :disabled="gv.userPortraitsLoading"
               @click="resetToDefault"
             />
-            <span class="text-xs text-(--text-muted)">Drag to move, scroll to zoom</span>
+            <span class="text-sm text-(--text-muted)">Drag or use arrow keys to move.</span>
           </div>
           <div v-if="portraitError" class="text-center text-sm text-(--danger) italic">
             Portrait image not available
@@ -865,6 +930,19 @@ onUnmounted(() => {
   background: var(--bg-surface-sunken);
 }
 
+.zoom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.zoom-value {
+  min-width: 4rem;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  text-align: center;
+}
 @media (max-width: 768px) {
   :deep(.portrait-config-dialog .p-dialog) {
     width: calc(100vw - 1rem) !important;

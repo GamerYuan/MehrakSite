@@ -1,30 +1,44 @@
 <script setup>
 defineProps({
-  eyebrow: { type: String, required: true },
+  eyebrow: { type: String, default: "" },
   title: { type: String, required: true },
-  summary: { type: String, required: true },
+  summary: { type: String, default: "" },
   filed: { type: String, required: true },
   updated: { type: String, required: true },
   sections: { type: Array, required: true },
 });
-</script>
 
+const sectionId = (section) =>
+  typeof section === "object" && section !== null && "id" in section ? String(section.id) : "";
+const sectionLabel = (section) =>
+  typeof section === "object" && section !== null && "label" in section
+    ? String(section.label)
+    : "";
+</script>
 <template>
   <article class="legal-page">
     <header class="legal-header">
-      <p class="legal-eyebrow">{{ eyebrow }}</p>
+      <p v-if="eyebrow" class="legal-eyebrow">{{ eyebrow }}</p>
       <h1>{{ title }}</h1>
-      <p class="legal-summary">{{ summary }}</p>
+      <p v-if="summary" class="legal-summary">{{ summary }}</p>
     </header>
     <div class="legal-filed">
       <span>{{ filed }}</span>
     </div>
     <div class="legal-grid">
+      <details class="legal-mobile-toc">
+        <summary>On this page</summary>
+        <nav aria-label="On this page">
+          <a v-for="section in sections" :key="sectionId(section)" :href="`#${sectionId(section)}`">
+            {{ sectionLabel(section) }}
+          </a>
+        </nav>
+      </details>
       <aside class="legal-toc">
         <nav aria-label="On this page">
           <p>On this page</p>
-          <a v-for="section in sections" :key="section.id" :href="`#${section.id}`">
-            {{ section.label }}
+          <a v-for="section in sections" :key="sectionId(section)" :href="`#${sectionId(section)}`">
+            {{ sectionLabel(section) }}
           </a>
         </nav>
       </aside>
@@ -128,9 +142,12 @@ defineProps({
 }
 
 .legal-toc a {
-  padding: var(--space-1) 0;
+  display: flex;
+  min-height: var(--control-size);
+  padding: var(--space-2) 0;
+  align-items: center;
   color: var(--text-muted);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   line-height: var(--leading-snug);
   text-decoration: none;
 }
@@ -175,22 +192,50 @@ defineProps({
   color: var(--accent-strong);
 }
 
+.legal-mobile-toc {
+  display: none;
+}
+
+.legal-mobile-toc summary {
+  min-height: var(--control-size);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.legal-mobile-toc nav {
+  display: grid;
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-raised);
+}
+
+.legal-mobile-toc a {
+  display: flex;
+  min-height: var(--control-size);
+  padding: 0 var(--space-3);
+  align-items: center;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 52rem) {
   .legal-header,
   .legal-grid {
     grid-template-columns: 1fr;
   }
+
   .legal-toc {
-    position: static;
+    display: none;
   }
-  .legal-toc nav {
-    display: grid;
-    max-height: none;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow: visible;
-  }
-  .legal-toc p {
-    grid-column: 1 / -1;
+
+  .legal-mobile-toc {
+    display: block;
   }
 }
 

@@ -1,4 +1,5 @@
 import { renderPortrait } from "./renderPortrait.js";
+import { getCanvasColor } from "./color.js";
 
 export default {
   width: 800,
@@ -13,7 +14,7 @@ export default {
 
     renderPortrait(ctx, { portrait, x, y, w, h, flipX, fadeX, fadeWidth });
 
-    ctx.fillStyle = "rgba(47, 87, 126, 0.769)";
+    ctx.fillStyle = getCanvasColor("--preview-hi3-panel");
     ctx.beginPath();
     ctx.roundRect(720, 30, 600, 700, 15);
     ctx.fill();

@@ -1,4 +1,10 @@
-import router, { canAccessRoute, validateGameParam } from "./index";
+import router, {
+  applyRouteMetadata,
+  canAccessRoute,
+  defaultMetadata,
+  publicMetadata,
+  validateGameParam,
+} from "./index";
 
 describe("router beforeEnter game validator", () => {
   it("accepts valid route keys", () => {
@@ -92,5 +98,39 @@ describe("router beforeEnter game validator", () => {
     expect(canAccessRoute(route, { gameWritePermissions: [] })).toBe(false);
     expect(canAccessRoute(route, { gameWritePermissions: ["Genshin"] })).toBe(true);
     expect(canAccessRoute(route, { isSuperAdmin: true })).toBe(true);
+  });
+});
+
+describe("public route metadata", () => {
+  beforeEach(() => {
+    document.head.innerHTML = `
+      <meta name="description">
+      <meta property="og:title">
+      <meta property="og:description">
+      <meta name="twitter:title">
+      <meta name="twitter:description">
+    `;
+  });
+
+  it.each(["home", "docs", "privacy", "terms"])("applies unique %s metadata", (routeName) => {
+    applyRouteMetadata(publicMetadata[routeName]);
+
+    expect(document.title).toBe(publicMetadata[routeName].title);
+    expect(document.head.querySelector('meta[name="description"]').content).toBe(
+      publicMetadata[routeName].description,
+    );
+    expect(document.head.querySelector('meta[property="og:title"]').content).toBe(
+      publicMetadata[routeName].title,
+    );
+    expect(document.head.querySelectorAll('meta[name="description"]')).toHaveLength(1);
+  });
+
+  it("resets unrelated routes to neutral fallback metadata", () => {
+    applyRouteMetadata({ requireAuth: true });
+
+    expect(document.title).toBe(defaultMetadata.title);
+    expect(document.head.querySelector('meta[name="twitter:description"]').content).toBe(
+      defaultMetadata.description,
+    );
   });
 });

@@ -40,9 +40,11 @@ import SurfaceCard from "../../ui/SurfaceCard.vue";
           <div>
             <h5 class="feature-title">Security</h5>
             <p class="feature-desc">
-              Mehrak is one of the only few HoYoverse games Discord bots that offers zero-knowledge
-              encryption and security for your cookies information. Your information is safe with
-              us.
+              Mehrak uses passphrase-based encryption for HoYoLAB tokens stored by the service. The
+              service receives your token and passphrase during profile registration and updates.
+              When you authenticate, it receives your passphrase, decrypts the stored token, and
+              uses it to request data from HoYoLAB. This is not zero-knowledge: transport protection
+              and encryption at rest address different risks.
             </p>
           </div>
         </div>

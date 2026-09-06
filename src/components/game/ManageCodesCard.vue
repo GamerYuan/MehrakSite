@@ -5,7 +5,7 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
 import { useGameViewInject } from "../../composables/game/injectKey";
-import EmptyState from "../ui/EmptyState.vue";
+import AdminCollectionState from "../ui/AdminCollectionState.vue";
 import StatusPill from "../ui/StatusPill.vue";
 
 const gv = useGameViewInject();
@@ -60,38 +60,41 @@ const gv = useGameViewInject();
           />
         </div>
 
-        <DataTable
-          v-model:selection="gv.selectedCodes"
-          :value="gv.filteredCodes"
-          dataKey="code"
-          paginator
-          :rows="10"
-          responsiveLayout="scroll"
-          class="management-table"
+        <AdminCollectionState
+          :loading="gv.codesLoading && !gv.filteredCodes.length"
+          :empty="!gv.filteredCodes.length && !gv.codesSearchQuery"
+          :filtered="!gv.filteredCodes.length && Boolean(gv.codesSearchQuery)"
+          loading-label="Loading codes…"
+          empty-title="No codes available"
+          @retry="gv.fetchCodes"
+          @clear="gv.codesSearchQuery = ''"
         >
-          <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-          <Column field="code" header="Code" sortable></Column>
-          <Column style="width: 3rem">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                rounded
-                aria-label="Delete code"
-                @click="gv.confirmDeleteCodes([slotProps.data.code])"
-                :loading="gv.codesLoading"
-              />
-            </template>
-          </Column>
-          <template #empty>
-            <EmptyState
-              icon="pi pi-ticket"
-              title="No codes found"
-              description="Add a code or adjust the search."
-            />
-          </template>
-        </DataTable>
+          <DataTable
+            v-model:selection="gv.selectedCodes"
+            :value="gv.filteredCodes"
+            dataKey="code"
+            paginator
+            :rows="10"
+            responsiveLayout="scroll"
+            class="management-table"
+          >
+            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column field="code" header="Code" sortable></Column>
+            <Column style="width: 3rem">
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  rounded
+                  aria-label="Delete code"
+                  @click="gv.confirmDeleteCodes([slotProps.data.code])"
+                  :loading="gv.codesLoading"
+                />
+              </template>
+            </Column>
+          </DataTable>
+        </AdminCollectionState>
       </div>
     </template>
   </Card>

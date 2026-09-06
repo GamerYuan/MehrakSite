@@ -9,6 +9,47 @@ import {
 import { fetchUser, getAuthStatus, getUser } from "../composables/useAuth";
 import { gameConfigs } from "../configs/gameConfigs";
 
+const defaultMetadata = {
+  title: "MehrakBot — Discord command cards for HoYoverse games",
+  description:
+    "Create build cards, roster summaries, and endgame records from documented MehrakBot Discord commands.",
+};
+
+const publicMetadata = {
+  home: defaultMetadata,
+  docs: {
+    title: "MehrakBot Documentation — Installation, commands, and credentials",
+    description:
+      "Install MehrakBot, choose a Discord workflow, browse commands, and review HoYoLAB credential guidance.",
+  },
+  privacy: {
+    title: "Privacy Policy — MehrakBot",
+    description: "Read how MehrakBot collects, uses, stores, protects, and deletes account data.",
+  },
+  terms: {
+    title: "Terms of Service — MehrakBot",
+    description: "Read the terms governing access to and use of MehrakBot services.",
+  },
+};
+
+function applyRouteMetadata(meta = {}) {
+  const metadata = meta.title && meta.description ? meta : defaultMetadata;
+  document.title = metadata.title;
+
+  const values = {
+    'meta[name="description"]': metadata.description,
+    'meta[property="og:title"]': metadata.title,
+    'meta[property="og:description"]': metadata.description,
+    'meta[name="twitter:title"]': metadata.title,
+    'meta[name="twitter:description"]': metadata.description,
+  };
+
+  for (const [selector, content] of Object.entries(values)) {
+    const element = document.head.querySelector(selector);
+    if (element) element.setAttribute("content", content);
+  }
+}
+
 const validGameKeys = new Set(Object.keys(gameConfigs));
 
 function validateGameParam(game) {
@@ -66,21 +107,25 @@ const router = createRouter({
           path: "",
           name: "home",
           component: () => import("../views/HomeView.vue"),
+          meta: publicMetadata.home,
         },
         {
           path: "docs",
           name: "docs",
           component: () => import("../views/DocsView.vue"),
+          meta: publicMetadata.docs,
         },
         {
           path: "privacy",
           name: "privacy",
           component: () => import("../views/PrivacyPolicyView.vue"),
+          meta: publicMetadata.privacy,
         },
         {
           path: "terms",
           name: "terms",
           component: () => import("../views/TermsOfServiceView.vue"),
+          meta: publicMetadata.terms,
         },
       ],
     },
@@ -204,5 +249,16 @@ router.beforeEach(async (to) => {
   if (!canAccessRoute(to, user)) return { name: "dashboard-home" };
 });
 
-export { canAccessRoute, isProtectedRoute, validateGameParam };
+router.afterEach((to) => {
+  applyRouteMetadata(to.meta);
+});
+
+export {
+  applyRouteMetadata,
+  canAccessRoute,
+  defaultMetadata,
+  isProtectedRoute,
+  publicMetadata,
+  validateGameParam,
+};
 export default router;

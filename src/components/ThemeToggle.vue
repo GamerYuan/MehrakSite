@@ -24,17 +24,21 @@ const tooltip = computed(() => `Switch to ${theme.value === "dark" ? "light" : "
 <style scoped>
 .theme-toggle {
   display: flex;
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
   border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 1rem;
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard);
 }
 
 .theme-toggle:hover {

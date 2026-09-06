@@ -55,22 +55,43 @@ const appendixTabs = [
 
 const validTabs = new Set(navItems.map(({ key }) => key));
 const validAppendixTabs = new Set(appendixTabs.map(({ key }) => key));
+const validJourneys = new Set(["server", "personal"]);
 const activeTab = ref("getting-started");
 const appendixTab = ref("about");
+const activeJourney = ref("server");
 const selectedDoc = ref(null);
 const showDetailModal = ref(false);
 const loadingDetail = ref(false);
 const detailError = ref("");
 const mobileNavOpen = ref(false);
 const activeNavItem = computed(() => navItems.find(({ key }) => key === activeTab.value));
+const queryString = (value) => {
+  if (Array.isArray(value)) return value[0];
+  return typeof value === "string" ? value : undefined;
+};
 
 watch(
-  [() => route.query.tab, () => route.query.section],
-  ([tab, section]) => {
+  [
+    () => queryString(route.query.tab),
+    () => queryString(route.query.section),
+    () => queryString(route.query.journey),
+    () => queryString(route.query.search),
+  ],
+  ([tab, section, journey, search]) => {
     activeTab.value = validTabs.has(tab) ? tab : "getting-started";
     appendixTab.value = validAppendixTabs.has(section) ? section : "about";
+    activeJourney.value = validJourneys.has(journey) ? journey : "server";
+    searchQuery.value = typeof search === "string" ? search : "";
     showDetailModal.value = false;
     mobileNavOpen.value = false;
+
+    if (journey && !validJourneys.has(journey)) {
+      router.replace({
+        name: "docs",
+        query: { ...route.query, journey: undefined },
+        hash: route.hash,
+      });
+    }
   },
   { immediate: true },
 );
@@ -90,16 +111,48 @@ const handleDocClick = async (doc) => {
 };
 
 const handleTabChange = (tab) => {
-  if (!validTabs.has(tab)) return;
+  if (typeof tab !== "string" || !validTabs.has(tab)) return;
   mobileNavOpen.value = false;
-  const query = tab === "appendix" ? { tab, section: appendixTab.value } : { tab };
-  router.push({ name: "docs", query });
+  router.push({
+    name: "docs",
+    query: {
+      ...route.query,
+      tab,
+      section: tab === "appendix" ? appendixTab.value : undefined,
+    },
+    hash: route.hash,
+  });
 };
 
 const handleAppendixChange = (section) => {
-  if (!validAppendixTabs.has(section)) return;
-  router.push({ name: "docs", query: { tab: "appendix", section } });
+  if (typeof section !== "string" || !validAppendixTabs.has(section)) return;
+  router.push({
+    name: "docs",
+    query: { ...route.query, tab: "appendix", section },
+    hash: route.hash,
+  });
 };
+
+const handleJourneyChange = (journey) => {
+  if (typeof journey !== "string" || !validJourneys.has(journey)) return;
+  router.push({
+    name: "docs",
+    query: { ...route.query, tab: "getting-started", journey },
+    hash: route.hash,
+  });
+};
+
+const handleSearchChange = (value) => {
+  if (typeof value !== "string") return;
+  searchQuery.value = value;
+  router.replace({
+    name: "docs",
+    query: { ...route.query, tab: "commands", search: value.trim() || undefined },
+    hash: route.hash,
+  });
+};
+
+const clearCommandSearch = () => handleSearchChange("");
 </script>
 
 <template>
@@ -165,7 +218,11 @@ const handleAppendixChange = (section) => {
       </aside>
 
       <div class="docs-content">
-        <GettingStartedTab v-if="activeTab === 'getting-started'" />
+        <GettingStartedTab
+          v-if="activeTab === 'getting-started'"
+          :journey="activeJourney"
+          @update:journey="handleJourneyChange"
+        />
 
         <section v-else-if="activeTab === 'commands'" class="commands-view">
           <PageHeader
@@ -176,7 +233,7 @@ const handleAppendixChange = (section) => {
           <DocSearchBar
             :searchQuery="searchQuery"
             :selectedGames="selectedGames"
-            @update:searchQuery="searchQuery = $event"
+            @update:searchQuery="handleSearchChange"
             @toggleGame="toggleGame"
             @selectAllGames="selectAllGames"
           />
@@ -193,9 +250,31 @@ const handleAppendixChange = (section) => {
           <EmptyState
             v-else-if="Object.keys(groupedDocuments).length === 0"
             icon="pi pi-search"
-            title="No commands found"
-            description="Try another name or restore all game filters."
-          />
+            :title="searchQuery ? `No command matches “${searchQuery}”` : 'No commands available'"
+            :description="
+              searchQuery
+                ? 'This command link may be stale or malformed. Clear it to return to the full index.'
+                : 'Restore all game filters or try again later.'
+            "
+          >
+            <div class="empty-actions">
+              <button
+                v-if="searchQuery"
+                type="button"
+                class="recovery-action"
+                @click="clearCommandSearch"
+              >
+                Show all commands
+              </button>
+              <button
+                type="button"
+                class="recovery-action"
+                @click="handleTabChange('getting-started')"
+              >
+                Open Getting Started
+              </button>
+            </div>
+          </EmptyState>
 
           <div v-else class="game-groups">
             <section v-for="(docs, game) in groupedDocuments" :key="game" class="game-group">
@@ -207,12 +286,7 @@ const handleAppendixChange = (section) => {
                 >
               </header>
               <div class="card-grid">
-                <DocCard
-                  v-for="doc in docs"
-                  :key="doc.id"
-                  :doc="doc"
-                  @click="handleDocClick"
-                />
+                <DocCard v-for="doc in docs" :key="doc.id" :doc="doc" @click="handleDocClick" />
               </div>
             </section>
           </div>
@@ -377,21 +451,26 @@ const handleAppendixChange = (section) => {
 }
 
 .game-groups {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  margin-top: var(--space-10);
+  display: grid;
+  margin-top: var(--space-8);
+  gap: var(--space-8);
 }
 
 .game-group {
   min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .game-group-head {
   display: flex;
-  gap: var(--space-3);
+  min-height: var(--control-size);
+  margin-bottom: var(--space-5);
   align-items: center;
-  margin-bottom: var(--space-4);
+  gap: var(--space-3);
 }
 
 .game-group-head > :nth-child(2) {
@@ -401,15 +480,13 @@ const handleAppendixChange = (section) => {
 .game-count {
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--text-sm);
 }
 
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .appendix-tabs :deep(.p-tablist) {
@@ -433,6 +510,30 @@ const handleAppendixChange = (section) => {
   min-width: 0;
   padding: var(--space-8) 0 0;
   background: transparent;
+}
+
+.empty-actions {
+  display: flex;
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.recovery-action {
+  min-height: var(--control-size);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.recovery-action:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
 @media (max-width: 64rem) {
@@ -528,6 +629,10 @@ const handleAppendixChange = (section) => {
 
   .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .game-group {
+    padding: var(--space-4);
   }
 }
 </style>

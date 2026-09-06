@@ -8,16 +8,20 @@ import { useGameViewInject } from "../../composables/game/injectKey";
 const gv = useGameViewInject();
 
 const handleVisibleUpdate = (value) => {
-  gv.showAuthModal = value;
-  if (!value) {
-    gv.authPassphrase = "";
-  }
+  if (value) gv.showAuthModal = true;
+  else gv.closeAuthModal();
+};
+
+const handleHide = () => {
+  if (!gv.showAuthModal) gv.clearAuthForm();
 };
 </script>
 
 <template>
   <Dialog
-    v-model:visible="gv.showAuthModal"
+    :visible="gv.showAuthModal"
+    @update:visible="handleVisibleUpdate"
+    @hide="handleHide"
     modal
     header="Profile Authentication Required"
     :style="{ width: 'min(25rem, calc(100vw - 2rem))' }"
@@ -67,7 +71,6 @@ const handleVisibleUpdate = (value) => {
   padding: 0.75rem;
   color: var(--text-secondary);
   background: var(--bg-surface-raised);
-  border-left: 3px solid var(--brass);
   border-radius: var(--radius-sm);
 }
 </style>

@@ -6,7 +6,7 @@ import { useAuth } from "../composables/useAuth";
 import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 
 const route = useRoute();
-const { user, fetchUser, login, logout } = useAuth();
+const { user, loading, fetchUser, login, logout } = useAuth();
 const navRef = ref(null);
 const menuButtonRef = ref(null);
 const accountButtonRef = ref(null);
@@ -36,15 +36,23 @@ function observeFeatures() {
   }
   const target = document.getElementById("features");
   if (!target) return;
-  featuresObserver = new IntersectionObserver(([entry]) => (featuresVisible.value = entry.isIntersecting), {
-    rootMargin: "-30% 0px -60% 0px",
-  });
+  featuresObserver = new IntersectionObserver(
+    ([entry]) => (featuresVisible.value = entry.isIntersecting),
+    {
+      rootMargin: "-30% 0px -60% 0px",
+    },
+  );
   featuresObserver.observe(target);
 }
 
 function closeMenus() {
   mobileMenuOpen.value = false;
   accountOpen.value = false;
+}
+
+function handleLogout() {
+  closeMenus();
+  void logout();
 }
 
 async function toggleMobileMenu() {
@@ -79,7 +87,7 @@ watch(
 onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
   document.addEventListener("click", handleOutsideClick);
-  fetchUser();
+  void fetchUser();
   observeFeatures();
 });
 
@@ -134,9 +142,20 @@ onUnmounted(() => {
           </button>
           <div v-show="accountOpen" id="account-menu" class="account-menu">
             <RouterLink to="/dashboard">Open dashboard</RouterLink>
-            <button type="button" @click="logout">Log out</button>
+            <button type="button" @click="handleLogout">Log out</button>
           </div>
         </div>
+        <button
+          v-else-if="loading"
+          type="button"
+          class="login-button login-button--loading"
+          aria-label="Checking authentication"
+          aria-busy="true"
+          disabled
+        >
+          <span>Log in</span>
+          <i class="pi pi-spin pi-spinner login-spinner" aria-hidden="true"></i>
+        </button>
         <button v-else type="button" class="login-button" @click="login">Log in</button>
 
         <button
@@ -163,8 +182,17 @@ onUnmounted(() => {
       <a :href="discordInviteUrl" target="_blank" rel="noopener noreferrer">
         Invite bot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
       </a>
-      <RouterLink v-if="user" to="/dashboard">Dashboard</RouterLink>
-      <button v-if="user" type="button" @click="logout">Log out</button>
+      <button v-if="user" type="button" @click="handleLogout">Log out</button>
+      <button
+        v-else-if="loading"
+        type="button"
+        class="mobile-login-loading"
+        aria-busy="true"
+        disabled
+      >
+        <span>Checking authentication</span>
+        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      </button>
       <button v-else type="button" @click="login">Log in with Discord</button>
     </div>
   </header>
@@ -194,6 +222,7 @@ onUnmounted(() => {
 .brand {
   display: inline-flex;
   min-width: 0;
+  min-height: var(--control-size);
   align-items: center;
   gap: var(--space-3);
   color: var(--text-primary);
@@ -231,15 +260,14 @@ onUnmounted(() => {
 .nav-link {
   position: relative;
   display: inline-flex;
-  padding: var(--space-2) 0;
+  min-height: var(--control-size);
+  padding: var(--space-2);
   align-items: center;
   gap: var(--space-1);
   color: var(--text-secondary);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 600;
-  letter-spacing: 0.08em;
   text-decoration: none;
-  text-transform: uppercase;
 }
 
 .nav-link:hover,
@@ -271,7 +299,7 @@ onUnmounted(() => {
 .invite-link,
 .login-button,
 .account-trigger {
-  min-height: 2.5rem;
+  min-height: var(--control-size);
   border: 1px solid var(--border-secondary);
   border-radius: var(--radius-sm);
   font-weight: 600;
@@ -309,6 +337,28 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
+.login-button--loading {
+  position: relative;
+  min-width: 5.25rem;
+  opacity: 0.8;
+}
+
+.login-button--loading span {
+  opacity: 0.45;
+}
+
+.login-spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.mobile-login-loading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .login-button:hover,
 .account-trigger:hover {
   border-color: var(--accent);
@@ -355,7 +405,10 @@ onUnmounted(() => {
 
 .account-menu a,
 .account-menu button {
+  display: flex;
+  min-height: var(--control-size);
   padding: var(--space-3);
+  align-items: center;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -371,9 +424,9 @@ onUnmounted(() => {
 
 .menu-button {
   display: none;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0.55rem;
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
   border: 1px solid var(--border-secondary);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);

@@ -4,7 +4,7 @@ import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
-import Message from "primevue/message";
+import AdminCollectionState from "../ui/AdminCollectionState.vue";
 import { computed } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 
@@ -62,7 +62,6 @@ const formatStat = (value) => {
             :loading="gv.manageLoading"
           />
         </div>
-        <Message v-if="gv.manageError" severity="error">{{ gv.manageError }}</Message>
         <div class="filter-row">
           <label for="character-search" class="sr-only">Search characters</label>
           <InputText
@@ -83,60 +82,71 @@ const formatStat = (value) => {
             <label for="missing-ascension-filter">Missing ascension only</label>
           </div>
         </div>
-        <div class="character-list">
-          <div v-for="item in listItems" :key="item.name" class="character-row">
-            <div class="character-name">
-              <strong>{{ item.name }}</strong>
-              <div
-                v-if="
-                  !personalPortraits && gv.config.hasStatEdit && gv.canManageCapability('stats')
-                "
-                class="stat-readout"
-              >
-                <span>Base: {{ formatStat(item.baseVal) }}</span>
-                <span>Max Asc: {{ formatStat(item.maxAscVal) }}</span>
+        <AdminCollectionState
+          :loading="gv.manageLoading && !listItems.length"
+          :error="gv.manageError || ''"
+          :empty="!listItems.length && !gv.manageSearchQuery"
+          :filtered="!listItems.length && Boolean(gv.manageSearchQuery)"
+          loading-label="Loading characters…"
+          empty-title="No characters available"
+          @retry="gv.fetchCharacters"
+          @clear="gv.manageSearchQuery = ''"
+        >
+          <div class="character-list">
+            <div v-for="item in listItems" :key="item.name" class="character-row">
+              <div class="character-name">
+                <strong>{{ item.name }}</strong>
+                <div
+                  v-if="
+                    !personalPortraits && gv.config.hasStatEdit && gv.canManageCapability('stats')
+                  "
+                  class="stat-readout"
+                >
+                  <span>Base: {{ formatStat(item.baseVal) }}</span>
+                  <span>Max Asc: {{ formatStat(item.maxAscVal) }}</span>
+                </div>
+              </div>
+              <div class="row-actions">
+                <Button
+                  v-if="
+                    !personalPortraits && gv.config.hasStatEdit && gv.canManageCapability('stats')
+                  "
+                  icon="pi pi-pencil"
+                  severity="info"
+                  text
+                  @click="gv.openEditStatModal(item.name)"
+                  :loading="gv.manageLoading"
+                  aria-label="Edit character stats"
+                />
+                <Button
+                  v-if="personalPortraits || gv.canManageCapability('portraits')"
+                  icon="pi pi-image"
+                  severity="info"
+                  text
+                  :aria-label="
+                    personalPortraits ? 'Manage my portraits' : 'Edit portrait configuration'
+                  "
+                  :title="personalPortraits ? 'Manage my portraits' : 'Edit portrait configuration'"
+                  @click="
+                    personalPortraits
+                      ? gv.openUserPortraitConfigModal(item.name)
+                      : gv.openPortraitConfigModal(item.name)
+                  "
+                  :loading="gv.manageLoading"
+                />
+                <Button
+                  v-if="!personalPortraits && gv.canManageCapability('characters')"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  @click="gv.deleteCharacter(item.name)"
+                  :loading="gv.manageLoading"
+                  aria-label="Delete character"
+                />
               </div>
             </div>
-            <div class="row-actions">
-              <Button
-                v-if="
-                  !personalPortraits && gv.config.hasStatEdit && gv.canManageCapability('stats')
-                "
-                icon="pi pi-pencil"
-                severity="info"
-                text
-                @click="gv.openEditStatModal(item.name)"
-                :loading="gv.manageLoading"
-                aria-label="Edit character stats"
-              />
-              <Button
-                v-if="personalPortraits || gv.canManageCapability('portraits')"
-                icon="pi pi-image"
-                severity="info"
-                text
-                :aria-label="
-                  personalPortraits ? 'Manage my portraits' : 'Edit portrait configuration'
-                "
-                :title="personalPortraits ? 'Manage my portraits' : 'Edit portrait configuration'"
-                @click="
-                  personalPortraits
-                    ? gv.openUserPortraitConfigModal(item.name)
-                    : gv.openPortraitConfigModal(item.name)
-                "
-                :loading="gv.manageLoading"
-              />
-              <Button
-                v-if="!personalPortraits && gv.canManageCapability('characters')"
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                @click="gv.deleteCharacter(item.name)"
-                :loading="gv.manageLoading"
-                aria-label="Delete character"
-              />
-            </div>
           </div>
-        </div>
+        </AdminCollectionState>
       </div>
     </template>
   </Card>

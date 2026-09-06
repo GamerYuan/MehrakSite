@@ -30,6 +30,12 @@ npm run format     # oxfmt on src/
 
 See `.env.example` for required environment variables.
 
+## Runtime requirements
+
+Use Node.js 24 LTS or a newer supported release. The required version range is declared in `package.json`; CI uses the Node.js 24 release line.
+
+Cloudflare's Vite plugin and Wrangler currently pin Miniflare 5 alpha transitively for local preview. It is intentionally kept in the lockfile rather than added as a direct application dependency.
+
 ## License
 
 GPL-3.0 — see [LICENSE.txt](LICENSE.txt)

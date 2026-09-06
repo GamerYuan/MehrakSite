@@ -17,6 +17,11 @@ const gameFilters = Object.entries(gameMeta).map(([key, meta]) => ({
 
 const isGameSelected = (game) => props.selectedGames.includes(game);
 const allSelected = computed(() => props.selectedGames.length === gameFilters.length);
+const handleSearchInput = (event) => {
+  if (event.target instanceof globalThis.HTMLInputElement) {
+    emit("update:searchQuery", event.target.value);
+  }
+};
 </script>
 
 <template>
@@ -28,7 +33,7 @@ const allSelected = computed(() => props.selectedGames.length === gameFilters.le
         id="command-search"
         type="text"
         :value="searchQuery"
-        @input="emit('update:searchQuery', $event.target.value)"
+        @input="handleSearchInput"
         placeholder="Try “build”, “profile”, or “abyss”…"
         class="search-input"
         autocomplete="off"

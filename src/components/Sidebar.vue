@@ -2,15 +2,12 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import ThemeToggle from "./ThemeToggle.vue";
-import {
-  gameMeta,
-  hasAnyGamePermission,
-  isSuperAdminUser,
-} from "../configs/gameMeta";
+import { gameMeta, hasAnyGamePermission, isSuperAdminUser } from "../configs/gameMeta";
+import { isDashboardDestinationActive, resolveActiveGameKey } from "../configs/dashboardNavigation";
 import { useAuth } from "../composables/useAuth";
 
 const route = useRoute();
-const { logout } = useAuth();
+const { logout, logoutStatus } = useAuth();
 const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
 const closeButton = ref(null);
 const isMobile = ref(false);
@@ -20,8 +17,9 @@ const updateMobile = () => (isMobile.value = mediaQuery.matches);
 const props = defineProps({
   userInfo: { type: Object, required: true },
   modelValue: { type: Boolean, default: false },
+  collapsed: { type: Boolean, default: false },
 });
-const emit = defineEmits(["update:modelValue", "close"]);
+const emit = defineEmits(["update:modelValue", "update:collapsed", "close"]);
 
 const games = Object.values(gameMeta).filter(
   (game) => game.routeKey && game.capabilities?.commands,
@@ -29,13 +27,20 @@ const games = Object.values(gameMeta).filter(
 
 const isSuperAdmin = computed(() => isSuperAdminUser(props.userInfo));
 const hasGlobalManagement = computed(() => hasAnyGamePermission(props.userInfo));
+const validGameKeys = new Set(games.map((game) => game.routeKey));
+const activeGameKey = computed(() => resolveActiveGameKey(route, validGameKeys));
 
 const close = (restoreFocus = false) => {
   const wasOpen = props.modelValue;
   emit("update:modelValue", false);
   if (restoreFocus && wasOpen) emit("close");
 };
-const isActive = (path) => route.path === path;
+const isActive = (name) => isDashboardDestinationActive(route, name);
+const isGameActive = (routeKey) => activeGameKey.value === routeKey;
+const toggleCollapsed = () => emit("update:collapsed", !props.collapsed);
+const handleLogout = () => {
+  void logout();
+};
 const focusCloseButton = () => closeButton.value?.focus();
 const getFocusableElements = () =>
   [
@@ -70,7 +75,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   <aside
     id="dashboard-sidebar"
     class="sidebar"
-    :class="{ 'sidebar--open': modelValue }"
+    :class="{ 'sidebar--open': modelValue, 'sidebar--collapsed': collapsed && !isMobile }"
     aria-label="Dashboard navigation"
     :aria-hidden="isMobile && !modelValue ? 'true' : undefined"
     :inert="isMobile && !modelValue"
@@ -80,6 +85,15 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
         <img src="/logo.webp" alt="" class="brand-mark" />
         <span><strong>MehrakBot</strong><small>Dashboard</small></span>
       </a>
+      <button
+        type="button"
+        class="sidebar-collapse"
+        :aria-label="collapsed ? 'Expand dashboard navigation' : 'Collapse dashboard navigation'"
+        :aria-pressed="collapsed"
+        @click="toggleCollapsed"
+      >
+        <i :class="collapsed ? 'pi pi-angle-right' : 'pi pi-angle-left'" aria-hidden="true"></i>
+      </button>
       <button
         ref="closeButton"
         class="sidebar-close"
@@ -93,11 +107,13 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
 
     <nav class="sidebar-nav" aria-label="Dashboard">
       <section class="nav-group" aria-labelledby="nav-account">
-        <h2 id="nav-account">Account</h2>
+        <h2 id="nav-account">Overview</h2>
         <router-link
           to="/dashboard"
           class="nav-item"
-          :class="{ active: isActive('/dashboard') }"
+          :class="{ active: isActive('dashboard-home') }"
+          :aria-current="isActive('dashboard-home') ? 'page' : undefined"
+          aria-label="Overview"
           @click="close(true)"
         >
           <i class="pi pi-compass" aria-hidden="true"></i><span>Overview</span>
@@ -105,14 +121,16 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
       </section>
 
       <section class="nav-group" aria-labelledby="nav-commands">
-        <h2 id="nav-commands">Game commands</h2>
+        <h2 id="nav-commands">Games</h2>
         <router-link
           v-for="game in games"
           :key="game.id"
           :to="`/dashboard/${game.routeKey}`"
           class="nav-item game-item"
-          :class="{ active: isActive(`/dashboard/${game.routeKey}`) }"
+          :class="{ active: isGameActive(game.routeKey) }"
+          :aria-current="isGameActive(game.routeKey) ? 'page' : undefined"
           :style="game.gameColorStyle"
+          :aria-label="game.label"
           @click="close(true)"
         >
           <img :src="game.logo" :alt="`${game.label} logo`" />
@@ -121,12 +139,14 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
       </section>
 
       <section v-if="hasGlobalManagement" class="nav-group" aria-labelledby="nav-global-management">
-        <h2 id="nav-global-management">Global management</h2>
+        <h2 id="nav-global-management">Administration</h2>
         <router-link
           v-if="isSuperAdmin"
           to="/dashboard/users"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/users') }"
+          :class="{ active: isActive('user-management') }"
+          :aria-current="isActive('user-management') ? 'page' : undefined"
+          aria-label="Users"
           @click="close(true)"
         >
           <i class="pi pi-users" aria-hidden="true"></i><span>Users</span>
@@ -134,7 +154,9 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
         <router-link
           to="/dashboard/docs"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/docs') }"
+          :class="{ active: isActive('docs-management') }"
+          :aria-current="isActive('docs-management') ? 'page' : undefined"
+          aria-label="Documentation"
           @click="close(true)"
         >
           <i class="pi pi-book" aria-hidden="true"></i><span>Documentation</span>
@@ -143,27 +165,26 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
           v-if="isSuperAdmin"
           to="/dashboard/release-notes"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/release-notes') }"
+          :class="{ active: isActive('release-notes-management') }"
+          :aria-current="isActive('release-notes-management') ? 'page' : undefined"
+          aria-label="Release notes"
           @click="close(true)"
         >
           <i class="pi pi-megaphone" aria-hidden="true"></i><span>Release notes</span>
         </router-link>
-      </section>
-
-      <section v-if="isSuperAdmin" class="nav-group" aria-labelledby="nav-tools">
-        <h2 id="nav-tools">External tools</h2>
         <a
+          v-if="isSuperAdmin"
           :href="`${backendUrl}/admin/seaweed-filer/`"
           target="_blank"
           rel="noopener noreferrer"
           class="nav-item"
+          aria-label="Seaweed Filer"
           @click="close(true)"
         >
           <i class="pi pi-external-link" aria-hidden="true"></i><span>Seaweed Filer</span>
         </a>
       </section>
     </nav>
-
     <footer class="sidebar-footer">
       <div class="account-context">
         <img
@@ -177,8 +198,14 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
         >
         <ThemeToggle />
       </div>
-      <button type="button" class="logout-button" @click="logout">
-        <i class="pi pi-sign-out" aria-hidden="true"></i><span>End session</span>
+      <button
+        type="button"
+        class="logout-button"
+        :disabled="logoutStatus === 'pending'"
+        @click="handleLogout"
+      >
+        <i class="pi pi-sign-out" aria-hidden="true"></i
+        ><span>{{ logoutStatus === "pending" ? "Signing out…" : "Log out" }}</span>
       </button>
     </footer>
   </aside>
@@ -197,6 +224,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
 }
 .sidebar-header {
   display: flex;
+  min-height: var(--control-size);
   align-items: center;
   justify-content: space-between;
   padding: var(--space-5);
@@ -204,6 +232,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
 }
 .brand {
   display: flex;
+  min-height: var(--control-size);
   align-items: center;
   gap: var(--space-3);
   color: var(--text-primary);
@@ -232,10 +261,23 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.sidebar-collapse {
+  display: grid;
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
 .sidebar-close {
   display: none;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--control-size);
+  height: var(--control-size);
   place-items: center;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
@@ -265,7 +307,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: 2.5rem;
+  min-height: var(--control-size);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
@@ -299,9 +341,6 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   height: 1.4rem;
   border-radius: var(--radius-sm);
   object-fit: cover;
-}
-.game-item.active {
-  box-shadow: inset 3px 0 var(--game-color);
 }
 .sidebar-footer {
   padding: var(--space-4);
@@ -342,6 +381,81 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   color: var(--text-secondary);
   cursor: pointer;
 }
+
+.sidebar--collapsed {
+  width: 4.5rem;
+  overflow-x: hidden;
+}
+
+.sidebar--collapsed .sidebar-header {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar--collapsed .sidebar-footer {
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar--collapsed .brand {
+  width: var(--control-size);
+  justify-content: center;
+}
+
+.sidebar--collapsed .brand span,
+.sidebar--collapsed .nav-group h2,
+.sidebar--collapsed .nav-item > span,
+.sidebar--collapsed .account-context > span,
+.sidebar--collapsed .logout-button span {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-nav {
+  padding-inline: var(--space-2);
+}
+
+.sidebar--collapsed .nav-group + .nav-group {
+  margin-top: var(--space-3);
+}
+
+.sidebar--collapsed .nav-item {
+  width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
+  margin-inline: auto;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+
+.sidebar--collapsed .nav-item i {
+  width: auto;
+  font-size: var(--text-lg);
+}
+
+.sidebar--collapsed .nav-item.game-item img {
+  width: 2rem;
+  height: 2rem;
+}
+
+.sidebar--collapsed .account-context {
+  display: flex;
+  margin-bottom: var(--space-2);
+  justify-content: center;
+}
+
+.sidebar--collapsed .account-context > img {
+  display: none;
+}
+
+.sidebar--collapsed .logout-button {
+  width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
+  margin-inline: auto;
+  padding: 0;
+}
 .logout-button:hover {
   border-color: var(--danger);
   color: var(--danger);
@@ -373,6 +487,9 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   }
   .sidebar-close {
     display: grid;
+  }
+  .sidebar-collapse {
+    display: none;
   }
 }
 </style>

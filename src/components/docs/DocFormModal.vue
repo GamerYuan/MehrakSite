@@ -7,13 +7,15 @@ import Divider from "primevue/divider";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
-import { gameOptions } from "../../configs/gameMeta";
+import Message from "primevue/message";
+import { canManageGame, gameOptions } from "../../configs/gameMeta";
 
 const props = defineProps({
   visible: Boolean,
   doc: Object,
   isEditing: Boolean,
   userInfo: Object,
+  saving: Boolean,
 });
 
 const emit = defineEmits(["update:visible", "save"]);
@@ -42,6 +44,15 @@ const paramTypeOptions = [
   { label: "server", value: "server" },
 ];
 
+const authorizedGameOptions = computed(() =>
+  gameOptions.filter((option) => canManageGame(props.userInfo, option.value)),
+);
+const canSubmit = computed(
+  () =>
+    authorizedGameOptions.value.length > 0 &&
+    authorizedGameOptions.value.some((option) => option.value === form.value.game),
+);
+
 const resetForm = () => {
   form.value = {
     name: "",
@@ -68,6 +79,7 @@ watch(
         };
       } else {
         resetForm();
+        form.value.game = authorizedGameOptions.value[0]?.value || "";
       }
     }
   },
@@ -99,9 +111,8 @@ const removeExample = (index) => {
 };
 
 const handleSubmit = () => {
-  if (!form.value.name.trim() || !form.value.description.trim()) {
-    return;
-  }
+  if (props.saving || !canSubmit.value) return;
+  if (!form.value.name.trim() || !form.value.description.trim()) return;
   emit("save", { ...form.value });
 };
 
@@ -109,10 +120,7 @@ const handleClose = () => {
   emit("update:visible", false);
 };
 
-const canEditGame = computed(() => {
-  if (props.userInfo?.isSuperAdmin) return true;
-  return false;
-});
+const canEditGame = computed(() => canSubmit.value);
 </script>
 
 <template>
@@ -147,10 +155,14 @@ const canEditGame = computed(() => {
 
         <div class="flex flex-col gap-2">
           <label for="doc-game" class="font-semibold text-[var(--text-primary)]">Game</label>
+          <Message v-if="!authorizedGameOptions.length" severity="warn" :closable="false">
+            You do not have permission to manage documentation for any game.
+          </Message>
           <Select
+            v-else
             inputId="doc-game"
             v-model="form.game"
-            :options="gameOptions"
+            :options="authorizedGameOptions"
             optionLabel="label"
             optionValue="value"
             :disabled="isEditing && !canEditGame"
@@ -285,11 +297,18 @@ const canEditGame = computed(() => {
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
-        <Button type="button" label="Cancel" severity="secondary" @click="handleClose" />
+        <Button
+          type="button"
+          label="Cancel"
+          severity="secondary"
+          :disabled="saving"
+          @click="handleClose"
+        />
         <Button
           type="submit"
-          :label="isEditing ? 'Update' : 'Create'"
-          :disabled="!form.name.trim() || !form.description.trim()"
+          :label="saving ? 'Saving…' : isEditing ? 'Update' : 'Create'"
+          :loading="saving"
+          :disabled="saving || !canSubmit || !form.name.trim() || !form.description.trim()"
         />
       </div>
     </form>

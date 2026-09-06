@@ -6,8 +6,9 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
-import Message from "primevue/message";
 import { useConfirm } from "primevue/useconfirm";
+import AdminActions from "../components/ui/AdminActions.vue";
+import AdminCollectionState from "../components/ui/AdminCollectionState.vue";
 import EmptyState from "../components/ui/EmptyState.vue";
 import PageHeader from "../components/ui/PageHeader.vue";
 import StatusPill from "../components/ui/StatusPill.vue";
@@ -28,6 +29,13 @@ const filterPermissions = ref([]);
 const showAddModal = ref(false);
 const showUpdateModal = ref(false);
 const selectedUser = ref(null);
+const expandedUsers = ref(new Set());
+const toggleUserDetails = (id) => {
+  const next = new Set(expandedUsers.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  expandedUsers.value = next;
+};
 const errorMsg = ref("");
 const emptyPermissions = () =>
   Object.fromEntries(availablePermissions.map((permission) => [permission, false]));
@@ -39,14 +47,35 @@ const formData = ref({
 });
 const isRootUser = (user) => Boolean(user?.isRootUser);
 const formatPermission = (permission) => permissionLabels[permission] || permission;
+const accountStatusLabel = (user) => {
+  if (user?.isActive === true) return "Active";
+  if (user?.isActive === false) return "Inactive";
+  return "Unknown";
+};
+const accountStatusTone = (user) => {
+  if (user?.isActive === true) return "success";
+  if (user?.isActive === false) return "danger";
+  return "warn";
+};
 
 const fetchUsers = async () => {
   loading.value = true;
   errorMsg.value = "";
   try {
     const { ok, data, status } = await apiFetchJson("/users/list");
-    if (ok) users.value = data.map(normalizeUser);
-    else {
+    if (ok) {
+      const previousStatuses = new Map(
+        users.value.map((user) => [user.discordUserId, user.isActive]),
+      );
+      users.value = data.map(normalizeUser).map((user) => {
+        // The current API omits activation state. Keep a known local value through a
+        // Permission refresh instead of turning an inactive account into an active one.
+        user.isActive ??= previousStatuses.has(user.discordUserId)
+          ? previousStatuses.get(user.discordUserId)
+          : null;
+        return user;
+      });
+    } else {
       errorMsg.value = "Failed to fetch users";
       showErrorToast(data.error || errorMsg.value, status);
     }
@@ -106,7 +135,7 @@ const openUpdateModal = (user) => {
   formData.value = {
     discordUserId: user.discordUserId || "",
     isSuperAdmin: user.isSuperAdmin,
-    isActive: user.isActive ?? true,
+    isActive: user.isActive,
     permissions: Object.fromEntries(
       availablePermissions.map((permission) => [permission, granted.has(permission)]),
     ),
@@ -127,6 +156,7 @@ const normalizedDiscordId = () => {
 };
 
 const handleAddUser = async () => {
+  if (saving.value) return;
   const discordUserId = normalizedDiscordId();
   if (!discordUserId) return;
   saving.value = true;
@@ -155,6 +185,7 @@ const handleAddUser = async () => {
 };
 
 const handleUpdateUser = async () => {
+  if (saving.value) return;
   if (isRootUser(selectedUser.value)) return blockRootAction();
   const discordUserId = normalizedDiscordId();
   if (!discordUserId) return;
@@ -166,7 +197,6 @@ const handleUpdateUser = async () => {
       body: JSON.stringify({
         discordUserId,
         isSuperAdmin: formData.value.isSuperAdmin,
-        isActive: formData.value.isActive,
         gameWritePermissions: selectedPermissions(),
       }),
     });
@@ -185,17 +215,21 @@ const handleUpdateUser = async () => {
 };
 
 const handleDeleteUser = async (user) => {
+  if (saving.value) return;
   if (isRootUser(user)) return blockRootAction();
+  saving.value = true;
   try {
     const response = await apiFetch(`/users/${user.discordUserId}`, { method: "DELETE" });
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       throw new Error(data.error || "Failed to delete user");
     }
     await fetchUsers();
     showSuccessToast("User deleted successfully");
   } catch (error) {
     handleApiError(error);
+  } finally {
+    saving.value = false;
   }
 };
 const confirmDelete = (user) => {
@@ -226,7 +260,7 @@ onMounted(fetchUsers);
         <Button label="Add user" icon="pi pi-plus" @click="openAddModal" />
       </template>
     </PageHeader>
-    <Message v-if="errorMsg" severity="error" :closable="false">{{ errorMsg }}</Message>
+    <AdminCollectionState v-if="errorMsg" :error="errorMsg" @retry="fetchUsers" />
 
     <SurfaceCard compact class="filter-panel" aria-labelledby="filters-title">
       <div class="panel-heading">
@@ -308,6 +342,13 @@ onMounted(fetchUsers);
             ><StatusPill v-else>User</StatusPill></template
           ></Column
         >
+        <Column header="Status" style="width: 7rem"
+          ><template #body="{ data }"
+            ><StatusPill :tone="accountStatusTone(data)">
+              {{ accountStatusLabel(data) }}
+            </StatusPill></template
+          ></Column
+        >
         <Column header="Game permissions"
           ><template #body="{ data }"
             ><div v-if="data.gameWritePermissions?.length" class="tag-list">
@@ -343,6 +384,63 @@ onMounted(fetchUsers);
               /></div></template
         ></Column>
       </DataTable>
+      <div class="mobile-records" aria-label="User records">
+        <article v-for="user in filteredUsers" :key="user.discordUserId" class="mobile-record-card">
+          <header>
+            <div>
+              <strong class="mono-text">{{ user.discordUserId }}</strong>
+              <StatusPill v-if="user.isRootUser" tone="danger">Root user</StatusPill>
+              <StatusPill v-else-if="user.isSuperAdmin" tone="success">Super admin</StatusPill>
+              <StatusPill v-else>User</StatusPill>
+              <StatusPill :tone="accountStatusTone(user)">
+                {{ accountStatusLabel(user) }}
+              </StatusPill>
+            </div>
+            <Button
+              text
+              severity="secondary"
+              :label="expandedUsers.has(user.discordUserId) ? 'Hide details' : 'Show details'"
+              :aria-expanded="expandedUsers.has(user.discordUserId)"
+              :aria-controls="`user-details-${user.discordUserId}`"
+              @click="toggleUserDetails(user.discordUserId)"
+            />
+          </header>
+          <div
+            v-show="expandedUsers.has(user.discordUserId)"
+            :id="`user-details-${user.discordUserId}`"
+            class="record-details"
+          >
+            <div class="tag-list">
+              <StatusPill
+                v-for="permission in user.gameWritePermissions || []"
+                :key="permission"
+                tone="info"
+              >
+                {{ formatPermission(permission) }}
+              </StatusPill>
+              <span v-if="!user.gameWritePermissions?.length">No game permissions</span>
+            </div>
+            <AdminActions :pending="saving" label="User actions">
+              <Button
+                label="Edit"
+                icon="pi pi-pencil"
+                severity="secondary"
+                :disabled="saving || user.isRootUser"
+                @click="openUpdateModal(user)"
+              />
+              <template #destructive>
+                <Button
+                  label="Delete"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  :disabled="saving || user.isRootUser"
+                  @click="confirmDelete(user)"
+                />
+              </template>
+            </AdminActions>
+          </div>
+        </article>
+      </div>
     </SurfaceCard>
 
     <Dialog v-model:visible="showAddModal" modal header="Add user" :style="{ width: '28rem' }"
@@ -557,6 +655,39 @@ onMounted(fetchUsers);
   border: 0;
   border-radius: 0;
 }
+.mobile-records {
+  display: none;
+}
+
+.mobile-record-card {
+  padding: var(--space-4);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+}
+
+.mobile-record-card > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.mobile-record-card > header > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.record-details {
+  display: grid;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  gap: var(--space-4);
+  border-top: 1px solid var(--divider);
+}
+
 .management-form {
   display: flex;
   flex-direction: column;
@@ -609,6 +740,13 @@ fieldset legend {
   }
   .panel-heading small {
     display: none;
+  }
+  .management-table {
+    display: none;
+  }
+  .mobile-records {
+    display: grid;
+    gap: var(--space-3);
   }
 }
 </style>

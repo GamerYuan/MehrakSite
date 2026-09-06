@@ -4,14 +4,16 @@ import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
-import Message from "primevue/message";
 import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
+import AdminActions from "../components/ui/AdminActions.vue";
+import AdminCollectionState from "../components/ui/AdminCollectionState.vue";
+import AdminFilterBar from "../components/ui/AdminFilterBar.vue";
+import AdminPanel from "../components/ui/AdminPanel.vue";
 import DocFormModal from "../components/docs/DocFormModal.vue";
 import GameTag from "../components/docs/GameTag.vue";
 import EmptyState from "../components/ui/EmptyState.vue";
 import PageHeader from "../components/ui/PageHeader.vue";
-import SurfaceCard from "../components/ui/SurfaceCard.vue";
 import { canManageGame, gameFilterOptions } from "../configs/gameMeta";
 import { useApi } from "../composables/useApi";
 
@@ -26,6 +28,14 @@ const errorMsg = ref("");
 const showModal = ref(false);
 const selectedDoc = ref(null);
 const isEditing = ref(false);
+const saving = ref(false);
+const expandedDocs = ref(new Set());
+const toggleDocDetails = (id) => {
+  const next = new Set(expandedDocs.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  expandedDocs.value = next;
+};
 const hasGameWriteAccess = (game) => canManageGame(props.userInfo, game);
 
 const fetchDocuments = async () => {
@@ -95,8 +105,10 @@ const confirmDelete = (doc) => {
   });
 };
 const handleSave = async (formData) => {
+  if (saving.value) return;
   if (!isEditing.value && !hasGameWriteAccess(formData.game))
     return showErrorToast("You do not have permission to create documentation for this game.");
+  saving.value = true;
   try {
     const response = await apiFetch(
       isEditing.value ? `/docs/${selectedDoc.value.id}` : "/docs/add",
@@ -107,7 +119,7 @@ const handleSave = async (formData) => {
       },
     );
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       throw new Error(data.error || "Failed to save documentation");
     }
     showModal.value = false;
@@ -116,7 +128,9 @@ const handleSave = async (formData) => {
       isEditing.value ? "Documentation updated successfully" : "Documentation created successfully",
     );
   } catch (error) {
-    handleApiError(error);
+    if (!handleApiError(error)) showErrorToast(error.message || "Failed to save documentation");
+  } finally {
+    saving.value = false;
   }
 };
 const formatDate = (date) =>
@@ -144,30 +158,41 @@ onMounted(fetchDocuments);
         <Button label="Add document" icon="pi pi-plus" @click="openAddModal" />
       </template>
     </PageHeader>
-    <Message v-if="errorMsg" severity="error" :closable="false">{{ errorMsg }}</Message>
+    <AdminCollectionState v-if="errorMsg" :error="errorMsg" @retry="fetchDocuments" />
 
-    <SurfaceCard compact class="catalog-panel" aria-labelledby="catalog-title">
-      <div class="panel-heading">
-        <div>
-          <h2 id="catalog-title">Documentation index</h2>
-        </div>
-        <strong>{{ filteredDocuments.length }} records</strong>
-      </div>
-      <div class="filters-row">
-        <label class="search-field"
-          ><span class="sr-only">Search documents by name</span
-          ><i class="pi pi-search" aria-hidden="true"></i
-          ><InputText v-model="searchQuery" placeholder="Search command name" fluid
-        /></label>
-        <Select
-          v-model="filterGame"
-          :options="gameFilterOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Filter by game"
-          class="game-filter"
-        />
-      </div>
+    <AdminPanel
+      id="catalog-title"
+      title="Documentation index"
+      :count="`${filteredDocuments.length} records`"
+    >
+      <template #filters>
+        <AdminFilterBar
+          :summary="
+            filterGame !== 'All' || searchQuery ? 'Filters active' : 'Showing all documents'
+          "
+          :clearable="filterGame !== 'All' || Boolean(searchQuery)"
+          @clear="
+            () => {
+              searchQuery = '';
+              filterGame = 'All';
+            }
+          "
+        >
+          <label class="search-field"
+            ><span class="sr-only">Search documents by name</span
+            ><i class="pi pi-search" aria-hidden="true"></i
+            ><InputText v-model="searchQuery" placeholder="Search command name" fluid
+          /></label>
+          <Select
+            v-model="filterGame"
+            :options="gameFilterOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Filter by game"
+            class="game-filter"
+          />
+        </AdminFilterBar>
+      </template>
       <DataTable
         :value="filteredDocuments"
         :loading="loading"
@@ -227,12 +252,53 @@ onMounted(fetchDocuments);
               /></div></template
         ></Column>
       </DataTable>
-    </SurfaceCard>
+    </AdminPanel>
+    <div class="mobile-records" aria-label="Documentation records">
+      <article v-for="doc in filteredDocuments" :key="doc.id" class="mobile-record-card">
+        <header>
+          <div>
+            <strong class="command-name">/{{ doc.name }}</strong>
+            <GameTag :game="doc.game" size="small" />
+          </div>
+          <Button
+            text
+            severity="secondary"
+            :label="expandedDocs.has(doc.id) ? 'Hide details' : 'Show details'"
+            :aria-expanded="expandedDocs.has(doc.id)"
+            :aria-controls="`doc-details-${doc.id}`"
+            @click="toggleDocDetails(doc.id)"
+          />
+        </header>
+        <div v-show="expandedDocs.has(doc.id)" :id="`doc-details-${doc.id}`" class="record-details">
+          <p>{{ doc.description }}</p>
+          <time>Updated {{ formatDate(doc.updatedAt) }}</time>
+          <AdminActions :pending="saving" label="Document actions">
+            <Button
+              label="Edit"
+              icon="pi pi-pencil"
+              severity="secondary"
+              :disabled="saving || !hasGameWriteAccess(doc.game)"
+              @click="openEditModal(doc)"
+            />
+            <template #destructive>
+              <Button
+                label="Delete"
+                icon="pi pi-trash"
+                severity="danger"
+                :disabled="saving || !hasGameWriteAccess(doc.game)"
+                @click="confirmDelete(doc)"
+              />
+            </template>
+          </AdminActions>
+        </div>
+      </article>
+    </div>
     <DocFormModal
       v-model:visible="showModal"
       :doc="selectedDoc"
       :isEditing="isEditing"
       :userInfo="userInfo"
+      :saving="saving"
       @save="handleSave"
     />
   </div>
@@ -347,6 +413,48 @@ onMounted(fetchDocuments);
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
 }
+.mobile-records {
+  display: none;
+}
+
+.mobile-record-card {
+  padding: var(--space-4);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+}
+
+.mobile-record-card > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.mobile-record-card > header > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.record-details {
+  display: grid;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  gap: var(--space-3);
+  border-top: 1px solid var(--divider);
+  color: var(--text-secondary);
+}
+
+.record-details p {
+  margin: 0;
+}
+
+.record-details time {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
 @media (max-width: 640px) {
   .management-header :deep(.page-header-actions .p-button) {
     width: 100%;
@@ -356,6 +464,14 @@ onMounted(fetchDocuments);
   }
   .panel-heading strong {
     display: none;
+  }
+  .management-table {
+    display: none;
+  }
+  .mobile-records {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
   }
 }
 </style>

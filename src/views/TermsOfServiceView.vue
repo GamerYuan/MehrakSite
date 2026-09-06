@@ -24,9 +24,7 @@ const sections = [
 
 <template>
   <LegalLayout
-    eyebrow="Legal · Terms / 02"
     title="Terms of Service"
-    summary="The terms that govern access to and use of Mehrak."
     filed="Effective June 11, 2025"
     updated="June 11, 2025"
     :sections="sections"
@@ -150,10 +148,13 @@ const sections = [
 
     <h3>9.3 Security</h3>
     <p>
-      Although we implement security practices to protect user data, including zero-knowledge
-      encryption for HoYoverse cookies, we do not claim responsibility for security breaches
-      affecting individual user accounts. Users are responsible for maintaining the security of
-      their own HoYoverse accounts.
+      Although we implement security practices to protect user data, the service receives HoYoLAB
+      tokens and passphrases during profile registration and updates. During authentication, it
+      receives the passphrase, decrypts the stored token, and may temporarily cache it so the
+      service can retrieve data from HoYoLAB. Transport protection and at-rest encryption address
+      different risks; this is not a zero-knowledge design. We do not claim responsibility for
+      security breaches affecting individual user accounts. Users are responsible for maintaining
+      the security of their own HoYoverse accounts.
     </p>
 
     <h3>9.4 Game-Related Consequences</h3>

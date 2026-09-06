@@ -7,7 +7,7 @@ const props = defineProps({
   size: {
     type: String,
     default: "normal",
-    validator: (value) => ["small", "normal"].includes(value),
+    validator: (value) => typeof value === "string" && ["small", "normal"].includes(value),
   },
   full: Boolean,
 });

@@ -10,8 +10,9 @@ import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
-import EmptyState from "../components/ui/EmptyState.vue";
-import PageHeader from "../components/ui/PageHeader.vue";
+import AdminActions from "../components/ui/AdminActions.vue";
+import AdminCollectionState from "../components/ui/AdminCollectionState.vue";
+import AdminPageShell from "../components/ui/AdminPageShell.vue";
 import StatusPill from "../components/ui/StatusPill.vue";
 import SurfaceCard from "../components/ui/SurfaceCard.vue";
 import { useReleaseNotes } from "../composables/useReleaseNotes";
@@ -83,6 +84,7 @@ const removeNote = (sectionIndex, noteIndex) =>
   form.value.sections[sectionIndex].notes.splice(noteIndex, 1);
 const warn = (detail) => toast.add({ severity: "warn", summary: "Validation", detail, life: 3000 });
 const handleSave = async () => {
+  if (saving.value) return;
   if (!form.value.version.trim()) return warn("Version is required");
   const payload = {
     version: form.value.version.trim(),
@@ -126,89 +128,89 @@ onMounted(loadReleases);
 </script>
 
 <template>
-  <div class="management-page">
-    <PageHeader
-      as="h1"
-      eyebrow="Administration / Releases"
-      title="Release notes"
-      subtitle="Publish the version history shown in public documentation."
-      icon="pi pi-megaphone"
-      class="management-header"
+  <AdminPageShell
+    eyebrow="Administration / Releases"
+    title="Release notes"
+    description="Publish the version history shown in public documentation."
+    icon="pi pi-megaphone"
+  >
+    <template #actions>
+      <Button icon="pi pi-plus" label="Add version" @click="openAddModal" />
+    </template>
+    <AdminCollectionState
+      :loading="loading"
+      :error="error || ''"
+      :empty="!sortedReleases.length"
+      loading-label="Loading release history…"
+      empty-title="No releases published"
+      empty-description="Create the first version to begin the public change log."
+      @retry="loadReleases"
     >
-      <template #actions>
-        <Button icon="pi pi-plus" label="Add version" @click="openAddModal" />
+      <template #empty-actions>
+        <Button label="Add first version" icon="pi pi-plus" text @click="openAddModal" />
       </template>
-    </PageHeader>
-    <SurfaceCard v-if="loading" class="state-panel" role="status">
-      <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" /><span
-        >Loading release history...</span
-      >
-    </SurfaceCard>
-    <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
-    <EmptyState
-      v-else-if="!sortedReleases.length"
-      icon="pi pi-megaphone"
-      title="No releases published"
-      description="Create the first version to begin the public change log."
-    >
-      <Button label="Add first version" icon="pi pi-plus" text @click="openAddModal" />
-    </EmptyState>
 
-    <div v-else class="release-workspace">
-      <SurfaceCard as="aside" compact class="release-index" aria-labelledby="version-index-title">
-        <div class="panel-heading">
-          <h2 id="version-index-title">Versions</h2>
-        </div>
-        <nav aria-label="Release versions">
-          <a v-for="release in sortedReleases" :key="release.id" :href="`#release-${release.id}`"
-            ><strong>{{ release.version }}</strong
-            ><time v-if="release.date">{{ release.date }}</time></a
-          >
-        </nav>
-      </SurfaceCard>
-      <div class="release-list">
-        <SurfaceCard
-          v-for="release in sortedReleases"
-          :id="`release-${release.id}`"
-          :key="release.id"
-          as="article"
-          class="release-card"
-        >
-          <header>
-            <div>
-              <h2>{{ release.version }}</h2>
-              <time v-if="release.date">{{ release.date }}</time>
-            </div>
-            <div class="row-actions">
-              <Button
-                icon="pi pi-pencil"
-                severity="secondary"
-                text
-                rounded
-                aria-label="Edit release"
-                @click="openEditModal(release)"
-              /><Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                rounded
-                aria-label="Delete release"
-                @click="confirmDelete(release)"
-              />
-            </div>
-          </header>
-          <section v-for="section in release.sections" :key="section.name" class="note-section">
-            <h3>{{ section.name }}</h3>
-            <ul>
-              <li v-for="(note, noteIndex) in section.notes" :key="noteIndex">
-                <StatusPill :tone="noteTone(note.type)">{{ note.type }}</StatusPill
-                ><span>{{ note.text }}</span>
-              </li>
-            </ul>
-          </section>
+      <div class="release-workspace">
+        <SurfaceCard as="aside" compact class="release-index" aria-labelledby="version-index-title">
+          <div class="panel-heading">
+            <h2 id="version-index-title">Versions</h2>
+          </div>
+          <nav aria-label="Release versions">
+            <a v-for="release in sortedReleases" :key="release.id" :href="`#release-${release.id}`"
+              ><strong>{{ release.version }}</strong
+              ><time v-if="release.date">{{ release.date }}</time></a
+            >
+          </nav>
         </SurfaceCard>
+        <div class="release-list">
+          <SurfaceCard
+            v-for="release in sortedReleases"
+            :id="`release-${release.id}`"
+            :key="release.id"
+            as="article"
+            class="release-card"
+          >
+            <header>
+              <div>
+                <h2>{{ release.version }}</h2>
+                <time v-if="release.date">{{ release.date }}</time>
+              </div>
+              <AdminActions :pending="saving" label="Release actions">
+                <Button
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  text
+                  rounded
+                  aria-label="Edit release"
+                  :disabled="saving"
+                  @click="openEditModal(release)"
+                />
+                <template #destructive>
+                  <Button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    text
+                    rounded
+                    aria-label="Delete release"
+                    :disabled="saving"
+                    @click="confirmDelete(release)"
+                  />
+                </template>
+              </AdminActions>
+            </header>
+            <section v-for="section in release.sections" :key="section.name" class="note-section">
+              <h3>{{ section.name }}</h3>
+              <ul>
+                <li v-for="(note, noteIndex) in section.notes" :key="noteIndex">
+                  <StatusPill :tone="noteTone(note.type)">{{ note.type }}</StatusPill
+                  ><span>{{ note.text }}</span>
+                </li>
+              </ul>
+            </section>
+          </SurfaceCard>
+        </div>
       </div>
-    </div>
+    </AdminCollectionState>
 
     <Dialog
       v-model:visible="showModal"
@@ -313,7 +315,7 @@ onMounted(loadReleases);
         </div>
       </form>
     </Dialog>
-  </div>
+  </AdminPageShell>
 </template>
 
 <style scoped>

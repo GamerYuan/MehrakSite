@@ -19,9 +19,7 @@ const sections = [
 
 <template>
   <LegalLayout
-    eyebrow="Legal · Privacy / 01"
     title="Privacy Policy"
-    summary="How Mehrak collects, uses, stores, and protects information."
     filed="Effective April 22, 2026"
     updated="April 22, 2026"
     :sections="sections"
@@ -39,8 +37,11 @@ const sections = [
 
     <h2 id="information">2. Information We Collect</h2>
 
-    <h3>2.1 Automatically Collected Information</h3>
-    <p>When you interact with Mehrak, we automatically collect the following information:</p>
+    <h3>2.1 Information We Collect</h3>
+    <p>
+      When you interact with Mehrak, we collect the following information. Some of it is submitted
+      by you when you use profile or authentication features.
+    </p>
     <ul class="list-disc">
       <li>
         <strong>Discord User ID:</strong> Your unique Discord identifier for profile identification
@@ -53,26 +54,24 @@ const sections = [
         <strong>HoYoverse Game UIDs:</strong> Your game profile identifiers for HoYoverse games
       </li>
       <li>
-        <strong>HoYoverse Cookies:</strong> Authentication tokens to access HoYoverse public APIs on
-        your behalf. Your cookies are encrypted with the passphrase you provide and are never stored
-        in plaintext. Your cookies are decrypted only when necessary to retrieve your in-game
-        information and are never share with any other third parties or services. Your cookies might
-        be stored transiently in memory during active sessions for the purpose of querying HoYoverse
-        APIs, but they are never written to disk in an unencrypted form.
+        <strong>HoYoLAB Token:</strong> An authentication token used to access HoYoLAB APIs on your
+        behalf. The service receives this token during profile registration and updates, validates
+        it against HoYoLAB, and stores an encrypted form. When you authenticate, the service may
+        decrypt the token and hold it temporarily while requesting your game data from HoYoLAB.
       </li>
       <li>
-        <strong>Passphrase:</strong> A user-provided passphrase used for encrypting your HoYoverse
-        cookies. This passphrase is never stored and is used solely to generate encryption keys for
-        securing your cookies. This passphrase will be used to decrypt your cookies when you
-        interact with the bot, but it is not stored in our systems, ensuring that only you have
-        access to your authentication data.
+        <strong>Passphrase:</strong> A user-provided passphrase used to derive the key that encrypts
+        and decrypts your HoYoLAB token. The service receives the passphrase during profile
+        registration, profile updates, and profile authentication. This is not a zero-knowledge
+        design: the service must receive the passphrase to perform those operations.
       </li>
     </ul>
 
     <h3>2.2 How We Collect Information</h3>
     <p>
-      All information is collected automatically when you interact with the bot through Discord
-      commands and features.
+      We collect information when you use the bot or dashboard features, including when you submit
+      profile credentials. Credential values are sent to the service in request bodies for the
+      relevant workflow; they are not collected solely from browser cookies.
     </p>
 
     <h2 id="use">3. How We Use Your Information</h2>
@@ -91,18 +90,22 @@ const sections = [
         HoYoverse game profiles
       </li>
       <li>
-        <strong>HoYoverse Cookies:</strong> To authenticate and access HoYoverse public APIs to
-        query your in-game details
+        <strong>HoYoLAB Token:</strong> To authenticate requests to HoYoLAB APIs and retrieve your
+        in-game details
       </li>
       <li>
-        <strong>Passphrase:</strong> To generate encryption keys for securing your HoYoverse cookies
+        <strong>Passphrase:</strong> To derive the key used to encrypt or decrypt your HoYoLAB token
       </li>
     </ul>
 
     <h2 id="storage">4. Data Storage and Security</h2>
 
     <h3>4.1 Storage Location</h3>
-    <p>Your data is stored securely on our Hetzner VPS infrastructure located in Germany.</p>
+    <p>
+      The official service stores profile data on its hosted infrastructure in Germany. The storage
+      location does not change the credential boundary described below: the service receives the
+      token and passphrase during the workflows that need them.
+    </p>
 
     <h3>4.2 Data Retention</h3>
     <p>
@@ -111,34 +114,40 @@ const sections = [
     </p>
 
     <h3>4.3 Security Measures</h3>
-    <p>We implement robust security measures to protect your data:</p>
+    <p>We use multiple security layers to protect your data, with different limits:</p>
     <ul class="list-disc">
       <li>
-        <strong>Zero-Knowledge Encryption:</strong> Your HoYoverse cookies are encrypted using
-        AES-256 encryption
+        <strong>Encryption at rest:</strong> The backend encrypts the stored HoYoLAB token using an
+        AES-256-GCM key derived from your passphrase. This protects the stored value; it does not
+        prevent the service from decrypting the token during an authenticated request.
       </li>
       <li>
-        <strong>User-Controlled Encryption:</strong> Your provided passphrase generates the
-        encryption key, ensuring we cannot access your cookies without your passphrase
+        <strong>Request-time access:</strong> During registration or an update, the service receives
+        the token and passphrase and validates the token with HoYoLAB. During authentication, it
+        receives the passphrase, decrypts the stored token, and uses that token to request data from
+        HoYoLAB. Decrypted credentials may be held temporarily in a server-side cache for commands.
       </li>
       <li>
-        <strong>Secure Storage:</strong> All data is stored on secure servers with appropriate
-        access controls
+        <strong>Transport protection:</strong> Transport protection, such as HTTPS, protects data in
+        transit between your browser and the service. It is separate from encryption at rest, so
+        neither layer should be described as zero-knowledge or as preventing request-time access.
       </li>
     </ul>
 
     <h2 id="sharing">5. Data Sharing</h2>
     <p>
-      We do not sell or trade your personal information. To provide bot functionality,
-      authentication cookies and related request data may be transmitted to HoYoverse APIs on your
-      behalf.
+      We do not sell or trade your personal information. To provide bot functionality, the service
+      uses your token and related request data to call HoYoLAB APIs on your behalf. This means the
+      service can access the credential while it performs those requests; encryption at rest does
+      not remove that operational access.
     </p>
 
     <h2 id="third-parties">6. Third-Party Services</h2>
     <p>
-      Mehrak accesses HoYoverse public APIs using your provided cookies to retrieve your in-game
-      information. This interaction is necessary for the bot's functionality and is performed
-      securely using your encrypted authentication data.
+      Mehrak accesses HoYoLAB APIs using your provided token and UID to retrieve your in-game
+      information. The token is encrypted when stored, then decrypted when the service needs to make
+      an authenticated request. This interaction is necessary for the bot's functionality, so the
+      service is not a zero-knowledge intermediary.
     </p>
 
     <h2 id="rights">7. Your Rights and Choices</h2>

@@ -16,6 +16,7 @@ import { onBeforeUnmount, ref } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 import { RARITIES, WEAPON_TYPES } from "../../composables/game/useWeaponIcons";
 import FileUploadField from "../ui/FileUploadField.vue";
+import AdminCollectionState from "../ui/AdminCollectionState.vue";
 
 const gv = useGameViewInject();
 
@@ -143,98 +144,106 @@ onBeforeUnmount(() => {
       </div>
     </template>
     <template #content>
-      <div class="flex flex-col gap-4">
-        <!-- Selector row -->
-        <div class="flex gap-2">
-          <Select
-            v-model="gv.selectedWeaponId"
-            :options="gv.filteredWeapons"
-            :optionLabel="formatWeaponOption"
-            optionValue="id"
-            placeholder="Select a weapon"
-            filter
-            fluid
-            @update:model-value="onWeaponChange"
-          />
-          <Button
-            icon="pi pi-sliders-h"
-            severity="secondary"
-            outlined
-            @click="toggleFilter"
-            aria-label="Filters"
-          />
-        </div>
-
-        <!-- Image display -->
-        <div v-if="gv.selectedWeaponId" class="flex flex-col items-center gap-4">
-          <div class="icon-stage">
-            <!-- Base icon -->
-            <div class="flex flex-col items-center gap-2">
-              <img
-                v-if="gv.hasBase"
-                :src="gv.baseImageUrl"
-                class="rounded border object-contain"
-                width="200"
-                height="200"
-                alt="Base weapon icon"
-              />
-              <div
-                v-else
-                class="w-[200px] h-[200px] rounded border flex items-center justify-center text-(--text-secondary) text-sm"
-              >
-                No base icon
-              </div>
-              <span class="text-sm text-(--text-secondary)">Base</span>
-            </div>
-
-            <!-- Ascended icon -->
-            <div class="flex flex-col items-center gap-2">
-              <img
-                v-if="tempProcessedUrl || gv.hasAscended"
-                :src="tempProcessedUrl || gv.ascendedImageUrl"
-                class="rounded border object-contain"
-                :class="tempProcessedUrl && 'ring-2 ring-(--warn)'"
-                width="200"
-                height="200"
-                alt="Ascended weapon icon"
-              />
-              <div
-                v-else
-                class="w-[200px] h-[200px] rounded border flex items-center justify-center"
-              >
-                <Button
-                  label="Upload Source"
-                  severity="info"
-                  size="small"
-                  @click="showUploadModal = true"
-                />
-              </div>
-              <span class="text-sm text-(--text-secondary)">
-                Ascended{{ tempProcessedUrl ? " (preview)" : "" }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Action buttons -->
+      <AdminCollectionState
+        :loading="gv.weaponsLoading && !gv.filteredWeapons.length"
+        :empty="!gv.filteredWeapons.length"
+        loading-label="Loading weapon icons…"
+        empty-title="No weapon icons available"
+        @retry="gv.fetchWeapons"
+      >
+        <div class="flex flex-col gap-4">
+          <!-- Selector row -->
           <div class="flex gap-2">
-            <Button
-              v-if="gv.hasBase && (gv.hasAscended || tempProcessedUrl)"
-              label="Compare"
-              severity="secondary"
-              icon="pi pi-arrows-h"
-              @click="showCompare = true"
+            <Select
+              v-model="gv.selectedWeaponId"
+              :options="gv.filteredWeapons"
+              :optionLabel="formatWeaponOption"
+              optionValue="id"
+              placeholder="Select a weapon"
+              filter
+              fluid
+              @update:model-value="onWeaponChange"
             />
             <Button
-              v-if="tempProcessedFile"
-              label="Upload"
-              icon="pi pi-upload"
-              :loading="uploading"
-              :disabled="uploading"
-              @click="handleTempUpload"
+              icon="pi pi-sliders-h"
+              severity="secondary"
+              outlined
+              @click="toggleFilter"
+              aria-label="Filters"
             />
           </div>
+
+          <!-- Image display -->
+          <div v-if="gv.selectedWeaponId" class="flex flex-col items-center gap-4">
+            <div class="icon-stage">
+              <!-- Base icon -->
+              <div class="flex flex-col items-center gap-2">
+                <img
+                  v-if="gv.hasBase"
+                  :src="gv.baseImageUrl"
+                  class="rounded border object-contain"
+                  width="200"
+                  height="200"
+                  alt="Base weapon icon"
+                />
+                <div
+                  v-else
+                  class="w-[200px] h-[200px] rounded border flex items-center justify-center text-(--text-secondary) text-sm"
+                >
+                  No base icon
+                </div>
+                <span class="text-sm text-(--text-secondary)">Base</span>
+              </div>
+
+              <!-- Ascended icon -->
+              <div class="flex flex-col items-center gap-2">
+                <img
+                  v-if="tempProcessedUrl || gv.hasAscended"
+                  :src="tempProcessedUrl || gv.ascendedImageUrl"
+                  class="rounded border object-contain"
+                  :class="tempProcessedUrl && 'ring-2 ring-(--warn)'"
+                  width="200"
+                  height="200"
+                  alt="Ascended weapon icon"
+                />
+                <div
+                  v-else
+                  class="w-[200px] h-[200px] rounded border flex items-center justify-center"
+                >
+                  <Button
+                    label="Upload Source"
+                    severity="info"
+                    size="small"
+                    @click="showUploadModal = true"
+                  />
+                </div>
+                <span class="text-sm text-(--text-secondary)">
+                  Ascended{{ tempProcessedUrl ? " (preview)" : "" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex gap-2">
+              <Button
+                v-if="gv.hasBase && (gv.hasAscended || tempProcessedUrl)"
+                label="Compare"
+                severity="secondary"
+                icon="pi pi-arrows-h"
+                @click="showCompare = true"
+              />
+              <Button
+                v-if="tempProcessedFile"
+                label="Upload"
+                icon="pi pi-upload"
+                :loading="uploading"
+                :disabled="uploading"
+                @click="handleTempUpload"
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </AdminCollectionState>
     </template>
   </Card>
 
@@ -270,7 +279,10 @@ onBeforeUnmount(() => {
     :style="{ width: 'min(28rem, calc(100vw - 2rem))' }"
   >
     <div class="flex justify-center">
-      <ImageCompare class="w-[200px] h-[200px]">
+      <ImageCompare
+        class="weapon-icon-compare w-[200px] h-[200px]"
+        aria-label="Reveal the base or ascended weapon icon"
+      >
         <template #left>
           <img :src="gv.baseImageUrl" alt="Base" />
         </template>
@@ -442,5 +454,51 @@ onBeforeUnmount(() => {
 /* ponytail: override PrimeVue theme's width:100% on ImageCompare */
 :deep(.p-imagecompare) {
   width: 200px !important;
+}
+
+::deep(.weapon-icon-compare .p-imagecompare-slider::-webkit-slider-thumb) {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 3px solid var(--accent-strong);
+  background: var(--bg-surface);
+  box-shadow:
+    0 0 0 2px var(--bg-overlay),
+    var(--shadow-md);
+}
+
+::deep(.weapon-icon-compare .p-imagecompare-slider:hover::-webkit-slider-thumb),
+::deep(.weapon-icon-compare .p-imagecompare-slider:focus-visible::-webkit-slider-thumb),
+::deep(.weapon-icon-compare .p-imagecompare-slider:active::-webkit-slider-thumb),
+::deep(.weapon-icon-compare .p-imagecompare-slider::-webkit-slider-thumb:hover),
+::deep(.weapon-icon-compare .p-imagecompare-slider::-webkit-slider-thumb:active) {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 3px solid var(--accent-strong);
+  background: var(--bg-surface);
+  box-shadow:
+    0 0 0 2px var(--bg-overlay),
+    var(--shadow-md);
+}
+
+::deep(.weapon-icon-compare .p-imagecompare-slider::-moz-range-thumb) {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 3px solid var(--accent-strong);
+  background: var(--bg-surface);
+  box-shadow:
+    0 0 0 2px var(--bg-overlay),
+    var(--shadow-md);
+}
+
+::deep(.weapon-icon-compare .p-imagecompare-slider:hover::-moz-range-thumb),
+::deep(.weapon-icon-compare .p-imagecompare-slider:focus-visible::-moz-range-thumb),
+::deep(.weapon-icon-compare .p-imagecompare-slider:active::-moz-range-thumb) {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 3px solid var(--accent-strong);
+  background: var(--bg-surface);
+  box-shadow:
+    0 0 0 2px var(--bg-overlay),
+    var(--shadow-md);
 }
 </style>

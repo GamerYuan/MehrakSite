@@ -5,6 +5,7 @@ import {
   getGameWorkspaceTabs,
   resolveGameTab,
   resolveProfileSelection,
+  validateCommandInput,
   useGameView,
 } from "./useGameView";
 import { useProfileManagement } from "./useProfileManagement";
@@ -32,19 +33,30 @@ vi.mock("./game/useCommandExecution", async () => {
   const { ref } = await import("vue");
   const profileId = ref(null);
   const server = ref("");
+  const characterName = ref("");
+  const floor = ref(12);
+  const loading = ref({});
+  const executeCommand = vi.fn();
   let onSuccess = null;
   return {
     useCommandExecution: (_config, _tab, callback) => {
       onSuccess = callback;
-      return { profileId, server };
+      return { profileId, server, characterName, floor, loading, executeCommand };
     },
     __takeOnSuccess: () => onSuccess,
   };
 });
 
-vi.mock("./game/useCharacterManagement", () => ({
-  useCharacterManagement: () => ({ fetchCharacters: vi.fn(), fetchCharacterStats: vi.fn() }),
-}));
+vi.mock("./game/useCharacterManagement", async () => {
+  const { ref } = await import("vue");
+  return {
+    useCharacterManagement: () => ({
+      allCharacters: ref([]),
+      fetchCharacters: vi.fn(),
+      fetchCharacterStats: vi.fn(),
+    }),
+  };
+});
 vi.mock("./game/useAliasManagement", () => ({ useAliasManagement: () => ({}) }));
 vi.mock("./game/usePortraitConfig", () => ({ usePortraitConfig: () => ({}) }));
 vi.mock("./game/useUserPortraits", () => ({ useUserPortraits: () => ({}) }));
@@ -158,6 +170,60 @@ describe("profile selection", () => {
   it("falls back to the first available profile", () => {
     expect(resolveProfileSelection(config, profiles, 999).profileId).toBe(12);
     expect(resolveProfileSelection(config, [], 1)).toEqual({ profileId: null, region: null });
+  });
+});
+
+describe("command input validation", () => {
+  const profile = {
+    profileId: 12,
+    gameUids: { Genshin: { America: "600000001" } },
+  };
+  const tab = {
+    id: "abyss",
+    hasCharacterInput: true,
+    hasFloorInput: true,
+    floorMin: 9,
+    floorMax: 12,
+  };
+
+  it("blocks missing profile, unresolved server, character, and floor before execution", () => {
+    expect(
+      validateCommandInput({
+        config,
+        tab,
+        values: { profileId: null, server: "Europe", characterName: "", floor: 8 },
+        profiles: [profile],
+        characters: ["Nahida"],
+      }),
+    ).toEqual({
+      profileId: "Select a registered HoYoLAB profile.",
+      server: "Choose a server linked to the selected profile.",
+      characterName: "Choose a character.",
+      floor: "Enter a floor from 9 to 12.",
+    });
+  });
+
+  it("accepts a complete profile, server, character, and floor", () => {
+    expect(
+      validateCommandInput({
+        config,
+        tab,
+        values: { profileId: 12, server: "America", characterName: "Nahida", floor: 12 },
+        profiles: [profile],
+        characters: ["Nahida"],
+      }),
+    ).toEqual({});
+  });
+
+  it("uses battlesuit terminology for Honkai Impact 3", () => {
+    expect(
+      validateCommandInput({
+        config: { ...config, id: "HonkaiImpact3" },
+        tab: { id: "character", hasCharacterInput: true },
+        values: { profileId: null, server: "America", characterName: "" },
+        profiles: [],
+      }).characterName,
+    ).toBe("Choose a battlesuit.");
   });
 });
 

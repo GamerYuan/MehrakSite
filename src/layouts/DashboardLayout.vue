@@ -7,6 +7,7 @@ import { useAuth } from "../composables/useAuth";
 const route = useRoute();
 const { user, loading } = useAuth();
 const sidebarOpen = ref(false);
+const sidebarCollapsed = ref(false);
 const menuButton = ref(null);
 const sidebar = ref(null);
 const main = ref(null);
@@ -55,7 +56,12 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
 </script>
 
 <template>
-  <div v-if="!loading && user" class="dashboard-layout">
+  <div
+    v-if="!loading && user"
+    class="dashboard-layout"
+    :class="{ 'dashboard-layout--sidebar-collapsed': sidebarCollapsed }"
+    :style="{ '--dashboard-sidebar-width': sidebarCollapsed ? '4.5rem' : '17.5rem' }"
+  >
     <a class="skip-link" href="#dashboard-main">Skip to main content</a>
     <header class="mobile-topbar">
       <button
@@ -80,9 +86,17 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
       ref="sidebar"
       :userInfo="user"
       v-model="sidebarOpen"
+      :collapsed="sidebarCollapsed"
+      @update:collapsed="sidebarCollapsed = $event"
       @close="nextTick(() => menuButton.value?.focus())"
     />
-    <main id="dashboard-main" ref="main" class="dashboard-content" tabindex="-1">
+    <main
+      id="dashboard-main"
+      ref="main"
+      class="dashboard-content"
+      :style="{ marginLeft: sidebarCollapsed ? '4.5rem' : '17.5rem' }"
+      tabindex="-1"
+    >
       <router-view :userInfo="user" :key="$route.path" />
     </main>
   </div>
@@ -124,8 +138,9 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
 
 .dashboard-content {
   min-height: 100vh;
-  margin-left: 17.5rem;
+  margin-left: var(--dashboard-sidebar-width);
   padding: var(--space-10) clamp(var(--space-5), 4vw, var(--space-12));
+  transition: margin-left var(--motion-base) var(--ease-standard);
 }
 
 .dashboard-state {
@@ -156,8 +171,8 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
 
   .menu-button {
     display: grid;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: var(--control-size);
+    height: var(--control-size);
     place-items: center;
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-md);
@@ -192,6 +207,9 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
   .dashboard-content {
     margin-left: 0;
     padding: var(--space-6) var(--space-4) var(--space-12);
+  }
+  .dashboard-layout--sidebar-collapsed .dashboard-content {
+    margin-left: 0;
   }
 }
 

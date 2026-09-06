@@ -9,18 +9,41 @@ export function useCommandExecution(config, activeTab, onSuccess) {
   const resultImages = ref({});
 
   const showAuthModal = ref(false);
-  const authProfileId = ref("");
+  const authProfileId = ref(0);
   const authPassphrase = ref("");
   const authLoading = ref(false);
   const authError = ref("");
+  let authDialogRevision = 0;
+  let authRequestId = 0;
 
   const profileId = ref(1);
   const server = ref(config.servers[0]?.value || "America");
   const characterName = ref("");
   const floor = ref(config.tabs.find((t) => t.hasFloorInput)?.floorMin || 12);
 
+  const clearAuthForm = () => {
+    authPassphrase.value = "";
+    authError.value = "";
+  };
+
+  const openAuthModal = (requestedProfileId) => {
+    authDialogRevision += 1;
+    authProfileId.value = requestedProfileId;
+    authLoading.value = false;
+    clearAuthForm();
+    showAuthModal.value = true;
+  };
+
+  const closeAuthModal = () => {
+    authDialogRevision += 1;
+    showAuthModal.value = false;
+    authLoading.value = false;
+    clearAuthForm();
+  };
+
   const executeCommand = async () => {
     const currentTab = activeTab.value;
+    if (loading.value[currentTab]) return;
     loading.value[currentTab] = true;
     errorMsg.value[currentTab] = "";
     resultImages.value[currentTab] = "";
@@ -53,8 +76,7 @@ export function useCommandExecution(config, activeTab, onSuccess) {
       const data = await response.json();
 
       if (response.status === 403 && data.code === "AUTH_REQUIRED") {
-        authProfileId.value = profileId.value;
-        showAuthModal.value = true;
+        openAuthModal(Number(profileId.value));
         loading.value[currentTab] = false;
         return;
       }
@@ -77,8 +99,12 @@ export function useCommandExecution(config, activeTab, onSuccess) {
   };
 
   const handleAuth = async () => {
+    if (authLoading.value || !showAuthModal.value) return;
+    const dialogRevision = authDialogRevision;
+    const requestId = ++authRequestId;
     authLoading.value = true;
     authError.value = "";
+    let retryCommand = false;
 
     try {
       const response = await apiFetch("/profile-auth", {
@@ -96,15 +122,20 @@ export function useCommandExecution(config, activeTab, onSuccess) {
         throw buildError(data.error || "Authentication failed", response.status);
       }
 
-      showAuthModal.value = false;
-      authPassphrase.value = "";
-      executeCommand();
+      if (dialogRevision !== authDialogRevision) return;
+      closeAuthModal();
+      retryCommand = true;
     } catch (error) {
+      if (dialogRevision !== authDialogRevision) return;
       if (handleApiError(error)) return;
       authError.value = error.message;
     } finally {
-      authLoading.value = false;
+      if (requestId === authRequestId && dialogRevision === authDialogRevision) {
+        authLoading.value = false;
+      }
     }
+
+    if (retryCommand) await executeCommand();
   };
 
   return {
@@ -116,6 +147,9 @@ export function useCommandExecution(config, activeTab, onSuccess) {
     authPassphrase,
     authLoading,
     authError,
+    clearAuthForm,
+    openAuthModal,
+    closeAuthModal,
     profileId,
     server,
     characterName,

@@ -53,6 +53,7 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 
 .footer-brand a {
   display: inline-flex;
+  min-height: var(--control-size);
   align-items: center;
   gap: var(--space-3);
   color: var(--text-primary);
@@ -92,6 +93,7 @@ import { discordInviteUrl, githubUrl } from "../configs/publicLinks";
 
 .footer nav a {
   display: inline-flex;
+  min-height: var(--control-size);
   align-items: center;
   gap: var(--space-2);
   color: var(--text-secondary);

@@ -34,7 +34,7 @@ const faqItems = [
   {
     question: "How are you using my HoYoLAB Cookies?",
     answer:
-      "We use the public API provided by HoYoLAB to access your information. These public API requires your HoYoLAB Cookies, alongside your HoYoLAB UID, as they require you to be logged in when accessing the data.",
+      "The service receives your HoYoLAB token and UID and uses them to make authenticated requests to HoYoLAB's public APIs for your game information. During registration or an update, it also receives your passphrase to encrypt the stored token; during authentication, it receives the passphrase to decrypt the token. This is not a zero-knowledge design.",
   },
 ];
 </script>
@@ -121,18 +121,23 @@ const faqItems = [
         unauthorised access.
       </p>
       <p class="cookies-text">
-        All your information are stored in a database hosted on the same VPS. Before being stored in
-        the database, your provided passphrase is used to generate a AES-256 key to encrypt your
-        cookie, ensuring that all cookies are securely stored with minimal risk of being cracked.
+        Profile information is stored in a database hosted by the service. During registration and
+        updates, the service receives your HoYoLAB token and passphrase, validates the token with
+        HoYoLAB, and encrypts the stored token with a passphrase-derived AES-256-GCM key. This is
+        protection for data at rest; it does not stop the service from accessing the token during a
+        request.
       </p>
       <p class="cookies-text">
-        After authenticating your passphrase for command execution, your cookies will be stored in a
-        password-protected Redis instance. This allows you to use multiple commands within the same
-        5 minutes without requiring to type in your passphrase again.
+        After you authenticate with your passphrase for command execution, the service decrypts the
+        stored token and may cache the decrypted value temporarily so multiple commands can run
+        without asking for the passphrase again. The service uses that credential to request data
+        from HoYoLAB.
       </p>
       <p class="cookies-text">
-        In the case of a data breach, your encrypted cookies might be obtained, but will be nearly
-        uncrackable if you follow the best practices when creating a passphrase.
+        Encryption at rest is only one security layer. It does not remove the risk of request-time
+        access or a compromised session, and no encryption claim should be read as a promise that
+        the service cannot access your credentials. Use a unique, strong passphrase and revoke or
+        remove the profile if you suspect exposure.
       </p>
     </SurfaceCard>
 

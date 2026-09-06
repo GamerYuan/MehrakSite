@@ -44,6 +44,11 @@
   --info: oklch(52% 0.13 235);
   --info-soft: oklch(94% 0.04 235);
   --brass: var(--warn);
+  --preview-genshin-base: oklch(58% 0.02 240);
+  --preview-genshin-detail: oklch(35% 0.025 210);
+  --preview-hi3-panel: oklch(43% 0.075 245 / 77%);
+  --preview-zzz-bg: oklch(62% 0.025 240);
+  --preview-zzz-panel: oklch(21% 0 0);
 
   /* Release and cookie states stay semantic instead of owning another palette. */
   --release-feature: var(--accent);
@@ -58,16 +63,18 @@
   --cookie-blocked-bg: var(--danger-soft);
 
   --bg-page: var(--surface-100);
-  --bg-surface: var(--surface-0);
+  --bg-surface-base: var(--surface-0);
+  --bg-surface: var(--bg-surface-base);
   --bg-surface-raised: var(--surface-50);
   --bg-surface-sunken: var(--surface-200);
-  --bg-overlay: oklch(100% 0 0 / 92%);
+  --bg-overlay: oklch(100% 0 0 / 94%);
   --text-primary: var(--surface-950);
   --text-secondary: var(--surface-700);
   --text-muted: var(--surface-600);
   --text-inverse: var(--surface-50);
-  --border-primary: var(--surface-400);
+  --border-primary: var(--surface-300);
   --border-secondary: var(--surface-500);
+  --divider: var(--border-primary);
   --code-bg: var(--surface-200);
   --navbar-bg: oklch(98% 0.006 240 / 94%);
   --footer-bg: oklch(12% 0.018 240 / 5%);
@@ -111,6 +118,7 @@
   --space-16: 4rem;
   --space-20: 5rem;
   --space-24: 6rem;
+  --control-size: 2.75rem;
 
   /* Geometry: 6px controls, 10px cards/panels, 14px dialogs; pills are tags/filters only. */
   --radius-xs: 0.125rem;
@@ -153,16 +161,18 @@
   --info-soft: oklch(25% 0.05 235);
 
   --bg-page: oklch(13% 0.022 250);
-  --bg-surface: oklch(17% 0.025 250);
+  --bg-surface-base: oklch(17% 0.025 250);
+  --bg-surface: var(--bg-surface-base);
   --bg-surface-raised: oklch(21% 0.027 250);
   --bg-surface-sunken: oklch(10% 0.02 250);
-  --bg-overlay: oklch(13% 0.022 250 / 92%);
+  --bg-overlay: oklch(13% 0.022 250 / 94%);
   --text-primary: oklch(94% 0.01 235);
   --text-secondary: oklch(78% 0.016 235);
   --text-muted: oklch(66% 0.02 235);
   --text-inverse: var(--surface-950);
   --border-primary: oklch(76% 0.025 235 / 16%);
   --border-secondary: oklch(76% 0.025 235 / 28%);
+  --divider: var(--border-primary);
   --code-bg: var(--bg-surface-sunken);
   --navbar-bg: oklch(13% 0.022 250 / 90%);
   --footer-bg: oklch(5% 0.01 250 / 28%);
@@ -204,7 +214,7 @@ body {
   background-color: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   line-height: var(--leading-body);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -218,6 +228,14 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+:where(a, button, input, select, textarea, summary) {
+  font-size: max(var(--text-sm), 14px);
+}
+
+:where(button, input, select, textarea) {
+  min-height: var(--control-size);
 }
 
 h1,

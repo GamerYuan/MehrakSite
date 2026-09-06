@@ -1,17 +1,19 @@
 <script setup>
 import AuthModal from "./AuthModal.vue";
 import Button from "primevue/button";
+import ProgressSpinner from "primevue/progressspinner";
 import CommandCard from "./CommandCard.vue";
 import Image from "primevue/image";
-import ManageAliasesCard from "./ManageAliasesCard.vue";
-import ManageCharactersCard from "./ManageCharactersCard.vue";
-import ManageCodesCard from "./ManageCodesCard.vue";
-import ManageWeaponIconsCard from "./ManageWeaponIconsCard.vue";
-import PortraitConfigModal from "./PortraitConfigModal.vue";
-import StatEditModal from "./StatEditModal.vue";
-import { computed } from "vue";
+import { computed, defineAsyncComponent } from "vue";
 import { useGameViewInject } from "../../composables/game/injectKey";
 import SurfaceCard from "../ui/SurfaceCard.vue";
+
+const ManageAliasesCard = defineAsyncComponent(() => import("./ManageAliasesCard.vue"));
+const ManageCharactersCard = defineAsyncComponent(() => import("./ManageCharactersCard.vue"));
+const ManageCodesCard = defineAsyncComponent(() => import("./ManageCodesCard.vue"));
+const ManageWeaponIconsCard = defineAsyncComponent(() => import("./ManageWeaponIconsCard.vue"));
+const PortraitConfigModal = defineAsyncComponent(() => import("./PortraitConfigModal.vue"));
+const StatEditModal = defineAsyncComponent(() => import("./StatEditModal.vue"));
 
 const gv = useGameViewInject();
 
@@ -43,6 +45,7 @@ const clearResult = () => {
             :to="gv.getTabLocation(tab.id)"
             class="workspace-link"
             :class="{ active: gv.activeTab === tab.id }"
+            :aria-current="gv.activeTab === tab.id ? 'page' : undefined"
           >
             <i class="pi pi-bolt" aria-hidden="true"></i>
             <span>{{ tab.name }}</span>
@@ -56,6 +59,7 @@ const clearResult = () => {
             :to="gv.getTabLocation(tab.id)"
             class="workspace-link management-link"
             :class="{ active: gv.activeTab === tab.id }"
+            :aria-current="gv.activeTab === tab.id ? 'page' : undefined"
           >
             <i class="pi pi-wrench" aria-hidden="true"></i>
             <span>{{ tab.name }}</span>
@@ -69,6 +73,7 @@ const clearResult = () => {
             :to="gv.getTabLocation(tab.id)"
             class="workspace-link personal-link"
             :class="{ active: gv.activeTab === tab.id }"
+            :aria-current="gv.activeTab === tab.id ? 'page' : undefined"
           >
             <i class="pi pi-images" aria-hidden="true"></i>
             <span>{{ tab.name }}</span>
@@ -88,40 +93,72 @@ const clearResult = () => {
 
         <ManageWeaponIconsCard v-else-if="gv.activeTab === 'weaponicons'" />
 
-        <CommandCard v-else :tabConfig="getTabConfig(gv.activeTab)" />
+        <div v-else class="command-workspace">
+          <CommandCard :tabConfig="getTabConfig(gv.activeTab)" />
 
-        <div v-if="gv.resultImages[gv.activeTab]" class="result-container">
-          <SurfaceCard class="result-card">
-            <div class="result-header">
-              <div>
-                <span class="surface-kicker">Generated card</span>
-                <h2 class="result-title">Command result</h2>
+          <aside class="preview-column" aria-label="Generated card preview">
+            <SurfaceCard class="result-card">
+              <div class="result-header">
+                <div>
+                  <span class="surface-kicker">Generated card</span>
+                  <h2 class="result-title">Preview</h2>
+                </div>
+                <Button
+                  v-if="gv.resultImages[gv.activeTab]"
+                  icon="pi pi-times"
+                  text
+                  rounded
+                  size="small"
+                  aria-label="Clear generated card"
+                  @click="clearResult"
+                />
               </div>
-              <Button
-                icon="pi pi-times"
-                text
-                rounded
-                size="small"
-                aria-label="Clear result"
-                @click="clearResult"
+
+              <div
+                v-if="gv.loading[gv.activeTab]"
+                class="preview-state"
+                role="status"
+                aria-live="polite"
+              >
+                <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
+                <strong>Generating card</strong>
+                <span>Keep this page open while MehrakBot prepares the result.</span>
+              </div>
+
+              <div
+                v-else-if="gv.error[gv.activeTab]"
+                class="preview-state error-state"
+                role="alert"
+              >
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                <strong>Generation failed</strong>
+                <span>{{ gv.error[gv.activeTab] }}</span>
+              </div>
+
+              <Image
+                v-else-if="gv.resultImages[gv.activeTab]"
+                :src="gv.resultImages[gv.activeTab]"
+                alt="Generated game card result"
+                preview
+                width="100%"
               />
-            </div>
-            <Image
-              :src="gv.resultImages[gv.activeTab]"
-              alt="Generated game card result"
-              preview
-              width="100%"
-            />
-          </SurfaceCard>
+
+              <div v-else class="preview-state">
+                <i class="pi pi-image" aria-hidden="true"></i>
+                <strong>Your card will appear here</strong>
+                <span>Complete the command form, then generate a preview.</span>
+              </div>
+            </SurfaceCard>
+          </aside>
         </div>
       </div>
     </div>
 
     <AuthModal />
 
-    <StatEditModal v-if="gv.config.hasStatEdit" />
+    <StatEditModal v-if="gv.config.hasStatEdit && gv.showEditStatModal" />
 
-    <PortraitConfigModal />
+    <PortraitConfigModal v-if="gv.showPortraitConfigModal" />
   </section>
 </template>
 
@@ -139,7 +176,6 @@ const clearResult = () => {
   padding: 1.25rem clamp(1rem, 3vw, 1.75rem);
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
-  border-top: 3px solid var(--game-color);
   border-radius: var(--radius-lg);
   margin-bottom: 1rem;
 }
@@ -219,7 +255,7 @@ const clearResult = () => {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  min-height: 2.55rem;
+  min-height: var(--control-size);
   padding: 0.55rem 0.7rem;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
@@ -240,7 +276,6 @@ const clearResult = () => {
   color: var(--text-primary);
   border-color: color-mix(in srgb, var(--game-color) 42%, var(--border-primary));
   background: color-mix(in srgb, var(--game-color) 10%, var(--bg-surface));
-  box-shadow: inset 3px 0 var(--game-color);
 }
 
 .management-link i {
@@ -262,11 +297,19 @@ const clearResult = () => {
   box-shadow: var(--shadow-sm) !important;
 }
 
-.result-container {
-  margin-top: 1.5rem;
+.command-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.preview-column {
+  min-width: 0;
 }
 
 .result-card {
+  min-height: 24rem;
   box-shadow: var(--shadow-md);
 }
 
@@ -274,23 +317,99 @@ const clearResult = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .result-title {
-  margin: 0;
-  font-weight: 600;
+  margin: var(--space-1) 0 0;
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .result-card :deep(img) {
   max-width: 100%;
+  margin-top: var(--space-4);
   border-radius: var(--radius-md);
 }
 
-@media (max-width: 768px) {
+.preview-state {
+  display: grid;
+  min-height: 18rem;
+  padding: var(--space-6);
+  place-items: center;
+  align-content: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.preview-state > i {
+  color: var(--accent);
+  font-size: var(--text-3xl);
+}
+
+.preview-state strong {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+}
+
+.error-state > i,
+.error-state strong {
+  color: var(--danger);
+}
+
+@media (max-width: 75rem) {
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-nav {
+    position: static;
+    display: flex;
+    overflow-x: auto;
+    padding: var(--space-2);
+    gap: var(--space-1);
+    scrollbar-width: thin;
+  }
+
+  .nav-group {
+    display: flex;
+    flex: 0 0 auto;
+    gap: var(--space-1);
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .management-group,
+  .personal-group {
+    padding-top: 0;
+    padding-left: var(--space-2);
+    border-top: 0;
+    border-left: 1px solid var(--border-primary);
+  }
+
+  .workspace-link {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 64rem) {
+  .command-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .preview-column {
+    position: static;
+  }
+}
+
+@media (max-width: 48rem) {
   .game-header {
     align-items: flex-start;
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .game-logo {
@@ -301,40 +420,6 @@ const clearResult = () => {
   .game-title {
     font-size: 1.65rem;
   }
-
-  .workspace-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .workspace-nav {
-    position: static;
-    display: flex;
-    overflow-x: auto;
-    padding: 0.4rem;
-    gap: 0.25rem;
-    scrollbar-width: thin;
-  }
-
-  .nav-group {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 0.25rem;
-  }
-
-  .nav-label {
-    display: none;
-  }
-
-  .management-group,
-  .personal-group {
-    padding-left: 0.5rem;
-    border-top: 0;
-    border-left: 1px solid var(--border-primary);
-  }
-
-  .workspace-link {
-    white-space: nowrap;
-  }
 }
 
 @media (max-width: 420px) {
@@ -342,6 +427,5 @@ const clearResult = () => {
     width: 2.5rem;
     height: 2.5rem;
   }
-
 }
 </style>

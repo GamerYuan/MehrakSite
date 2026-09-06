@@ -7,6 +7,7 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Tag from "primevue/tag";
 import { useGameViewInject } from "../../composables/game/injectKey";
+import AdminCollectionState from "../ui/AdminCollectionState.vue";
 
 const gv = useGameViewInject();
 </script>
@@ -39,39 +40,50 @@ const gv = useGameViewInject();
             :loading="gv.manageLoading"
           />
         </div>
-        <DataTable
-          :value="gv.filteredAliases"
-          paginator
-          :rows="10"
-          responsiveLayout="scroll"
-          class="management-table"
+        <AdminCollectionState
+          :loading="gv.manageLoading"
+          :error="gv.manageError || ''"
+          :empty="!gv.filteredAliases.length && !gv.aliasSearchQuery"
+          :filtered="!gv.filteredAliases.length && Boolean(gv.aliasSearchQuery)"
+          loading-label="Loading aliases…"
+          empty-title="No aliases available"
+          @retry="gv.fetchAliases"
+          @clear="gv.aliasSearchQuery = ''"
         >
-          <Column field="name" header="Character Name" sortable></Column>
-          <Column header="Aliases">
-            <template #body="slotProps">
-              <div class="flex flex-wrap gap-2">
-                <Tag
-                  v-for="alias in slotProps.data.aliases"
-                  :key="alias"
-                  :value="alias"
-                  severity="info"
+          <DataTable
+            :value="gv.filteredAliases"
+            paginator
+            :rows="10"
+            responsiveLayout="scroll"
+            class="management-table"
+          >
+            <Column field="name" header="Character Name" sortable></Column>
+            <Column header="Aliases">
+              <template #body="slotProps">
+                <div class="flex flex-wrap gap-2">
+                  <Tag
+                    v-for="alias in slotProps.data.aliases"
+                    :key="alias"
+                    :value="alias"
+                    severity="info"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column style="width: 3rem">
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-pencil"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Edit aliases"
+                  @click="gv.openEditAliasModal(slotProps.data)"
                 />
-              </div>
-            </template>
-          </Column>
-          <Column style="width: 3rem">
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-pencil"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Edit aliases"
-                @click="gv.openEditAliasModal(slotProps.data)"
-              />
-            </template>
-          </Column>
-        </DataTable>
+              </template>
+            </Column>
+          </DataTable>
+        </AdminCollectionState>
       </div>
     </template>
   </Card>

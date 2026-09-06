@@ -1,6 +1,7 @@
 import { computed, onMounted, ref } from "vue";
 import { gameMeta, gameLabels } from "../configs/gameMeta";
 import { useApi } from "./useApi";
+import { isPublicDocument } from "../utils/publicContent";
 
 export const gameColors = Object.fromEntries(
   Object.entries(gameMeta).map(([key, meta]) => [
@@ -9,6 +10,38 @@ export const gameColors = Object.fromEntries(
   ]),
 );
 
+export const normalizeGame = (value) => {
+  const raw = String(value ?? "").trim();
+  return (
+    Object.keys(gameLabels).find((key) => {
+      const meta = gameMeta[key];
+      return (
+        key.toLowerCase() === raw.toLowerCase() ||
+        meta.id?.toLowerCase() === raw.toLowerCase() ||
+        meta.routeKey?.toLowerCase() === raw.toLowerCase()
+      );
+    }) || raw
+  );
+};
+
+export const normalizeDocument = (document) => ({
+  ...document,
+  id: document.id ?? document.Id,
+  name: String(document.name ?? document.Name ?? "")
+    .trim()
+    .replace(/^\/+/, ""),
+  description: String(document.description ?? document.Description ?? "").trim(),
+  game: normalizeGame(document.game ?? document.Game),
+});
+
+export const documentList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.documents)) return data.documents;
+  if (data && Array.isArray(data.items)) return data.items;
+  if (data && Array.isArray(data.results)) return data.results;
+  if (data && Array.isArray(data.$values)) return data.$values;
+  return [];
+};
 const SUPPORTED_GAMES = Object.keys(gameLabels);
 
 export function useDocs() {
@@ -28,7 +61,9 @@ export function useDocs() {
         skipAuthRedirect: true,
       });
       if (ok) {
-        documents.value = data;
+        documents.value = documentList(data)
+          .map(normalizeDocument)
+          .filter((document) => isPublicDocument(document, SUPPORTED_GAMES));
       } else {
         errorMsg.value = data.error || "Failed to fetch documentation";
       }
@@ -66,6 +101,7 @@ export function useDocs() {
   });
 
   const groupedDocuments = computed(() => {
+    /** @type {Record<string, Array<{ id: string, name: string, description: string, game: string }>>} */
     const groups = {};
     for (const game of SUPPORTED_GAMES) {
       const docs = filteredDocuments.value.filter((doc) => doc.game === game);

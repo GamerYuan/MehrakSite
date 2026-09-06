@@ -77,6 +77,48 @@ export function resolveProfileSelection(config, profiles, profileId) {
   };
 }
 
+export function validateCommandInput({ config, tab, values, profiles, characters = [] }) {
+  const errors = {};
+  const selectedProfile = profiles.find(
+    (profile) => Number(profile.profileId) === Number(values.profileId),
+  );
+
+  if (!selectedProfile) {
+    errors.profileId = "Select a registered HoYoLAB profile.";
+  }
+
+  const serverSupported = config.servers.some((server) => server.value === values.server);
+  const serverUid = selectedProfile?.gameUids?.[config.id]?.[values.server];
+  if (!serverSupported || serverUid == null) {
+    errors.server = "Choose a server linked to the selected profile.";
+  }
+
+  if (tab?.hasCharacterInput) {
+    const character = String(values.characterName || "").trim();
+    if (!character) {
+      errors.characterName =
+        config.id === "HonkaiImpact3" ? "Choose a battlesuit." : "Choose a character.";
+    } else if (
+      characters.length &&
+      !characters.some((candidate) => candidate.toLowerCase() === character.toLowerCase())
+    ) {
+      errors.characterName =
+        config.id === "HonkaiImpact3"
+          ? "Choose a battlesuit from the available list."
+          : "Choose a character from the available list.";
+    }
+  }
+
+  if (tab?.hasFloorInput) {
+    const floor = Number(values.floor);
+    if (!Number.isInteger(floor) || floor < tab.floorMin || floor > tab.floorMax) {
+      errors.floor = `Enter a floor from ${tab.floorMin} to ${tab.floorMax}.`;
+    }
+  }
+
+  return errors;
+}
+
 export function useGameView(config) {
   const route = useRoute();
   const activeTab = ref(resolveGameTab(config, route) || "character");
@@ -121,6 +163,37 @@ export function useGameView(config) {
     profiles.value.find((profile) => Number(profile.profileId) === Number(command.profileId.value)),
   );
 
+  const validationErrors = ref({});
+  const clearValidationError = (field) => {
+    if (!validationErrors.value[field]) return;
+    const next = { ...validationErrors.value };
+    delete next[field];
+    validationErrors.value = next;
+  };
+
+  const executeCommand = () => {
+    const tab = config.tabs.find((item) => item.id === activeTab.value);
+    const errors = validateCommandInput({
+      config,
+      tab,
+      values: {
+        profileId: command.profileId.value,
+        server: command.server.value,
+        characterName: command.characterName.value,
+        floor: command.floor.value,
+      },
+      profiles: profiles.value,
+      characters: characters.allCharacters.value,
+    });
+    validationErrors.value = errors;
+    if (Object.keys(errors).length) return;
+    return command.executeCommand();
+  };
+
+  watch(command.profileId, () => clearValidationError("profileId"));
+  watch(command.server, () => clearValidationError("server"));
+  watch(command.characterName, () => clearValidationError("characterName"));
+  watch(command.floor, () => clearValidationError("floor"));
   // Manual server picks win: refetched profiles never revert the selection.
   let serverManuallyChanged = false;
 
@@ -254,6 +327,8 @@ export function useGameView(config) {
     selectProfile,
 
     ...command,
+    validationErrors,
+    executeCommand,
     ...characters,
     ...aliases,
     ...portrait,

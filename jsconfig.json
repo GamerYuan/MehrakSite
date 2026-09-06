@@ -7,8 +7,11 @@
       "@/*": ["./src/*"]
     },
     "jsx": "preserve",
-    "checkJs": false
+    "allowJs": true,
+    "checkJs": true,
+    "types": ["vite/client"],
+    "noEmit": true
   },
-  "include": ["src/**/*", "vite.config.js", "vitest.config.js"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.js", "src/**/*.vue", "vite.config.js"],
+  "exclude": ["node_modules", "dist", "src/**/*.test.js", "src/**/*.spec.js"]
 }

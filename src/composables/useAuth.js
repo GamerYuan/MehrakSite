@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 import { canManageGame, canManageGameCapability } from "../configs/gameMeta";
-import { standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
+import { buildError, standaloneApiFetch, standaloneApiFetchJson } from "./useApi";
 
 const discordAvatar = (discordId) => {
   try {
@@ -10,16 +10,58 @@ const discordAvatar = (discordId) => {
   }
 };
 
+const LOGOUT_FAILURE_STORAGE_KEY = "mehrak.logout.unconfirmed";
+const LOGOUT_FAILURE_MESSAGE =
+  "Sign out could not be confirmed. Your browser may still have an active session. Try again.";
+
+const getSessionStorage = () => {
+  try {
+    return globalThis.sessionStorage;
+  } catch {
+    return null;
+  }
+};
+
+const hasStoredLogoutFailure = () => {
+  try {
+    return getSessionStorage()?.getItem(LOGOUT_FAILURE_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+const storeLogoutFailure = () => {
+  try {
+    const storage = getSessionStorage();
+    if (!storage) return false;
+    storage.setItem(LOGOUT_FAILURE_STORAGE_KEY, "1");
+    return true;
+  } catch {
+    // The in-memory state still provides the failure indication when storage is unavailable.
+    return false;
+  }
+};
+
+const clearStoredLogoutFailure = () => {
+  try {
+    getSessionStorage()?.removeItem(LOGOUT_FAILURE_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in privacy-restricted browsers.
+  }
+};
+
 const normalizeUser = (data = {}) => {
   const source = data || {};
   const discordId = source.discordId || source.DiscordId || "";
   const permissions = source.gameWritePermissions || source.GameWritePermissions;
+  const activeValue = source.isActive ?? source.IsActive;
 
   return {
     discordId,
     discordUserId: source.discordUserId || source.DiscordUserId || "",
     isSuperAdmin: source.isSuperAdmin ?? source.IsSuperAdmin ?? false,
     isRootUser: source.isRootUser ?? source.IsRootUser ?? false,
+    isActive: activeValue === true || activeValue === false ? activeValue : null,
     gameWritePermissions: Array.isArray(permissions) ? permissions : [],
     username: source.username || source.Username || "",
     avatarUrl:
@@ -40,6 +82,9 @@ let fetched = false;
 let inflight = null;
 let lastFetchStatus = null;
 let authGeneration = 0;
+const logoutStatus = ref(hasStoredLogoutFailure() ? "failed" : "idle");
+const logoutError = ref(logoutStatus.value === "failed" ? LOGOUT_FAILURE_MESSAGE : "");
+let logoutInFlight = null;
 
 const login = () => {
   globalThis.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/auth/discord`;
@@ -64,6 +109,7 @@ const clearAuthState = () => {
 };
 
 const fetchUser = async () => {
+  if (logoutInFlight || logoutStatus.value === "pending") return null;
   if (fetched) return user.value;
   if (inflight) return inflight;
 
@@ -105,18 +151,63 @@ const fetchUser = async () => {
   return inflight;
 };
 
-const logout = async () => {
-  try {
-    await standaloneApiFetch("/auth/logout", {
-      method: "POST",
-      skipAuthRedirect: true,
-    });
-  } catch {
-    // Ignore logout failures; the local session must still be cleared.
-  } finally {
-    clearAuthState();
-    globalThis.location.href = "/";
-  }
+const logout = () => {
+  if (logoutInFlight) return logoutInFlight;
+
+  // Invalidate the local auth generation before waiting on the server. This prevents an
+  // Already-started /users/me request from repopulating the account while sign-out is pending.
+  clearAuthState();
+  logoutStatus.value = "pending";
+  logoutError.value = "";
+  storeLogoutFailure();
+
+  logoutInFlight = (async () => {
+    let result = null;
+    let shouldRedirect = true;
+    try {
+      const response = await standaloneApiFetch("/auth/logout", {
+        method: "POST",
+        skipAuthRedirect: true,
+      });
+
+      // The endpoint requires an authenticated cookie.
+      // A 401 means the server no longer recognizes the session.
+      // That is already a successful invalidation from the user's perspective.
+      if (!response.ok && response.status !== 401) {
+        throw buildError(LOGOUT_FAILURE_MESSAGE, response.status);
+      }
+
+      clearAuthState();
+      logoutStatus.value = "idle";
+      logoutError.value = "";
+      clearStoredLogoutFailure();
+      result = {
+        confirmed: true,
+        alreadyExpired: response.status === 401,
+        status: response.status,
+      };
+    } catch (error) {
+      // Local state is safe to clear even when the browser cannot confirm server invalidation.
+      // Keep a session-scoped marker so a redirect or refresh cannot hide the retry affordance.
+      clearAuthState();
+      logoutStatus.value = "failed";
+      logoutError.value = LOGOUT_FAILURE_MESSAGE;
+      shouldRedirect = storeLogoutFailure();
+      result = { confirmed: false, status: error?.status ?? null, error };
+    } finally {
+      if (shouldRedirect) {
+        try {
+          globalThis.location.href = "/";
+        } catch {
+          // The persistent status remains available when navigation is blocked by the host.
+        }
+      }
+      logoutInFlight = null;
+    }
+    return result;
+  })();
+
+  return logoutInFlight;
 };
 
 const getUser = () => user.value;
@@ -141,9 +232,11 @@ export function useAuth() {
     fetchUser,
     login,
     logout,
+    logoutStatus: readonly(logoutStatus),
+    logoutError: readonly(logoutError),
     hasGamePermission,
     canManageCapability,
   };
 }
 
-export { clearAuthState, fetchUser, getAuthStatus, getUser, normalizeUser, setAuthState };
+export { clearAuthState, fetchUser, getAuthStatus, getUser, logout, normalizeUser, setAuthState };

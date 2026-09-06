@@ -2,18 +2,28 @@ import { ref } from "vue";
 import { useApi } from "./useApi";
 import { useConfirm } from "primevue/useconfirm";
 
+const emptyAddForm = () => ({ ltUid: "", lToken: "", passphrase: "" });
+const emptyEditForm = () => ({ lToken: "", passphrase: "" });
+
 export function useProfileManagement() {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
   const confirm = useConfirm();
 
   const profiles = ref([]);
   const loading = ref(false);
+  const addLoading = ref(false);
+  const editLoading = ref(false);
   const showAddModal = ref(false);
   const showEditModal = ref(false);
   const selectedProfile = ref(null);
 
-  const addForm = ref({ ltUid: "", lToken: "", passphrase: "" });
-  const editForm = ref({ lToken: "", passphrase: "" });
+  const addForm = ref(emptyAddForm());
+  const editForm = ref(emptyEditForm());
+  let addModalRevision = 0;
+  let editModalRevision = 0;
+  let addRequestId = 0;
+  let editRequestId = 0;
 
   const fetchProfiles = async () => {
     loading.value = true;
@@ -31,22 +41,72 @@ export function useProfileManagement() {
     }
   };
 
+  const clearAddForm = () => {
+    addForm.value = emptyAddForm();
+  };
+
+  const clearEditForm = () => {
+    editForm.value = emptyEditForm();
+  };
+
+  const closeAddModal = () => {
+    addModalRevision += 1;
+    showAddModal.value = false;
+    clearAddForm();
+  };
+
+  const closeEditModal = () => {
+    editModalRevision += 1;
+    showEditModal.value = false;
+    selectedProfile.value = null;
+    clearEditForm();
+  };
+
+  const handleAddModalVisibility = (visible) => {
+    if (visible) {
+      showAddModal.value = true;
+      return;
+    }
+    closeAddModal();
+  };
+
+  const handleEditModalVisibility = (visible) => {
+    if (visible) {
+      showEditModal.value = true;
+      return;
+    }
+    closeEditModal();
+  };
+
+  const handleAddModalHide = () => {
+    if (!showAddModal.value) clearAddForm();
+  };
+
+  const handleEditModalHide = () => {
+    if (!showEditModal.value) clearEditForm();
+  };
+
   const openAddModal = () => {
-    addForm.value = { ltUid: "", lToken: "", passphrase: "" };
+    addModalRevision += 1;
+    clearAddForm();
     showAddModal.value = true;
   };
 
   const handleAdd = async () => {
-    loading.value = true;
+    if (addLoading.value) return;
+    const modalRevision = addModalRevision;
+    const requestId = ++addRequestId;
+    addLoading.value = true;
+    const payload = {
+      ltUid: Number(addForm.value.ltUid),
+      lToken: addForm.value.lToken,
+      passphrase: addForm.value.passphrase,
+    };
     try {
       const response = await apiFetch("/profiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ltUid: Number(addForm.value.ltUid),
-          lToken: addForm.value.lToken,
-          passphrase: addForm.value.passphrase,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -54,32 +114,39 @@ export function useProfileManagement() {
         throw buildError(data.error || "Failed to add profile", response.status);
       }
 
-      showAddModal.value = false;
+      const shouldUpdateModal = modalRevision === addModalRevision;
+      if (shouldUpdateModal) closeAddModal();
       await fetchProfiles();
-      showSuccessToast("Profile added successfully");
+      if (shouldUpdateModal) showSuccessToast("Profile added successfully");
     } catch (error) {
-      handleApiError(error);
+      if (modalRevision === addModalRevision) handleApiError(error);
     } finally {
-      loading.value = false;
+      if (requestId === addRequestId) addLoading.value = false;
     }
   };
 
   const openEditModal = (profile) => {
     selectedProfile.value = profile;
-    editForm.value = { lToken: "", passphrase: "" };
+    editModalRevision += 1;
+    clearEditForm();
     showEditModal.value = true;
   };
 
   const handleEdit = async () => {
-    loading.value = true;
+    if (editLoading.value || !selectedProfile.value) return;
+    const modalRevision = editModalRevision;
+    const requestId = ++editRequestId;
+    const { profileId } = selectedProfile.value;
+    editLoading.value = true;
+    const payload = {
+      lToken: editForm.value.lToken,
+      passphrase: editForm.value.passphrase,
+    };
     try {
-      const response = await apiFetch(`/profiles/${selectedProfile.value.profileId}`, {
+      const response = await apiFetch(`/profiles/${profileId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lToken: editForm.value.lToken,
-          passphrase: editForm.value.passphrase,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -87,13 +154,14 @@ export function useProfileManagement() {
         throw buildError(data.error || "Failed to update profile", response.status);
       }
 
-      showEditModal.value = false;
+      const shouldUpdateModal = modalRevision === editModalRevision;
+      if (shouldUpdateModal) closeEditModal();
       await fetchProfiles();
-      showSuccessToast("Profile updated successfully");
+      if (shouldUpdateModal) showSuccessToast("Profile updated successfully");
     } catch (error) {
-      handleApiError(error);
+      if (modalRevision === editModalRevision) handleApiError(error);
     } finally {
-      loading.value = false;
+      if (requestId === editRequestId) editLoading.value = false;
     }
   };
 
@@ -176,12 +244,22 @@ export function useProfileManagement() {
   return {
     profiles,
     loading,
+    addLoading,
+    editLoading,
     showAddModal,
     showEditModal,
     selectedProfile,
     addForm,
     editForm,
     fetchProfiles,
+    clearAddForm,
+    clearEditForm,
+    closeAddModal,
+    closeEditModal,
+    handleAddModalVisibility,
+    handleEditModalVisibility,
+    handleAddModalHide,
+    handleEditModalHide,
     openAddModal,
     handleAdd,
     openEditModal,

@@ -3,7 +3,9 @@ defineProps({
   tone: {
     type: String,
     default: "neutral",
-    validator: (value) => ["neutral", "success", "warn", "danger", "info", "brand"].includes(value),
+    validator: (value) =>
+      typeof value === "string" &&
+      ["neutral", "success", "warn", "danger", "info", "brand"].includes(value),
   },
   icon: String,
 });
