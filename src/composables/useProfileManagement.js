@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { useApi } from "./useApi";
 import { useConfirm } from "primevue/useconfirm";
 
-const emptyAddForm = () => ({ ltUid: "", lToken: "", passphrase: "" });
+const emptyAddForm = () => ({ cookieString: "", passphrase: "" });
 const emptyEditForm = () => ({ lToken: "", passphrase: "" });
 
 export function useProfileManagement() {
@@ -98,8 +98,7 @@ export function useProfileManagement() {
     const requestId = ++addRequestId;
     addLoading.value = true;
     const payload = {
-      ltUid: Number(addForm.value.ltUid),
-      lToken: addForm.value.lToken,
+      cookieString: addForm.value.cookieString,
       passphrase: addForm.value.passphrase,
     };
     try {

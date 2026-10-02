@@ -56,7 +56,19 @@ const emit = defineEmits(["click"]);
   bottom: -5rem;
   width: 10rem;
   height: 10rem;
-  border: 1px solid color-mix(in oklch, var(--accent) 16%, transparent);
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.doc-card::before {
+  position: absolute;
+  right: -2.2rem;
+  bottom: -3.2rem;
+  width: 6.4rem;
+  height: 6.4rem;
+  border: 1px solid var(--ring-dendro);
   border-radius: 50%;
   content: "";
   pointer-events: none;

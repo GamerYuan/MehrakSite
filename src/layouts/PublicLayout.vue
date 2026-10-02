@@ -38,6 +38,25 @@ watch(
   background: var(--page-gradient);
 }
 
+.public-layout::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: min(28rem, 55vh);
+  background: var(--glow-dendro-soft);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Keep content above the glow without overriding the navbar's sticky stacking layer. */
+.public-layout > main,
+.public-layout > footer {
+  position: relative;
+  z-index: 1;
+}
+
 .public-main {
   flex: 1;
   min-width: 0;

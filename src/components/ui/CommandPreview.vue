@@ -20,11 +20,15 @@ defineProps({
 
 <style scoped>
 .command-preview {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--border-secondary);
   border-radius: var(--radius-xl);
   background: var(--bg-surface-raised);
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px color-mix(in oklch, var(--accent) 8%, transparent),
+    0 0 48px -18px color-mix(in oklch, var(--accent) 35%, transparent);
 }
 
 .command-preview__input {
@@ -52,6 +56,7 @@ defineProps({
   height: 1.1rem;
   margin-left: auto;
   background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in oklch, var(--accent) 70%, transparent);
   animation: cursor-pulse 1.2s steps(2, jump-none) infinite;
 }
 

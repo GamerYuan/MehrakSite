@@ -28,8 +28,11 @@ const docsRoute = homepageDocsRoute;
 
 <template>
   <article class="home">
+    <div class="hero-glow" aria-hidden="true"></div>
+
     <section class="hero" aria-labelledby="home-title">
       <div class="hero-copy">
+        <p class="hero-eyebrow">Dendro command deck</p>
         <h1 id="home-title">Turn game data into cards worth sharing.</h1>
         <p class="hero-lede">
           MehrakBot brings builds, rosters, and endgame records into Discord as clear visual
@@ -50,31 +53,34 @@ const docsRoute = homepageDocsRoute;
         </div>
       </div>
 
-      <CommandPreview
-        command="/genshin character characters:Nahida"
-        label="Example Discord command"
-      >
-        <picture class="hero-output">
-          <source
-            type="image/webp"
-            srcset="
-              /showcase/builds-1-480.webp   480w,
-              /showcase/builds-1-768.webp   768w,
-              /showcase/builds-1-1200.webp 1200w,
-              /showcase/builds-1-1600.webp 1600w
-            "
-            sizes="(max-width: 56rem) calc(100vw - 2rem), 46vw"
-          />
-          <img
-            src="/showcase/builds-1-1200.webp"
-            width="3240"
-            height="1080"
-            alt="Generated Genshin Impact build card for Nahida with equipment and stats"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </picture>
-      </CommandPreview>
+      <div class="hero-stage">
+        <div class="dendro-rings hero-rings" aria-hidden="true"></div>
+        <CommandPreview
+          command="/genshin character characters:Nahida"
+          label="Example Discord command"
+        >
+          <picture class="hero-output">
+            <source
+              type="image/webp"
+              srcset="
+                /showcase/builds-1-480.webp   480w,
+                /showcase/builds-1-768.webp   768w,
+                /showcase/builds-1-1200.webp 1200w,
+                /showcase/builds-1-1600.webp 1600w
+              "
+              sizes="(max-width: 56rem) calc(100vw - 2rem), 46vw"
+            />
+            <img
+              src="/showcase/builds-1-1200.webp"
+              width="3240"
+              height="1080"
+              alt="Generated Genshin Impact build card for Nahida with equipment and stats"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
+        </CommandPreview>
+      </div>
     </section>
 
     <section class="games" aria-labelledby="games-title">
@@ -153,6 +159,7 @@ const docsRoute = homepageDocsRoute;
     </section>
 
     <section class="cta" aria-labelledby="cta-title">
+      <div class="cta-glow" aria-hidden="true"></div>
       <h2 id="cta-title">Make the next build check a command, not a screenshot hunt.</h2>
       <p>Add MehrakBot, then choose a documented command for the result you need.</p>
       <div class="cta-actions">
@@ -174,11 +181,25 @@ const docsRoute = homepageDocsRoute;
 
 <style scoped>
 .home {
+  position: relative;
   width: min(100% - 2rem, 76rem);
   margin: 0 auto;
 }
 
+.hero-glow {
+  position: absolute;
+  top: -2rem;
+  right: -8%;
+  width: min(48rem, 90vw);
+  height: 28rem;
+  background: var(--glow-dendro);
+  pointer-events: none;
+  z-index: 0;
+}
+
 section {
+  position: relative;
+  z-index: 1;
   padding: clamp(var(--space-12), 7vw, var(--space-20)) 0;
 }
 
@@ -193,6 +214,16 @@ section + section {
   grid-template-columns: minmax(0, 0.9fr) minmax(24rem, 1.25fr);
   align-items: center;
   gap: clamp(var(--space-8), 5vw, var(--space-16));
+}
+
+.hero-eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 h1,
@@ -252,17 +283,20 @@ h3 {
   transition:
     background var(--motion-base) var(--ease-standard),
     border-color var(--motion-base) var(--ease-standard),
-    color var(--motion-base) var(--ease-standard);
+    color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard);
 }
 
 .primary-action {
   border: 1px solid var(--accent-strong);
   background: var(--accent-strong);
   color: var(--accent-contrast);
+  box-shadow: 0 0 0 0 transparent;
 }
 
 .primary-action:hover {
   background: var(--accent);
+  box-shadow: 0 8px 28px -10px color-mix(in oklch, var(--accent) 55%, transparent);
 }
 
 .secondary-action {
@@ -274,6 +308,19 @@ h3 {
 .secondary-action:hover {
   border-color: var(--accent);
   color: var(--accent-strong);
+}
+
+.hero-stage {
+  position: relative;
+  min-width: 0;
+}
+
+.hero-rings {
+  top: -3.5rem;
+  right: -2rem;
+  width: 16rem;
+  height: 16rem;
+  opacity: 0.85;
 }
 
 .hero-output,
@@ -416,6 +463,7 @@ code {
   color: var(--accent-strong);
   font-family: var(--font-mono);
   font-weight: 700;
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--accent) 8%, transparent);
 }
 
 .step-list strong {
@@ -430,6 +478,7 @@ code {
 }
 
 .cta {
+  overflow: hidden;
   margin: var(--space-10) 0 var(--space-16);
   padding: clamp(var(--space-10), 7vw, var(--space-16));
   border: 1px solid var(--border-secondary);
@@ -437,6 +486,19 @@ code {
   background: var(--bg-surface-raised);
   box-shadow: var(--shadow-md);
   text-align: center;
+}
+
+.cta-glow {
+  position: absolute;
+  inset: 0;
+  background: var(--glow-dendro-soft);
+  pointer-events: none;
+}
+
+.cta h2,
+.cta p,
+.cta-actions {
+  position: relative;
 }
 
 .cta h2 {
@@ -462,6 +524,13 @@ code {
 
   .hero {
     min-height: auto;
+  }
+
+  .hero-rings {
+    top: -2rem;
+    right: 0;
+    width: 11rem;
+    height: 11rem;
   }
 
   .showcase-card--reverse > :first-child {
@@ -503,6 +572,11 @@ code {
 
   .cta {
     padding: var(--space-10) var(--space-5);
+  }
+
+  .hero-glow {
+    right: -20%;
+    width: 120%;
   }
 }
 </style>

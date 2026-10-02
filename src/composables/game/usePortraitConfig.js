@@ -2,7 +2,8 @@ import { ref } from "vue";
 import { useApi } from "../useApi";
 
 export function usePortraitConfig(config) {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
 
   const showPortraitConfigModal = ref(false);
   const showMissingServerIdModal = ref(false);
@@ -92,15 +93,14 @@ export function usePortraitConfig(config) {
       }`;
       const response = await apiFetch(url, {
         method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            offsetX: Math.round(portraitConfigOffsetX.value),
-            offsetY: Math.round(portraitConfigOffsetY.value),
-            targetScale: portraitConfigTargetScale.value,
-            flipX: portraitConfigFlipX.value,
-          }),
-        },
-      );
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          offsetX: Math.round(portraitConfigOffsetX.value),
+          offsetY: Math.round(portraitConfigOffsetY.value),
+          targetScale: portraitConfigTargetScale.value,
+          flipX: portraitConfigFlipX.value,
+        }),
+      });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));

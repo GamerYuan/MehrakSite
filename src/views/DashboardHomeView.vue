@@ -2,7 +2,6 @@
 import { computed, onMounted } from "vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Password from "primevue/password";
 import ProgressSpinner from "primevue/progressspinner";
@@ -251,45 +250,50 @@ onMounted(fetchProfiles);
         <form class="profile-form" @submit.prevent="handleAdd">
           <p class="form-note">Sensitive values are never shown again after submission.</p>
           <div class="field">
-            <label for="addLtUid">HoYoLAB UID</label>
-            <InputText
-              id="addLtUid"
-              v-model="addForm.ltUid"
-              inputmode="numeric"
-              pattern="\d+"
-              title="Numeric ID"
-              placeholder="123456789"
-              required
-              fluid
-            />
-          </div>
-          <div class="field">
-            <label for="addLToken">LToken</label>
+            <label for="addCookieString">HoYoLAB cookie string</label>
             <Password
-              id="addLToken"
-              v-model="addForm.lToken"
+              inputId="addCookieString"
+              v-model="addForm.cookieString"
               toggleMask
               :feedback="false"
+              :inputProps="{ autocomplete: 'off', 'aria-describedby': 'addCookieHelp' }"
               required
               fluid
               inputClass="w-full"
             />
+            <p id="addCookieHelp" class="form-note">
+              Sign in to HoYoLAB, open Developer Tools → Network, then reload the tab. Select a
+              request to hoyolab.com and copy the full Cookie value from its request headers (shown
+              under Cookies in some browsers). Paste the value only, without the Cookie: label—not
+              an individual cookie or a response Set-Cookie header. Keep this string private.
+            </p>
           </div>
           <div class="field">
             <label for="addPassphrase">Passphrase</label>
             <Password
-              id="addPassphrase"
+              inputId="addPassphrase"
               v-model="addForm.passphrase"
               toggleMask
               :feedback="false"
-              :maxlength="64"
+              :inputProps="{
+                minlength: 12,
+                maxlength: 64,
+                autocomplete: 'new-password',
+                'aria-describedby': 'addPassphraseHelp',
+              }"
               required
               fluid
               inputClass="w-full"
             />
           </div>
+          <p id="addPassphraseHelp" class="form-note">Use a passphrase of 12–64 characters.</p>
           <div class="form-actions">
-            <a href="/docs" target="_blank" rel="noopener noreferrer">Credential help</a>
+            <a
+              href="/docs?tab=getting-started#adding-a-profile"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Credential help</a
+            >
             <div>
               <Button
                 type="button"
@@ -522,7 +526,19 @@ onMounted(fetchProfiles);
   bottom: -3rem;
   width: 8rem;
   height: 8rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.profile-card::before {
+  content: "";
+  position: absolute;
+  right: -0.8rem;
+  bottom: -1.8rem;
+  width: 5rem;
+  height: 5rem;
+  border: 1px solid var(--ring-dendro);
   border-radius: 50%;
   pointer-events: none;
 }

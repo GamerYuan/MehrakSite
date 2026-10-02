@@ -2,7 +2,8 @@ import { computed, ref } from "vue";
 import { useApi } from "../useApi";
 
 export function useAliasManagement(config, _activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
 
   const aliases = ref([]);
   const aliasSearchQuery = ref("");

@@ -221,6 +221,7 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
   flex-direction: column;
   border-right: 1px solid var(--border-primary);
   background: var(--bg-surface);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, var(--accent) 25%, transparent);
 }
 .sidebar-header {
   display: flex;

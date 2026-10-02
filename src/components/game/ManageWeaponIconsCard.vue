@@ -159,6 +159,7 @@ onBeforeUnmount(() => {
               :options="gv.filteredWeapons"
               :optionLabel="formatWeaponOption"
               optionValue="id"
+              :focusOnHover="false"
               placeholder="Select a weapon"
               filter
               fluid

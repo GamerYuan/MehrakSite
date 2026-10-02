@@ -37,10 +37,11 @@ defineProps({
   height: 3rem;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid var(--border-secondary);
+  border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--border-secondary));
   border-radius: var(--radius-lg);
   background: var(--accent-soft);
   color: var(--accent-strong);
+  box-shadow: 0 0 20px -4px color-mix(in oklch, var(--accent) 30%, transparent);
 }
 
 .page-header-copy {

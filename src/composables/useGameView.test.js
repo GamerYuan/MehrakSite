@@ -9,6 +9,7 @@ import {
   useGameView,
 } from "./useGameView";
 import { useProfileManagement } from "./useProfileManagement";
+import { gameConfigs } from "../configs/gameConfigs";
 import { __takeOnSuccess } from "./game/useCommandExecution";
 
 vi.mock("vue-router", () => ({
@@ -92,6 +93,22 @@ const config = {
 };
 
 describe("game workspace tab routing", () => {
+  it("exposes the ZZZ character-list workspace to ordinary users and resolves its route", () => {
+    const zzzConfig = gameConfigs.zzz;
+    const tabs = getGameWorkspaceTabs(zzzConfig, { gameWritePermissions: [] });
+    expect(zzzConfig.tabs.find((tab) => tab.id === "charlist")).toEqual({
+      id: "charlist",
+      name: "Character List",
+    });
+    expect(tabs.some((tab) => tab.id === "charlist" && tab.kind === "command")).toBe(true);
+    expect(getGameTabLocation(zzzConfig, "charlist")).toEqual({
+      name: "game",
+      params: { game: "zzz" },
+      query: { tab: "charlist" },
+    });
+    expect(resolveGameTab(zzzConfig, { meta: {}, query: { tab: "charlist" } })).toBe("charlist");
+  });
+
   it("resolves command queries and safely falls back", () => {
     expect(resolveGameTab(config, { meta: {}, query: { tab: "abyss" } })).toBe("abyss");
     expect(resolveGameTab(config, { meta: {}, query: { tab: ["abyss", "character"] } })).toBe(

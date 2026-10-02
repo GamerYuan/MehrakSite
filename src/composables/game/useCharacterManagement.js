@@ -10,7 +10,8 @@ const toStatNumber = (value) => {
 };
 
 export function useCharacterManagement(config, _activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
   const confirm = useConfirm();
 
   const allCharacters = ref([]);

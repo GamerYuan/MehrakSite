@@ -313,10 +313,12 @@ onUnmounted(() => {
   background: var(--accent-strong);
   color: var(--accent-contrast);
   text-decoration: none;
+  box-shadow: 0 0 0 0 transparent;
 }
 
 .invite-link:hover {
   background: var(--accent);
+  box-shadow: 0 6px 20px -8px color-mix(in oklch, var(--accent) 50%, transparent);
 }
 
 .invite-link,

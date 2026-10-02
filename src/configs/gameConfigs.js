@@ -122,6 +122,7 @@ const rawGameConfigs = {
       { id: "character", name: "Character", hasCharacterInput: true },
       { id: "shiyu", name: "Shiyu Defense" },
       { id: "da", name: "Deadly Assault" },
+      { id: "charlist", name: "Character List" },
     ],
     characterPlaceholder: "e.g. Ellen",
     portraitAlignX: 350,

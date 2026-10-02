@@ -40,8 +40,10 @@ defineProps({
 }
 
 .surface-card-interactive:hover {
-  border-color: var(--border-secondary);
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(in oklch, var(--accent) 35%, var(--border-secondary));
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 1px color-mix(in oklch, var(--accent) 12%, transparent);
   transform: translateY(-2px);
 }
 </style>

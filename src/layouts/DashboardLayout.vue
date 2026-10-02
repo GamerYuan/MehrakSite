@@ -111,6 +111,8 @@ onUnmounted(() => document.removeEventListener("keydown", handleKeydown));
 .dashboard-layout {
   min-height: 100vh;
   background: var(--bg-page);
+  background-image: var(--glow-dendro-soft);
+  background-attachment: fixed;
 }
 
 .mobile-topbar {

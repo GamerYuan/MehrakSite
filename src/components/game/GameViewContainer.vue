@@ -178,6 +178,7 @@ const clearResult = () => {
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   margin-bottom: 1rem;
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, var(--game-color) 30%, transparent);
 }
 
 .game-identity {

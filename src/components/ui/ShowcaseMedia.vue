@@ -19,11 +19,7 @@ defineEmits(["expand"]);
 
 <template>
   <figure class="showcase-media">
-    <CommandPreview
-      v-if="command"
-      :command="command"
-      :label="commandLabel"
-    >
+    <CommandPreview v-if="command" :command="command" :label="commandLabel">
       <button
         type="button"
         class="showcase-media__zoom"

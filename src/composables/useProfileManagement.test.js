@@ -35,12 +35,32 @@ describe("useProfileManagement credential lifecycle", () => {
   it("clears the add form when a dialog visibility update dismisses it", () => {
     const management = useProfileManagement();
     management.openAddModal();
-    management.addForm.value = { ltUid: "123", lToken: "token", passphrase: "secret" };
+    management.addForm.value = {
+      cookieString: "ltoken_v2=token; ltuid_v2=123",
+      passphrase: "secret",
+    };
 
     management.handleAddModalVisibility(false);
 
     expect(management.showAddModal.value).toBe(false);
-    expect(management.addForm.value).toEqual({ ltUid: "", lToken: "", passphrase: "" });
+    expect(management.addForm.value).toEqual({ cookieString: "", passphrase: "" });
+  });
+
+  it("submits the full cookie string unchanged without legacy credential fields", async () => {
+    api.apiFetch.mockResolvedValue(response());
+    const management = useProfileManagement();
+    const cookieString = "ltoken_v2=example=token; ltuid_v2=123; other=value";
+    management.openAddModal();
+    management.addForm.value = { cookieString, passphrase: "test-passphrase" };
+
+    await management.handleAdd();
+
+    expect(api.apiFetch).toHaveBeenCalledWith("/profiles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cookieString, passphrase: "test-passphrase" }),
+    });
+    expect(management.addForm.value).toEqual({ cookieString: "", passphrase: "" });
   });
 
   it("clears the edit form and selection on every edit dismissal path", () => {
@@ -60,10 +80,13 @@ describe("useProfileManagement credential lifecycle", () => {
     const management = useProfileManagement();
 
     management.openAddModal();
-    management.addForm.value = { ltUid: "123", lToken: "add-token", passphrase: "add-secret" };
+    management.addForm.value = {
+      cookieString: "ltoken_v2=add-token; ltuid_v2=123",
+      passphrase: "add-secret",
+    };
     await management.handleAdd();
 
-    expect(management.addForm.value).toEqual({ ltUid: "", lToken: "", passphrase: "" });
+    expect(management.addForm.value).toEqual({ cookieString: "", passphrase: "" });
     expect(management.showAddModal.value).toBe(false);
 
     management.openEditModal({ profileId: 4, ltUid: 123 });
@@ -81,14 +104,16 @@ describe("useProfileManagement credential lifecycle", () => {
     );
     const management = useProfileManagement();
     management.openAddModal();
-    management.addForm.value = { ltUid: "123", lToken: "retry-token", passphrase: "retry-secret" };
+    management.addForm.value = {
+      cookieString: "ltoken_v2=retry-token; ltuid_v2=123",
+      passphrase: "retry-secret",
+    };
 
     await management.handleAdd();
 
     expect(management.showAddModal.value).toBe(true);
     expect(management.addForm.value).toEqual({
-      ltUid: "123",
-      lToken: "retry-token",
+      cookieString: "ltoken_v2=retry-token; ltuid_v2=123",
       passphrase: "retry-secret",
     });
     expect(api.handleApiError).toHaveBeenCalledTimes(1);
@@ -103,7 +128,10 @@ describe("useProfileManagement credential lifecycle", () => {
     );
     const management = useProfileManagement();
     management.openAddModal();
-    management.addForm.value = { ltUid: "123", lToken: "token", passphrase: "secret" };
+    management.addForm.value = {
+      cookieString: "ltoken_v2=token; ltuid_v2=123",
+      passphrase: "secret",
+    };
 
     const request = management.handleAdd();
     management.closeAddModal();
@@ -111,7 +139,7 @@ describe("useProfileManagement credential lifecycle", () => {
     await request;
 
     expect(management.showAddModal.value).toBe(false);
-    expect(management.addForm.value).toEqual({ ltUid: "", lToken: "", passphrase: "" });
+    expect(management.addForm.value).toEqual({ cookieString: "", passphrase: "" });
     expect(api.apiFetchJson).toHaveBeenCalledWith("/profiles");
     expect(api.showSuccessToast).not.toHaveBeenCalled();
   });

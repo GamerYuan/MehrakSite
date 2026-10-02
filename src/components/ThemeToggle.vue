@@ -43,6 +43,7 @@ const tooltip = computed(() => `Switch to ${theme.value === "dark" ? "light" : "
 
 .theme-toggle:hover {
   color: var(--text-primary);
-  background: var(--bg-surface);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 </style>

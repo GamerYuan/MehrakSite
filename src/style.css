@@ -4,34 +4,35 @@
 :root {
   color-scheme: light;
 
-  /* Command-deck palette: dark decisions translated to cool, high-clarity light surfaces. */
+  /* Dendro-deck palette: emerald brand, cool green-tinted neutrals. */
   --surface-0: oklch(100% 0 0);
-  --surface-50: oklch(98% 0.006 240);
-  --surface-100: oklch(96% 0.009 240);
-  --surface-200: oklch(92% 0.012 240);
-  --surface-300: oklch(86% 0.014 240);
-  --surface-400: oklch(71% 0.018 240);
-  --surface-500: oklch(56% 0.02 240);
-  --surface-600: oklch(44% 0.021 240);
-  --surface-700: oklch(34% 0.022 240);
-  --surface-800: oklch(25% 0.021 240);
-  --surface-900: oklch(18% 0.02 240);
-  --surface-950: oklch(12% 0.018 240);
+  --surface-50: oklch(98.2% 0.007 155);
+  --surface-100: oklch(96.5% 0.011 155);
+  --surface-200: oklch(93% 0.015 155);
+  --surface-300: oklch(87.5% 0.018 155);
+  --surface-400: oklch(72% 0.022 155);
+  --surface-500: oklch(57% 0.024 155);
+  --surface-600: oklch(45% 0.024 155);
+  --surface-700: oklch(35% 0.024 155);
+  --surface-800: oklch(26% 0.022 155);
+  --surface-900: oklch(18.5% 0.021 155);
+  --surface-950: oklch(13% 0.018 155);
 
-  --brand-50: oklch(97% 0.025 185);
-  --brand-100: oklch(93% 0.055 185);
-  --brand-200: oklch(87% 0.09 185);
-  --brand-300: oklch(79% 0.115 185);
-  --brand-400: oklch(70% 0.125 185);
-  --brand-500: oklch(61% 0.12 185);
-  --brand-600: oklch(52% 0.105 185);
-  --brand-700: oklch(43% 0.087 185);
-  --brand-800: oklch(34% 0.068 185);
-  --brand-900: oklch(27% 0.052 185);
-  --brand-950: oklch(19% 0.038 185);
+  /* Dendro emerald — Nahida leaf-green, slightly warm toward yellow-green. */
+  --brand-50: oklch(97.5% 0.028 148);
+  --brand-100: oklch(94% 0.055 148);
+  --brand-200: oklch(88% 0.09 148);
+  --brand-300: oklch(80.5% 0.12 148);
+  --brand-400: oklch(72% 0.135 148);
+  --brand-500: oklch(63.5% 0.14 148);
+  --brand-600: oklch(54% 0.125 148);
+  --brand-700: oklch(45% 0.105 148);
+  --brand-800: oklch(36% 0.082 148);
+  --brand-900: oklch(29% 0.062 148);
+  --brand-950: oklch(20% 0.045 148);
   --accent: var(--brand-600);
   --accent-strong: var(--brand-700);
-  --accent-rgb: 8, 126, 127;
+  --accent-rgb: 12, 138, 78;
   --accent-soft: var(--brand-100);
   --accent-contrast: var(--surface-0);
 
@@ -44,10 +45,10 @@
   --info: oklch(52% 0.13 235);
   --info-soft: oklch(94% 0.04 235);
   --brass: var(--warn);
-  --preview-genshin-base: oklch(58% 0.02 240);
-  --preview-genshin-detail: oklch(35% 0.025 210);
+  --preview-genshin-base: oklch(58% 0.02 155);
+  --preview-genshin-detail: oklch(35% 0.025 150);
   --preview-hi3-panel: oklch(43% 0.075 245 / 77%);
-  --preview-zzz-bg: oklch(62% 0.025 240);
+  --preview-zzz-bg: oklch(62% 0.025 155);
   --preview-zzz-panel: oklch(21% 0 0);
 
   /* Release and cookie states stay semantic instead of owning another palette. */
@@ -76,8 +77,8 @@
   --border-secondary: var(--surface-500);
   --divider: var(--border-primary);
   --code-bg: var(--surface-200);
-  --navbar-bg: oklch(98% 0.006 240 / 94%);
-  --footer-bg: oklch(12% 0.018 240 / 5%);
+  --navbar-bg: oklch(98.2% 0.007 155 / 94%);
+  --footer-bg: oklch(13% 0.018 155 / 5%);
   --card-surface: var(--bg-surface);
   --card-border: var(--border-primary);
   --page-gradient: linear-gradient(
@@ -88,6 +89,20 @@
   );
   --selection-bg: var(--brand-200);
   --selection-text: var(--brand-950);
+
+  /* Ambient Dendro glow — soft leaf light behind hero and key surfaces. */
+  --glow-dendro: radial-gradient(
+    ellipse 70% 55% at 70% 20%,
+    color-mix(in oklch, var(--brand-400) 18%, transparent),
+    transparent 70%
+  );
+  --glow-dendro-soft: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    color-mix(in oklch, var(--brand-300) 12%, transparent),
+    transparent 65%
+  );
+  --ring-dendro: color-mix(in oklch, var(--accent) 18%, transparent);
+  --ring-dendro-strong: color-mix(in oklch, var(--accent) 32%, transparent);
 
   /* Type scale. */
   --font-display: "Space Grotesk", Inter, "Segoe UI", sans-serif;
@@ -128,12 +143,12 @@
   --radius-xl: 0.875rem;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px oklch(12% 0.018 240 / 8%);
-  --shadow-md: 0 12px 30px -20px oklch(12% 0.018 240 / 32%);
-  --shadow-lg: 0 28px 70px -36px oklch(12% 0.018 240 / 44%);
-  --shadow-dialog: 0 30px 90px -32px oklch(12% 0.018 240 / 55%);
+  --shadow-sm: 0 1px 2px oklch(13% 0.018 155 / 8%);
+  --shadow-md: 0 12px 30px -20px oklch(13% 0.018 155 / 32%);
+  --shadow-lg: 0 28px 70px -36px oklch(13% 0.018 155 / 44%);
+  --shadow-dialog: 0 30px 90px -32px oklch(13% 0.018 155 / 55%);
 
-  --focus-color: var(--info);
+  --focus-color: var(--brand-600);
   --focus-width: 3px;
   --focus-offset: 3px;
   --motion-fast: 120ms;
@@ -147,7 +162,7 @@
   color-scheme: dark;
   --accent: var(--brand-400);
   --accent-strong: var(--brand-300);
-  --accent-rgb: 53, 207, 197;
+  --accent-rgb: 74, 200, 128;
   --accent-soft: var(--brand-950);
   --accent-contrast: var(--surface-950);
 
@@ -160,22 +175,22 @@
   --info: oklch(75% 0.12 235);
   --info-soft: oklch(25% 0.05 235);
 
-  --bg-page: oklch(13% 0.022 250);
-  --bg-surface-base: oklch(17% 0.025 250);
+  --bg-page: oklch(13.5% 0.022 150);
+  --bg-surface-base: oklch(17.5% 0.025 150);
   --bg-surface: var(--bg-surface-base);
-  --bg-surface-raised: oklch(21% 0.027 250);
-  --bg-surface-sunken: oklch(10% 0.02 250);
-  --bg-overlay: oklch(13% 0.022 250 / 94%);
-  --text-primary: oklch(94% 0.01 235);
-  --text-secondary: oklch(78% 0.016 235);
-  --text-muted: oklch(66% 0.02 235);
+  --bg-surface-raised: oklch(21.5% 0.027 150);
+  --bg-surface-sunken: oklch(10.5% 0.02 150);
+  --bg-overlay: oklch(13.5% 0.022 150 / 94%);
+  --text-primary: oklch(94% 0.01 150);
+  --text-secondary: oklch(78% 0.016 150);
+  --text-muted: oklch(66% 0.02 150);
   --text-inverse: var(--surface-950);
-  --border-primary: oklch(76% 0.025 235 / 16%);
-  --border-secondary: oklch(76% 0.025 235 / 28%);
+  --border-primary: oklch(76% 0.025 150 / 16%);
+  --border-secondary: oklch(76% 0.025 150 / 28%);
   --divider: var(--border-primary);
   --code-bg: var(--bg-surface-sunken);
-  --navbar-bg: oklch(13% 0.022 250 / 90%);
-  --footer-bg: oklch(5% 0.01 250 / 28%);
+  --navbar-bg: oklch(13.5% 0.022 150 / 90%);
+  --footer-bg: oklch(5% 0.01 150 / 28%);
   --card-surface: var(--bg-surface);
   --card-border: var(--border-primary);
   --page-gradient: linear-gradient(
@@ -187,10 +202,23 @@
   --selection-bg: var(--brand-700);
   --selection-text: var(--surface-50);
 
-  --shadow-sm: 0 1px 2px oklch(4% 0.01 250 / 32%);
-  --shadow-md: 0 14px 34px -20px oklch(4% 0.01 250 / 78%);
-  --shadow-lg: 0 30px 74px -34px oklch(4% 0.01 250 / 88%);
-  --shadow-dialog: 0 34px 100px -28px oklch(4% 0.01 250 / 94%);
+  --glow-dendro: radial-gradient(
+    ellipse 70% 55% at 70% 20%,
+    color-mix(in oklch, var(--brand-400) 14%, transparent),
+    transparent 70%
+  );
+  --glow-dendro-soft: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    color-mix(in oklch, var(--brand-500) 10%, transparent),
+    transparent 65%
+  );
+  --ring-dendro: color-mix(in oklch, var(--accent) 22%, transparent);
+  --ring-dendro-strong: color-mix(in oklch, var(--accent) 40%, transparent);
+
+  --shadow-sm: 0 1px 2px oklch(4% 0.01 150 / 32%);
+  --shadow-md: 0 14px 34px -20px oklch(4% 0.01 150 / 78%);
+  --shadow-lg: 0 30px 74px -34px oklch(4% 0.01 150 / 88%);
+  --shadow-dialog: 0 34px 100px -28px oklch(4% 0.01 150 / 94%);
   --focus-color: var(--brand-300);
 }
 
@@ -282,7 +310,7 @@ li {
   background: var(--text-muted);
 }
 
-/* PrimeVue stays functional while sharing the command-deck rhythm and materials. */
+/* PrimeVue stays functional while sharing the Dendro-deck rhythm and materials. */
 .p-component {
   font-family: var(--font-body);
   line-height: var(--leading-body);
@@ -343,6 +371,33 @@ li {
   border-radius: var(--radius-lg);
   color: var(--text-muted);
   text-align: center;
+}
+
+/* Decorative botanical rings — Dendro signature ornament. */
+.dendro-rings {
+  position: absolute;
+  width: 14rem;
+  height: 14rem;
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.dendro-rings::before,
+.dendro-rings::after {
+  position: absolute;
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  content: "";
+}
+
+.dendro-rings::before {
+  inset: 18%;
+}
+
+.dendro-rings::after {
+  inset: 36%;
+  border-color: var(--ring-dendro-strong);
 }
 
 @media (max-width: 768px) {

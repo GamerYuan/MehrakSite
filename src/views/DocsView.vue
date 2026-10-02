@@ -336,6 +336,8 @@ const clearCommandSearch = () => handleSearchChange("");
 
 .docs-masthead {
   margin-bottom: var(--space-10);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .docs-masthead h1 {
@@ -344,6 +346,16 @@ const clearCommandSearch = () => handleSearchChange("");
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.1;
+}
+
+.docs-masthead h1::after {
+  display: block;
+  width: 3rem;
+  height: 3px;
+  margin-top: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent-strong), transparent);
+  content: "";
 }
 
 .masthead-intro {
@@ -425,6 +437,9 @@ const clearCommandSearch = () => handleSearchChange("");
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   background: var(--bg-surface-raised);
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 1px color-mix(in oklch, var(--accent) 6%, transparent);
 }
 
 .commands-view,

@@ -3,7 +3,8 @@ import { useApi } from "../useApi";
 import { useConfirm } from "primevue/useconfirm";
 
 export function useCodesManagement(config, _activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
   const confirm = useConfirm();
 
   if (!config || !config.hasCodesManagement) {

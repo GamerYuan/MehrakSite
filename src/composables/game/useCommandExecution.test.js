@@ -12,6 +12,7 @@ vi.mock("../useApi", () => ({
 }));
 
 import { useCommandExecution } from "./useCommandExecution";
+import { gameConfigs } from "../../configs/gameConfigs";
 
 const config = {
   id: "Genshin",
@@ -50,6 +51,61 @@ describe("useCommandExecution", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ profileId: 12, server: "America", character: "Nahida" }),
     });
+  });
+
+  it.each(["genshin", "hsr", "zzz"])(
+    "uses the shared character-list request and image response for %s",
+    async (game) => {
+      api.apiFetch.mockResolvedValue(response({ storageFileName: "charlist.webp" }));
+      const onSuccess = vi.fn();
+      const execution = useCommandExecution(gameConfigs[game], ref("charlist"), onSuccess);
+      execution.profileId.value = "3";
+      execution.server.value = "Asia";
+      execution.characterName.value = "unused";
+      execution.floor.value = 12;
+
+      await execution.executeCommand();
+
+      expect(api.apiFetch).toHaveBeenCalledWith(`/${game}/charlist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: 3, server: "Asia" }),
+      });
+      expect(execution.resultImages.value.charlist).toBe(
+        `${import.meta.env.VITE_APP_BACKEND_URL}/attachments/charlist.webp`,
+      );
+      expect(execution.loading.value.charlist).toBe(false);
+      expect(execution.error.value.charlist).toBe("");
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("retries ZZZ character list after profile authentication", async () => {
+    api.apiFetch
+      .mockResolvedValueOnce(response({ code: "AUTH_REQUIRED" }, { ok: false, status: 403 }))
+      .mockResolvedValueOnce(response({ ok: true }))
+      .mockResolvedValueOnce(response({ storageFileName: "zzz-charlist.webp" }));
+    const execution = useCommandExecution(gameConfigs.zzz, ref("charlist"));
+    execution.profileId.value = 7;
+    execution.server.value = "Europe";
+
+    await execution.executeCommand();
+    expect(execution.showAuthModal.value).toBe(true);
+    execution.authPassphrase.value = "test-passphrase";
+    await execution.handleAuth();
+
+    expect(api.apiFetch.mock.calls.map(([endpoint]) => endpoint)).toEqual([
+      "/zzz/charlist",
+      "/profile-auth",
+      "/zzz/charlist",
+    ]);
+    expect(api.apiFetch.mock.calls[2][1].body).toBe(
+      JSON.stringify({ profileId: 7, server: "Europe" }),
+    );
+    expect(execution.resultImages.value.charlist).toBe(
+      `${import.meta.env.VITE_APP_BACKEND_URL}/attachments/zzz-charlist.webp`,
+    );
+    expect(execution.showAuthModal.value).toBe(false);
   });
 
   it("blocks a duplicate submission while the first request is loading", async () => {
