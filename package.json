@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=24.0.0 <25.0.0 || >=26.0.0"
-  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -29,15 +26,18 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.54.4",
+    "@cloudflare/vite-plugin": "^1.62.5",
     "@vitejs/plugin-vue": "^6.0.7",
     "jsdom": "^26.1.0",
     "oxfmt": "^0.56.0",
     "oxlint": "^1.6.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.6",
-    "vitest": "^3.2.4",
+    "vitest": "^4.1.11",
     "vue-tsc": "^3.3.11",
-    "wrangler": "^4.129.0"
+    "wrangler": "^4.147.0"
+  },
+  "engines": {
+    "node": ">=24.0.0 <25.0.0 || >=26.0.0"
   }
 }
