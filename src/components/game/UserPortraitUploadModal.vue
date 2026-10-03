@@ -3,6 +3,7 @@ import { onUnmounted, ref, watch } from "vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Message from "primevue/message";
+import FileUploadField from "../ui/FileUploadField.vue";
 
 const props = defineProps({
   visible: { type: Boolean, required: true },
@@ -43,7 +44,7 @@ const resetState = () => {
   fileError.value = "";
   nsfwError.value = "";
   classifying.value = false;
-  if (fileInput.value) fileInput.value.value = "";
+  fileInput.value?.clear();
 };
 
 const handleVisibleUpdate = (value) => {
@@ -55,14 +56,22 @@ const getImageDimensions = (file) =>
   new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
-    img.addEventListener("load", () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    }, { once: true });
-    img.addEventListener("error", () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to read image dimensions"));
-    }, { once: true });
+    img.addEventListener(
+      "load",
+      () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      },
+      { once: true },
+    );
+    img.addEventListener(
+      "error",
+      () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Failed to read image dimensions"));
+      },
+      { once: true },
+    );
     img.src = url;
   });
 
@@ -88,7 +97,11 @@ const classifyImage = async (file) => {
     const img = new Image();
     await new Promise((resolve, reject) => {
       img.addEventListener("load", resolve, { once: true });
-      img.addEventListener("error", () => reject(new Error("Failed to load image for classification")), { once: true });
+      img.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load image for classification")),
+        { once: true },
+      );
       img.src = url;
     });
     const predictions = await model.classify(img);
@@ -101,8 +114,7 @@ const classifyImage = async (file) => {
   }
 };
 
-const onFileChange = async (event) => {
-  const file = event.target.files?.[0];
+const onFileChange = async (file) => {
   const myToken = ++fileChangeToken;
   fileError.value = "";
   nsfwError.value = "";
@@ -120,7 +132,7 @@ const onFileChange = async (event) => {
     return;
   }
 
-  let dims;
+  let dims = null;
   try {
     dims = await getImageDimensions(file);
   } catch {
@@ -148,9 +160,9 @@ const onFileChange = async (event) => {
       if (previewUrl.value === myPreviewUrl) previewUrl.value = null;
       if (selectedFile.value === file) selectedFile.value = null;
     }
-  } catch (err) {
+  } catch (error) {
     if (myToken !== fileChangeToken) return;
-    nsfwError.value = `Could not verify image content: ${err.message || "Unknown error"}. Please try again.`;
+    nsfwError.value = `Could not verify image content: ${error.message || "Unknown error"}. Please try again.`;
   } finally {
     if (myToken === fileChangeToken) {
       classifying.value = false;
@@ -181,18 +193,19 @@ onUnmounted(() => {
     @update:visible="handleVisibleUpdate"
     modal
     header="Upload Portrait"
-    :style="{ width: '32rem' }"
+    :style="{ width: 'min(32rem, calc(100vw - 2rem))' }"
+    class="portrait-upload-dialog"
   >
     <div class="relative">
       <div
         v-if="props.loading"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/30"
+        class="absolute inset-0 z-10 flex items-center justify-center rounded-(--radius-lg) bg-(--bg-overlay)"
       >
-        <i class="pi pi-spin pi-spinner text-2xl text-white"></i>
+        <i class="pi pi-spin pi-spinner text-2xl text-(--text-primary)" aria-hidden="true"></i>
       </div>
 
       <div class="flex flex-col gap-4">
-        <p class="text-sm text-gray-600 dark:text-gray-300">
+        <p class="text-sm text-(--text-secondary)">
           Uploading portrait for
           <strong>{{ props.character }}</strong>
           ({{ props.remainingSlots }} slot{{ props.remainingSlots === 1 ? "" : "s" }}
@@ -211,22 +224,19 @@ onUnmounted(() => {
           </div>
         </Message>
 
-        <div class="flex flex-col gap-2">
-          <label for="portrait-file">Image file</label>
-          <input
-            id="portrait-file"
-            ref="fileInput"
-            type="file"
-            accept="image/jpeg,image/png"
-            :disabled="props.loading || modelLoading"
-            @change="onFileChange"
-            class="block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gray-200 dark:file:bg-gray-700 file:text-sm file:font-medium cursor-pointer disabled:opacity-50"
-          />
-        </div>
+        <FileUploadField
+          ref="fileInput"
+          input-id="portrait-file"
+          label="Image file"
+          accept="image/jpeg,image/png"
+          :disabled="props.loading || modelLoading"
+          :status="classifying ? 'Checking image content...' : ''"
+          @select="onFileChange"
+        />
 
         <div
           v-if="previewUrl"
-          class="border rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex justify-center"
+          class="flex justify-center overflow-hidden rounded-(--radius-lg) border border-(--border-primary) bg-(--bg-surface-sunken)"
         >
           <img :src="previewUrl" alt="Preview" class="max-h-64" />
         </div>
@@ -263,3 +273,14 @@ onUnmounted(() => {
     </div>
   </Dialog>
 </template>
+
+<style scoped>
+:deep(.portrait-upload-dialog) {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+}
+
+:deep(.portrait-upload-dialog .p-dialog-header) {
+  border-bottom: 1px solid var(--border-primary);
+}
+</style>

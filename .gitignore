@@ -33,3 +33,6 @@ dist-ssr/
 .opencode
 .mimocode
 plans/
+
+# generated backend spec
+openapi_v1.json

@@ -4,7 +4,8 @@ import { useApi } from "../useApi";
 const MAX_PORTRAITS_PER_CHARACTER = 5;
 
 export function useUserPortraits(config) {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
 
   const userPortraits = ref([]);
   const userPortraitsLoading = ref(false);
@@ -20,14 +21,35 @@ export function useUserPortraits(config) {
   const userPortraitConfigSaving = ref(false);
 
   const MAX_PER_CHARACTER = MAX_PORTRAITS_PER_CHARACTER;
+  let userPortraitRequestToken = 0;
+  let userPortraitConfigRequestToken = 0;
+
+  const resetUserPortraitConfig = () => {
+    userPortraitConfigRequestToken++;
+    userPortraitConfigOffsetX.value = 0;
+    userPortraitConfigOffsetY.value = 0;
+    userPortraitConfigTargetScale.value = null;
+    userPortraitConfigFlipX.value = false;
+    userPortraitConfigArtistAttribution.value = null;
+    userPortraitConfigFetching.value = false;
+  };
 
   const fetchUserPortraits = async (character) => {
+    const requestToken = ++userPortraitRequestToken;
+    const isCurrentRequest = () =>
+      requestToken === userPortraitRequestToken && userPortraitsCharacter.value === character;
+
     userPortraitsCharacter.value = character;
+    userPortraits.value = [];
+    resetUserPortraitConfig();
+    userPortraitId.value = null;
     userPortraitsLoading.value = true;
     try {
       const { ok, data } = await apiFetchJson(
         `/user-portraits?game=${encodeURIComponent(config.id)}&character=${encodeURIComponent(character)}`,
       );
+      if (!isCurrentRequest()) return;
+
       if (ok && Array.isArray(data)) {
         userPortraits.value = data;
         const active = data.find((p) => p.isActive);
@@ -43,15 +65,26 @@ export function useUserPortraits(config) {
         userPortraitId.value = null;
       }
     } catch (error) {
+      if (!isCurrentRequest()) return;
       if (handleApiError(error)) return;
       userPortraits.value = [];
       userPortraitId.value = null;
     } finally {
-      userPortraitsLoading.value = false;
+      if (isCurrentRequest()) userPortraitsLoading.value = false;
     }
   };
 
   const fetchUserPortraitConfig = async (id) => {
+    if (id == null) {
+      resetUserPortraitConfig();
+      userPortraitId.value = null;
+      return;
+    }
+
+    const requestToken = ++userPortraitConfigRequestToken;
+    const isCurrentRequest = () =>
+      requestToken === userPortraitConfigRequestToken && userPortraitId.value === id;
+
     userPortraitId.value = id;
     userPortraitConfigOffsetX.value = 0;
     userPortraitConfigOffsetY.value = 0;
@@ -62,6 +95,8 @@ export function useUserPortraits(config) {
 
     try {
       const { ok, data } = await apiFetchJson(`/user-portraits/${id}`);
+      if (!isCurrentRequest()) return;
+
       if (ok && data?.config) {
         const cfg = data.config;
         userPortraitConfigOffsetX.value = cfg.offsetX ?? 0;
@@ -71,9 +106,10 @@ export function useUserPortraits(config) {
         userPortraitConfigArtistAttribution.value = cfg.artistAttribution ?? null;
       }
     } catch (error) {
+      if (!isCurrentRequest()) return;
       handleApiError(error);
     } finally {
-      userPortraitConfigFetching.value = false;
+      if (isCurrentRequest()) userPortraitConfigFetching.value = false;
     }
   };
 
@@ -176,6 +212,7 @@ export function useUserPortraits(config) {
     userPortraitConfigSaving,
 
     fetchUserPortraits,
+    resetUserPortraitConfig,
     fetchUserPortraitConfig,
     uploadUserPortrait,
     deleteUserPortrait,

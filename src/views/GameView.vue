@@ -9,15 +9,14 @@ import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 
-const config = gameConfigs[route.params.game];
-if (config) {
-  const gameView = reactive(useGameView(config));
-  provide(GAME_VIEW_KEY, gameView);
-} else {
-  router.replace({ name: "dashboard-home" });
-}
+const gameKey = Array.isArray(route.params.game) ? route.params.game[0] : route.params.game;
+const config = gameKey ? gameConfigs[gameKey] : null;
+const gameView = config ? reactive(useGameView(config)) : null;
+
+if (gameView) provide(GAME_VIEW_KEY, gameView);
+else router.replace({ name: "dashboard-home" });
 </script>
 
 <template>
-  <GameViewContainer />
+  <GameViewContainer v-if="gameView" />
 </template>

@@ -1,25 +1,27 @@
 <script setup>
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import AboutCookiesTab from "../components/docs/tabs/AboutCookiesTab.vue";
-import AboutMehrakTab from "../components/docs/tabs/AboutMehrakTab.vue";
-import AliasTab from "../components/docs/tabs/AliasTab.vue";
-import AppFooter from "../components/AppFooter.vue";
-import AppNavbar from "../components/AppNavbar.vue";
-import CommendationsTab from "../components/docs/tabs/CommendationsTab.vue";
-import DocCard from "../components/docs/DocCard.vue";
-import DocDetailModal from "../components/docs/DocDetailModal.vue";
-import DocSearchBar from "../components/docs/DocSearchBar.vue";
-import FaqTab from "../components/docs/tabs/FaqTab.vue";
-import GettingStartedTab from "../components/docs/tabs/GettingStartedTab.vue";
 import Message from "primevue/message";
 import ProgressSpinner from "primevue/progressspinner";
-import ReleaseNotesTab from "../components/docs/tabs/ReleaseNotesTab.vue";
 import Tab from "primevue/tab";
 import TabList from "primevue/tablist";
 import TabPanel from "primevue/tabpanel";
 import TabPanels from "primevue/tabpanels";
 import Tabs from "primevue/tabs";
+import DocCard from "../components/docs/DocCard.vue";
+import DocDetailModal from "../components/docs/DocDetailModal.vue";
+import DocSearchBar from "../components/docs/DocSearchBar.vue";
+import GameTag from "../components/docs/GameTag.vue";
+import AboutCookiesTab from "../components/docs/tabs/AboutCookiesTab.vue";
+import AboutMehrakTab from "../components/docs/tabs/AboutMehrakTab.vue";
+import AliasTab from "../components/docs/tabs/AliasTab.vue";
+import CommendationsTab from "../components/docs/tabs/CommendationsTab.vue";
+import FaqTab from "../components/docs/tabs/FaqTab.vue";
+import GettingStartedTab from "../components/docs/tabs/GettingStartedTab.vue";
+import ReleaseNotesTab from "../components/docs/tabs/ReleaseNotesTab.vue";
+import EmptyState from "../components/ui/EmptyState.vue";
+import PageHeader from "../components/ui/PageHeader.vue";
+import SectionRule from "../components/ui/SectionRule.vue";
 import { useDocs } from "../composables/useDocs";
 
 const route = useRoute();
@@ -34,488 +36,618 @@ const {
   fetchDocumentDetail,
   toggleGame,
   selectAllGames,
-  gameLabels,
 } = useDocs();
 
-const selectedDoc = ref(null);
-const showDetailModal = ref(false);
-const loadingDetail = ref(false);
-const activeTab = ref("getting-started");
-const appendixTab = ref("about");
-
 const navItems = [
-  { key: "getting-started", label: "Getting Started", icon: "pi pi-book" },
-  { key: "commands", label: "Commands", icon: "pi pi-hashtag" },
-  { key: "alias", label: "Aliases", icon: "pi pi-tags" },
+  { key: "getting-started", label: "Getting Started", icon: "pi pi-compass" },
+  { key: "commands", label: "Command Index", icon: "pi pi-hashtag" },
+  { key: "alias", label: "Character Aliases", icon: "pi pi-tags" },
   { key: "faq", label: "FAQ", icon: "pi pi-question-circle" },
   { key: "appendix", label: "Appendix", icon: "pi pi-folder-open" },
 ];
 
 const appendixTabs = [
   { key: "about", label: "About Mehrak" },
-  { key: "cookies", label: "About HoYoLAB Cookies" },
+  { key: "cookies", label: "HoYoLAB Cookies" },
   { key: "notes", label: "Release Notes" },
   { key: "commendations", label: "Commendations" },
 ];
 
-const syncFromUrl = () => {
-  const {tab} = route.query;
-  const {section} = route.query;
-  const {hash} = route;
-  if (tab) {
-    activeTab.value = tab;
-    if (tab === "appendix" && section) appendixTab.value = section;
-  }
-  if (hash) {
-    setTimeout(() => {
-      const id = hash.startsWith("#") ? hash.slice(1) : hash;
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
-  }
+const validTabs = new Set(navItems.map(({ key }) => key));
+const validAppendixTabs = new Set(appendixTabs.map(({ key }) => key));
+const validJourneys = new Set(["server", "personal"]);
+const activeTab = ref("getting-started");
+const appendixTab = ref("about");
+const activeJourney = ref("server");
+const selectedDoc = ref(null);
+const showDetailModal = ref(false);
+const loadingDetail = ref(false);
+const detailError = ref("");
+const mobileNavOpen = ref(false);
+const activeNavItem = computed(() => navItems.find(({ key }) => key === activeTab.value));
+const queryString = (value) => {
+  if (Array.isArray(value)) return value[0];
+  return typeof value === "string" ? value : undefined;
 };
 
-watch(() => route.query, syncFromUrl, { immediate: true });
+watch(
+  [
+    () => queryString(route.query.tab),
+    () => queryString(route.query.section),
+    () => queryString(route.query.journey),
+    () => queryString(route.query.search),
+  ],
+  ([tab, section, journey, search]) => {
+    activeTab.value = validTabs.has(tab) ? tab : "getting-started";
+    appendixTab.value = validAppendixTabs.has(section) ? section : "about";
+    activeJourney.value = validJourneys.has(journey) ? journey : "server";
+    searchQuery.value = typeof search === "string" ? search : "";
+    showDetailModal.value = false;
+    mobileNavOpen.value = false;
+
+    if (journey && !validJourneys.has(journey)) {
+      router.replace({
+        name: "docs",
+        query: { ...route.query, journey: undefined },
+        hash: route.hash,
+      });
+    }
+  },
+  { immediate: true },
+);
 
 const handleDocClick = async (doc) => {
   loadingDetail.value = true;
+  detailError.value = "";
   showDetailModal.value = true;
   selectedDoc.value = { ...doc, parameters: [], examples: [] };
   try {
     selectedDoc.value = await fetchDocumentDetail(doc.id);
-  } catch (error) {
-    console.error("Failed to fetch document details:", error);
+  } catch {
+    detailError.value = "The command details could not be loaded. Please try again.";
   } finally {
     loadingDetail.value = false;
   }
 };
 
-const handleSearchUpdate = (value) => {
-  searchQuery.value = value;
+const handleTabChange = (tab) => {
+  if (typeof tab !== "string" || !validTabs.has(tab)) return;
+  mobileNavOpen.value = false;
+  router.push({
+    name: "docs",
+    query: {
+      ...route.query,
+      tab,
+      section: tab === "appendix" ? appendixTab.value : undefined,
+    },
+    hash: route.hash,
+  });
 };
 
-const handleTabChange = (tab) => {
-  activeTab.value = tab;
-  showDetailModal.value = false;
-  router.push({ path: "/docs", query: { tab } });
+const handleAppendixChange = (section) => {
+  if (typeof section !== "string" || !validAppendixTabs.has(section)) return;
+  router.push({
+    name: "docs",
+    query: { ...route.query, tab: "appendix", section },
+    hash: route.hash,
+  });
 };
+
+const handleJourneyChange = (journey) => {
+  if (typeof journey !== "string" || !validJourneys.has(journey)) return;
+  router.push({
+    name: "docs",
+    query: { ...route.query, tab: "getting-started", journey },
+    hash: route.hash,
+  });
+};
+
+const handleSearchChange = (value) => {
+  if (typeof value !== "string") return;
+  searchQuery.value = value;
+  router.replace({
+    name: "docs",
+    query: { ...route.query, tab: "commands", search: value.trim() || undefined },
+    hash: route.hash,
+  });
+};
+
+const clearCommandSearch = () => handleSearchChange("");
 </script>
 
 <template>
-  <div class="docs-page">
-    <AppNavbar />
+  <section class="docs-page" aria-labelledby="docs-title">
+    <header class="docs-masthead">
+      <h1 id="docs-title">Documentation</h1>
+      <p class="masthead-intro">
+        Install Mehrak, search the live command index, and connect HoYoverse profiles with clear
+        security guidance.
+      </p>
+    </header>
 
-    <main class="docs-main">
-      <div class="docs-grid">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-          <div class="sidebar-head">
-            <div class="sidebar-icon">
-              <i class="pi pi-book"></i>
-            </div>
-            <div>
-              <h1 class="sidebar-title">Docs</h1>
-              <p class="sidebar-sub">Mehrak Discord Bot</p>
-            </div>
+    <div class="mobile-guide-nav">
+      <span class="mobile-nav-label">Manual section</span>
+      <button
+        type="button"
+        class="mobile-nav-trigger"
+        :aria-expanded="mobileNavOpen"
+        aria-controls="mobile-docs-menu"
+        @click="mobileNavOpen = !mobileNavOpen"
+      >
+        <i :class="activeNavItem.icon" aria-hidden="true"></i>
+        <span>{{ activeNavItem.label }}</span>
+        <i
+          :class="mobileNavOpen ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+          aria-hidden="true"
+        ></i>
+      </button>
+      <div v-show="mobileNavOpen" id="mobile-docs-menu" class="mobile-nav-menu">
+        <button
+          v-for="item in navItems"
+          :key="item.key"
+          type="button"
+          :class="['mobile-nav-option', { active: activeTab === item.key }]"
+          :aria-current="activeTab === item.key ? 'page' : undefined"
+          @click="handleTabChange(item.key)"
+        >
+          <i :class="item.icon" aria-hidden="true"></i>
+          <strong>{{ item.label }}</strong>
+          <i v-if="activeTab === item.key" class="pi pi-check" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="docs-grid">
+      <aside class="guide-sidebar">
+        <div class="sidebar-heading">
+          <span>Contents</span>
+        </div>
+        <nav class="sidebar-nav" aria-label="Documentation sections">
+          <button
+            v-for="item in navItems"
+            :key="item.key"
+            type="button"
+            :class="['nav-item', { active: activeTab === item.key }]"
+            :aria-current="activeTab === item.key ? 'page' : undefined"
+            @click="handleTabChange(item.key)"
+          >
+            <i :class="item.icon" aria-hidden="true"></i>
+            <span>{{ item.label }}</span>
+          </button>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <GettingStartedTab
+          v-if="activeTab === 'getting-started'"
+          :journey="activeJourney"
+          @update:journey="handleJourneyChange"
+        />
+
+        <section v-else-if="activeTab === 'commands'" class="commands-view">
+          <PageHeader
+            title="Command Index"
+            subtitle="Search the live index, then open a command brief for usage and parameters."
+          />
+
+          <DocSearchBar
+            :searchQuery="searchQuery"
+            :selectedGames="selectedGames"
+            @update:searchQuery="handleSearchChange"
+            @toggleGame="toggleGame"
+            @selectAllGames="selectAllGames"
+          />
+
+          <div v-if="loading" class="state-box" role="status" aria-live="polite">
+            <ProgressSpinner style="width: 2.25rem; height: 2.25rem" strokeWidth="3" />
+            <span>Consulting the command catalogue…</span>
           </div>
 
-          <nav class="sidebar-nav">
-            <button
-              v-for="item in navItems"
-              :key="item.key"
-              type="button"
-              :class="['nav-item', { active: activeTab === item.key }]"
-              @click="handleTabChange(item.key)"
-            >
-              <i :class="item.icon" class="nav-icon"></i>
-              <span>{{ item.label }}</span>
-              <i v-if="activeTab === item.key" class="pi pi-arrow-right nav-arrow"></i>
-            </button>
-          </nav>
-        </aside>
-
-        <!-- Content -->
-        <section class="content">
-          <div v-if="activeTab === 'getting-started'">
-            <GettingStartedTab />
+          <div v-else-if="docsError" class="state-box" role="alert">
+            <Message severity="error" :closable="false">{{ docsError }}</Message>
           </div>
 
-          <div v-else-if="activeTab === 'commands'" class="commands-view">
-            <div class="content-head">
-              <h2 class="content-title">Commands</h2>
-              <p class="content-desc">Search and view details about available commands.</p>
+          <EmptyState
+            v-else-if="Object.keys(groupedDocuments).length === 0"
+            icon="pi pi-search"
+            :title="searchQuery ? `No command matches “${searchQuery}”` : 'No commands available'"
+            :description="
+              searchQuery
+                ? 'This command link may be stale or malformed. Clear it to return to the full index.'
+                : 'Restore all game filters or try again later.'
+            "
+          >
+            <div class="empty-actions">
+              <button
+                v-if="searchQuery"
+                type="button"
+                class="recovery-action"
+                @click="clearCommandSearch"
+              >
+                Show all commands
+              </button>
+              <button
+                type="button"
+                class="recovery-action"
+                @click="handleTabChange('getting-started')"
+              >
+                Open Getting Started
+              </button>
             </div>
+          </EmptyState>
 
-            <DocSearchBar
-              :searchQuery="searchQuery"
-              :selectedGames="selectedGames"
-              @update:searchQuery="handleSearchUpdate"
-              @toggleGame="toggleGame"
-              @selectAllGames="selectAllGames"
-            />
-
-            <div v-if="loading" class="state-box">
-              <ProgressSpinner style="width: 36px; height: 36px" strokeWidth="3" />
-              <span>Loading commands...</span>
-            </div>
-
-            <div v-else-if="docsError" class="state-box">
-              <Message severity="error" :closable="false">{{ docsError }}</Message>
-            </div>
-
-            <div v-else-if="Object.keys(groupedDocuments).length === 0" class="state-box">
-              <i class="pi pi-search" style="font-size: 1.5rem; opacity: 0.3"></i>
-              <span>No commands found matching your search.</span>
-            </div>
-
-            <div v-else class="game-groups">
-              <section v-for="(docs, game) in groupedDocuments" :key="game" class="game-group">
-                <div class="game-group-head">
-                  <span
-                    class="game-dot"
-                    :style="{ background: gameLabels[game] ? undefined : 'var(--accent)' }"
-                  ></span>
-                  <h3 class="game-group-title">{{ gameLabels[game] }}</h3>
-                  <span class="game-count">{{ docs.length }}</span>
-                </div>
-                <div class="card-grid">
-                  <DocCard v-for="doc in docs" :key="doc.id" :doc="doc" @click="handleDocClick" />
-                </div>
-              </section>
-            </div>
-          </div>
-
-          <div v-else-if="activeTab === 'alias'">
-            <AliasTab />
-          </div>
-
-          <div v-else-if="activeTab === 'faq'">
-            <FaqTab />
-          </div>
-
-          <div v-else>
-            <div class="content-head">
-              <h2 class="content-title">Appendix</h2>
-              <p class="content-desc">Additional information and resources.</p>
-            </div>
-
-            <Tabs v-model:value="appendixTab" class="appendix-tabs">
-              <TabList>
-                <Tab v-for="tab in appendixTabs" :key="tab.key" :value="tab.key">
-                  {{ tab.label }}
-                </Tab>
-              </TabList>
-              <TabPanels>
-                <TabPanel value="about"><AboutMehrakTab /></TabPanel>
-                <TabPanel value="cookies"><AboutCookiesTab /></TabPanel>
-                <TabPanel value="notes"><ReleaseNotesTab /></TabPanel>
-                <TabPanel value="commendations"><CommendationsTab /></TabPanel>
-              </TabPanels>
-            </Tabs>
+          <div v-else class="game-groups">
+            <section v-for="(docs, game) in groupedDocuments" :key="game" class="game-group">
+              <header class="game-group-head">
+                <GameTag :game="game" />
+                <SectionRule />
+                <span class="game-count"
+                  >{{ docs.length }} {{ docs.length === 1 ? "entry" : "entries" }}</span
+                >
+              </header>
+              <div class="card-grid">
+                <DocCard v-for="doc in docs" :key="doc.id" :doc="doc" @click="handleDocClick" />
+              </div>
+            </section>
           </div>
         </section>
-      </div>
-    </main>
 
-    <DocDetailModal v-model:visible="showDetailModal" :doc="selectedDoc" :loading="loadingDetail" />
-    <AppFooter />
-  </div>
+        <AliasTab v-else-if="activeTab === 'alias'" />
+        <FaqTab v-else-if="activeTab === 'faq'" />
+
+        <section v-else class="appendix-view">
+          <PageHeader
+            title="Appendix"
+            subtitle="Product context, credential security, release history, and acknowledgements."
+          />
+
+          <Tabs :value="appendixTab" class="appendix-tabs" @update:value="handleAppendixChange">
+            <TabList>
+              <Tab v-for="tab in appendixTabs" :key="tab.key" :value="tab.key">
+                {{ tab.label }}
+              </Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel value="about"><AboutMehrakTab /></TabPanel>
+              <TabPanel value="cookies"><AboutCookiesTab /></TabPanel>
+              <TabPanel value="notes"><ReleaseNotesTab /></TabPanel>
+              <TabPanel value="commendations"><CommendationsTab /></TabPanel>
+            </TabPanels>
+          </Tabs>
+        </section>
+      </div>
+    </div>
+
+    <DocDetailModal
+      v-model:visible="showDetailModal"
+      :doc="selectedDoc"
+      :loading="loadingDetail"
+      :error="detailError"
+    />
+  </section>
 </template>
 
 <style scoped>
 .docs-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--page-gradient);
+  width: min(100%, 90rem);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 4vw, 3rem) var(--space-20);
 }
 
-.docs-main {
-  flex: 1;
-  padding: 7rem 2rem 4rem;
-  max-width: 1440px;
-  margin: 0 auto;
-  width: 100%;
+.docs-masthead {
+  margin-bottom: var(--space-10);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.docs-masthead h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.docs-masthead h1::after {
+  display: block;
+  width: 3rem;
+  height: 3px;
+  margin-top: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent-strong), transparent);
+  content: "";
+}
+
+.masthead-intro {
+  max-width: 42rem;
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
 }
 
 .docs-grid {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 3.5rem;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
   align-items: start;
 }
 
-/* ── Sidebar ───────────────────────────── */
-
-.sidebar {
+.guide-sidebar {
   position: sticky;
-  top: 5.5rem;
+  top: 6rem;
 }
 
-.sidebar-head {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 1.25rem;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.sidebar-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.625rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.sidebar-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.sidebar-sub {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin: 0.125rem 0 0 0;
+.sidebar-heading {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-secondary);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--space-1);
 }
 
 .nav-item {
   display: flex;
+  gap: var(--space-3);
   align-items: center;
-  gap: 0.625rem;
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-secondary);
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
-  border: none;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.12s ease;
+  font-size: var(--text-sm);
   text-align: left;
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard);
 }
 
 .nav-item:hover {
+  background: var(--bg-surface-raised);
   color: var(--text-primary);
-  background: var(--bg-surface);
 }
 
 .nav-item.active {
-  color: var(--accent);
-  background: rgba(34, 197, 94, 0.08);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
 }
 
-.nav-icon {
-  width: 1.125rem;
-  text-align: center;
-  font-size: 0.875rem;
-  opacity: 0.6;
+.nav-item > i {
+  font-size: 0.75rem;
 }
 
-.nav-item.active .nav-icon {
-  opacity: 1;
+.mobile-guide-nav {
+  display: none;
 }
 
-.nav-arrow {
-  margin-left: auto;
-  font-size: 0.625rem;
-  opacity: 0.5;
+.docs-content {
+  min-width: 0;
+  max-width: 64rem;
+  padding: var(--space-6);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-raised);
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 1px color-mix(in oklch, var(--accent) 6%, transparent);
 }
 
-/* ── Content ───────────────────────────── */
-
-.content {
+.commands-view,
+.appendix-view {
   min-width: 0;
 }
 
-.content-head {
-  margin-bottom: 2rem;
-}
-
-.content-title {
-  font-size: 1.625rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.375rem 0;
-  letter-spacing: -0.025em;
-}
-
-.content-desc {
-  font-size: 0.9375rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
+.commands-view > :first-child,
+.appendix-view > :first-child {
+  margin-bottom: var(--space-8);
 }
 
 .state-box {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
   align-items: center;
-  gap: 0.75rem;
-  padding: 4rem 2rem;
+  margin-top: var(--space-8);
+  padding: var(--space-16) var(--space-4);
+  border: 1px dashed var(--border-secondary);
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
   text-align: center;
 }
 
-/* ── Commands grid ─────────────────────── */
-
-.commands-view {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
 .game-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  display: grid;
+  margin-top: var(--space-8);
+  gap: var(--space-8);
 }
 
 .game-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .game-group-head {
   display: flex;
+  min-height: var(--control-size);
+  margin-bottom: var(--space-5);
   align-items: center;
-  gap: 0.5rem;
-  padding-bottom: 0.625rem;
-  border-bottom: 1px solid var(--border-primary);
+  gap: var(--space-3);
 }
 
-.game-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--accent);
-  flex-shrink: 0;
-}
-
-.game-group-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
+.game-group-head > :nth-child(2) {
+  flex: 1;
 }
 
 .game-count {
-  font-size: 0.6875rem;
-  font-weight: 600;
   color: var(--text-muted);
-  background: var(--bg-surface);
-  padding: 0.125rem 0.5rem;
-  border-radius: 1rem;
-  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
 }
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.625rem;
-}
-
-/* ── Appendix tabs ─────────────────────── */
-
-.appendix-tabs :deep(.p-tabs) {
-  border-radius: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
 }
 
 .appendix-tabs :deep(.p-tablist) {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border-primary);
-  padding: 0;
-  gap: 0.125rem;
-  flex-wrap: nowrap;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--border-secondary);
+  background: transparent;
 }
 
 .appendix-tabs :deep(.p-tab) {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  padding: var(--space-3) var(--space-4);
   color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  transition: all 0.12s ease;
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 
-.appendix-tabs :deep(.p-tab:hover) {
-  color: var(--text-primary);
-  background: var(--bg-surface);
-}
-
-.appendix-tabs :deep(.p-tab.p-highlight) {
-  color: var(--accent);
-  background: rgba(34, 197, 94, 0.08);
+.appendix-tabs :deep(.p-tab.p-tab-active) {
+  color: var(--accent-strong);
 }
 
 .appendix-tabs :deep(.p-tabpanels) {
+  min-width: 0;
+  padding: var(--space-8) 0 0;
   background: transparent;
-  padding: 1.5rem 0 0 0;
 }
 
-/* ── Responsive ────────────────────────── */
+.empty-actions {
+  display: flex;
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
 
-@media (max-width: 1024px) {
+.recovery-action {
+  min-height: var(--control-size);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.recovery-action:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+@media (max-width: 64rem) {
   .docs-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: var(--space-8);
   }
-  .sidebar {
-    position: static;
-  }
-  .sidebar-head {
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-bottom: 0.75rem;
-  }
-  .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 0.25rem;
-    padding-bottom: 0.25rem;
-    -webkit-overflow-scrolling: touch;
-  }
-  .nav-item {
-    white-space: nowrap;
-    padding: 0.5rem 0.875rem;
-  }
-  .nav-icon,
-  .nav-arrow {
+
+  .guide-sidebar {
     display: none;
+  }
+
+  .mobile-guide-nav {
+    display: block;
+    margin-bottom: var(--space-8);
+  }
+
+  .mobile-nav-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mobile-nav-trigger {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
+    align-items: center;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .mobile-nav-menu {
+    margin-top: var(--space-2);
+    padding: var(--space-2);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface-raised);
+    box-shadow: var(--shadow-md);
+  }
+
+  .mobile-nav-option {
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+    width: 100%;
+    padding: var(--space-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .mobile-nav-option:hover {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+  .mobile-nav-option.active {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+  .mobile-nav-option > strong {
+    font-weight: 600;
+  }
+  .mobile-nav-option > i:last-child {
+    font-size: var(--text-xs);
   }
 }
 
-@media (max-width: 640px) {
-  .docs-main {
-    padding: 6rem 1rem 2rem;
+@media (max-width: 40rem) {
+  .docs-page {
+    padding-inline: var(--space-4);
   }
+
+  .docs-content {
+    padding: var(--space-4);
+  }
+
   .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .game-group {
+    padding: var(--space-4);
   }
 }
 </style>

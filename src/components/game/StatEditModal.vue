@@ -13,12 +13,12 @@ const gv = useGameViewInject();
     v-model:visible="gv.showEditStatModal"
     modal
     header="Edit Character Stats"
-    :style="{ width: '30rem' }"
+    :style="{ width: 'min(30rem, calc(100vw - 2rem))' }"
   >
     <div class="relative">
       <div
         v-if="gv.editStatFetching"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded bg-black/20"
+        class="absolute inset-0 z-10 flex items-center justify-center rounded-(--radius-lg) bg-(--bg-overlay)"
       >
         <i class="pi pi-spin pi-spinner text-xl"></i>
       </div>
@@ -45,6 +45,7 @@ const gv = useGameViewInject();
                 severity="danger"
                 text
                 @click="gv.editStatBase = null"
+                aria-label="Clear base stat"
               />
             </div>
           </div>
@@ -65,6 +66,7 @@ const gv = useGameViewInject();
                 severity="danger"
                 text
                 @click="gv.editStatMax = null"
+                aria-label="Clear max ascension value"
               />
             </div>
           </div>

@@ -13,7 +13,8 @@ export const WEAPON_TYPES = [
 export const RARITIES = [1, 2, 3, 4, 5];
 
 export function useWeaponIcons(config, _activeTab) {
-  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } = useApi();
+  const { showErrorToast, showSuccessToast, buildError, handleApiError, apiFetch, apiFetchJson } =
+    useApi();
   const confirm = useConfirm();
 
   if (!config || !config.hasWeaponIcons) {

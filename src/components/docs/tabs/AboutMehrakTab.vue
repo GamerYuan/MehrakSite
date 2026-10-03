@@ -1,32 +1,32 @@
-<script setup></script>
+<script setup>
+import PageHeader from "../../ui/PageHeader.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
+</script>
 
 <template>
   <div class="about">
-    <div class="about-hero">
-      <div class="about-hero-icon">
-        <i class="pi pi-heart"></i>
-      </div>
-      <div>
-        <h1 class="about-title">About Mehrak</h1>
-        <p class="about-sub">Your all-in-one HoYoverse games toolbox.</p>
-      </div>
-    </div>
+    <PageHeader
+      as="h3"
+      icon="pi pi-heart"
+      title="About Mehrak"
+      subtitle="One command center for your HoYoverse games."
+    />
 
-    <section class="about-card">
+    <SurfaceCard>
       <p class="about-lead">
         Mehrak is committed to provide the best user experience to all our users through convenient
         commands and powerful utilities.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="about-card">
-      <h2 class="about-card-title">Why Mehrak?</h2>
+    <SurfaceCard>
+      <h4 class="about-card-title">Why Mehrak?</h4>
 
       <div class="feature-grid">
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-user"></i></div>
           <div>
-            <h3 class="feature-title">User-First Approach</h3>
+            <h5 class="feature-title">User-First Approach</h5>
             <p class="feature-desc">
               Users are our main concern when developing Mehrak. The development thus far has been
               based on user feedback. We are committed to improve our services through user feedback
@@ -38,11 +38,13 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-shield"></i></div>
           <div>
-            <h3 class="feature-title">Security</h3>
+            <h5 class="feature-title">Security</h5>
             <p class="feature-desc">
-              Mehrak is one of the only few HoYoverse games Discord bots that offers zero-knowledge
-              encryption and security for your cookies information. Your information is safe with
-              us.
+              Mehrak uses passphrase-based encryption for HoYoLAB tokens stored by the service. The
+              service receives your token and passphrase during profile registration and updates.
+              When you authenticate, it receives your passphrase, decrypts the stored token, and
+              uses it to request data from HoYoLAB. This is not zero-knowledge: transport protection
+              and encryption at rest address different risks.
             </p>
           </div>
         </div>
@@ -50,7 +52,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-dollar"></i></div>
           <div>
-            <h3 class="feature-title">Free</h3>
+            <h5 class="feature-title">Free</h5>
             <p class="feature-desc">
               All Mehrak services are provided for free. We are committed to keeping all our
               services free in the future, with no paywalls or premium benefits.
@@ -61,7 +63,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-star"></i></div>
           <div>
-            <h3 class="feature-title">Features</h3>
+            <h5 class="feature-title">Features</h5>
             <p class="feature-desc">
               Our vision is to be the most fully featured HoYoverse games Discord bot that covers
               all HoYoverse titles. You can be part of our journey by using Mehrak services.
@@ -72,7 +74,7 @@
         <div class="feature">
           <div class="feature-icon-wrap"><i class="pi pi-code"></i></div>
           <div>
-            <h3 class="feature-title">Open Source</h3>
+            <h5 class="feature-title">Open Source</h5>
             <p class="feature-desc">
               Mehrak is fully open-source. This allows you to see how your data is being used. You
               may audit the source code at any given time and voice your concerns.
@@ -80,10 +82,10 @@
           </div>
         </div>
       </div>
-    </section>
+    </SurfaceCard>
 
-    <section class="about-card">
-      <h2 class="about-card-title">Self-Hosting</h2>
+    <SurfaceCard>
+      <h4 class="about-card-title">Self-Hosting</h4>
       <p class="about-text">
         We will not provide any instructions to self-host Mehrak. However, with the source code
         available, with enough technical expertise you can technically self-host Mehrak if you wish
@@ -102,7 +104,7 @@
         developers do not have control over what modifications have been made with self-hosted
         Mehrak instances.
       </p>
-    </section>
+    </SurfaceCard>
   </div>
 </template>
 
@@ -111,47 +113,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.about-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.about-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.about-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.about-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.about-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
 }
 
 .about-lead {
@@ -212,7 +173,7 @@
   display: grid;
   place-items: center;
   border-radius: 0.5rem;
-  background: rgba(34, 197, 94, 0.08);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 0.875rem;
   flex-shrink: 0;

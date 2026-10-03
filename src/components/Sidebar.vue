@@ -1,400 +1,496 @@
 <script setup>
-import { useRoute, useRouter } from "vue-router";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useRoute } from "vue-router";
 import ThemeToggle from "./ThemeToggle.vue";
-import { gameMeta } from "../configs/gameMeta";
+import { gameMeta, hasAnyGamePermission, isSuperAdminUser } from "../configs/gameMeta";
+import { isDashboardDestinationActive, resolveActiveGameKey } from "../configs/dashboardNavigation";
 import { useAuth } from "../composables/useAuth";
 
-const router = useRouter();
 const route = useRoute();
-const { user, logout, isSuperAdmin } = useAuth();
+const { logout, logoutStatus } = useAuth();
 const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
+const closeButton = ref(null);
+const isMobile = ref(false);
+let mediaQuery = null;
+const updateMobile = () => (isMobile.value = mediaQuery.matches);
 
 const props = defineProps({
-  userInfo: {
-    type: Object,
-    required: true,
-  },
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
+  userInfo: { type: Object, required: true },
+  modelValue: { type: Boolean, default: false },
+  collapsed: { type: Boolean, default: false },
 });
+const emit = defineEmits(["update:modelValue", "update:collapsed", "close"]);
 
-const emit = defineEmits(["update:modelValue"]);
+const games = Object.values(gameMeta).filter(
+  (game) => game.routeKey && game.capabilities?.commands,
+);
 
-const close = () => emit("update:modelValue", false);
+const isSuperAdmin = computed(() => isSuperAdminUser(props.userInfo));
+const hasGlobalManagement = computed(() => hasAnyGamePermission(props.userInfo));
+const validGameKeys = new Set(games.map((game) => game.routeKey));
+const activeGameKey = computed(() => resolveActiveGameKey(route, validGameKeys));
 
-const handleLogout = () => {
-  logout();
+const close = (restoreFocus = false) => {
+  const wasOpen = props.modelValue;
+  emit("update:modelValue", false);
+  if (restoreFocus && wasOpen) emit("close");
 };
+const isActive = (name) => isDashboardDestinationActive(route, name);
+const isGameActive = (routeKey) => activeGameKey.value === routeKey;
+const toggleCollapsed = () => emit("update:collapsed", !props.collapsed);
+const handleLogout = () => {
+  void logout();
+};
+const focusCloseButton = () => closeButton.value?.focus();
+const getFocusableElements = () =>
+  [
+    closeButton.value,
+    ...document.querySelectorAll(
+      "#dashboard-sidebar a[href], #dashboard-sidebar button:not([disabled]), #dashboard-sidebar summary",
+    ),
+  ].filter((element) => element && globalThis.getComputedStyle(element).display !== "none");
+defineExpose({ focusCloseButton, getFocusableElements });
 
-const gameRoutes = Object.entries(gameMeta)
-  .filter(([, meta]) => Boolean(meta.routeKey))
-  .map(([metaKey, meta]) => ({
-    key: meta.routeKey,
-    label: meta.label,
-    logo: meta.logo,
-    metaKey,
-  }));
-
-const isActive = (path) => route.path === path;
+onMounted(() => {
+  mediaQuery = globalThis.matchMedia("(max-width: 768px)");
+  updateMobile();
+  mediaQuery.addEventListener("change", updateMobile);
+});
+onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="modelValue" class="sidebar-backdrop" @click="close"></div>
+      <button
+        v-if="modelValue"
+        class="sidebar-backdrop"
+        type="button"
+        aria-label="Close dashboard navigation"
+        @click="close(true)"
+      ></button>
     </Transition>
   </Teleport>
 
-  <aside class="sidebar" :class="{ 'sidebar--open': modelValue }">
+  <aside
+    id="dashboard-sidebar"
+    class="sidebar"
+    :class="{ 'sidebar--open': modelValue, 'sidebar--collapsed': collapsed && !isMobile }"
+    aria-label="Dashboard navigation"
+    :aria-hidden="isMobile && !modelValue ? 'true' : undefined"
+    :inert="isMobile && !modelValue"
+  >
     <div class="sidebar-header">
-      <div class="sidebar-header-content" @click="router.push('/')" role="button" tabindex="0">
-        <img src="/logo.webp" alt="MehrakBot" class="sidebar-logo-icon" />
-        <span class="sidebar-logo-text">MehrakBot</span>
-      </div>
-      <ThemeToggle />
-      <button class="sidebar-close-btn" @click="close" aria-label="Close menu">
-        <i class="pi pi-times"></i>
+      <a href="/" class="brand" aria-label="MehrakBot home">
+        <img src="/logo.webp" alt="" class="brand-mark" />
+        <span><strong>MehrakBot</strong><small>Dashboard</small></span>
+      </a>
+      <button
+        type="button"
+        class="sidebar-collapse"
+        :aria-label="collapsed ? 'Expand dashboard navigation' : 'Collapse dashboard navigation'"
+        :aria-pressed="collapsed"
+        @click="toggleCollapsed"
+      >
+        <i :class="collapsed ? 'pi pi-angle-right' : 'pi pi-angle-left'" aria-hidden="true"></i>
+      </button>
+      <button
+        ref="closeButton"
+        class="sidebar-close"
+        type="button"
+        aria-label="Close menu"
+        @click="close(true)"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
       </button>
     </div>
 
-    <nav class="sidebar-nav">
-      <div class="nav-group">
-        <span class="nav-group-label">Account</span>
+    <nav class="sidebar-nav" aria-label="Dashboard">
+      <section class="nav-group" aria-labelledby="nav-account">
+        <h2 id="nav-account">Overview</h2>
         <router-link
           to="/dashboard"
           class="nav-item"
-          :class="{ active: isActive('/dashboard') }"
-          @click="close"
+          :class="{ active: isActive('dashboard-home') }"
+          :aria-current="isActive('dashboard-home') ? 'page' : undefined"
+          aria-label="Overview"
+          @click="close(true)"
         >
-          <i class="pi pi-user nav-icon"></i>
-          <span>Profile</span>
+          <i class="pi pi-compass" aria-hidden="true"></i><span>Overview</span>
         </router-link>
-      </div>
+      </section>
 
-      <div class="nav-group">
-        <span class="nav-group-label">Games</span>
+      <section class="nav-group" aria-labelledby="nav-commands">
+        <h2 id="nav-commands">Games</h2>
         <router-link
-          v-for="g in gameRoutes"
-          :key="g.key"
-          :to="`/dashboard/${g.key}`"
-          class="nav-item game-nav-item"
-          :class="{ active: isActive(`/dashboard/${g.key}`) }"
-          :data-game="g.key"
-          @click="close"
+          v-for="game in games"
+          :key="game.id"
+          :to="`/dashboard/${game.routeKey}`"
+          class="nav-item game-item"
+          :class="{ active: isGameActive(game.routeKey) }"
+          :aria-current="isGameActive(game.routeKey) ? 'page' : undefined"
+          :style="game.gameColorStyle"
+          :aria-label="game.label"
+          @click="close(true)"
         >
-          <img :src="g.logo" class="nav-game-logo" :alt="g.label" />
-          <span>{{ g.label }}</span>
-          <span class="game-dot" :style="{ backgroundColor: gameMeta[g.metaKey].color }"></span>
+          <img :src="game.logo" :alt="`${game.label} logo`" />
+          <span>{{ game.label }}</span>
         </router-link>
-      </div>
+      </section>
 
-      <div v-if="isSuperAdmin || user.gameWritePermissions?.length" class="nav-group">
-        <span class="nav-group-label">Management</span>
+      <section v-if="hasGlobalManagement" class="nav-group" aria-labelledby="nav-global-management">
+        <h2 id="nav-global-management">Administration</h2>
         <router-link
           v-if="isSuperAdmin"
           to="/dashboard/users"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/users') }"
-          @click="close"
+          :class="{ active: isActive('user-management') }"
+          :aria-current="isActive('user-management') ? 'page' : undefined"
+          aria-label="Users"
+          @click="close(true)"
         >
-          <i class="pi pi-users nav-icon"></i>
-          <span>User Management</span>
+          <i class="pi pi-users" aria-hidden="true"></i><span>Users</span>
         </router-link>
         <router-link
-          v-if="isSuperAdmin || user.gameWritePermissions?.length"
           to="/dashboard/docs"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/docs') }"
-          @click="close"
+          :class="{ active: isActive('docs-management') }"
+          :aria-current="isActive('docs-management') ? 'page' : undefined"
+          aria-label="Documentation"
+          @click="close(true)"
         >
-          <i class="pi pi-book nav-icon"></i>
-          <span>Documentation</span>
+          <i class="pi pi-book" aria-hidden="true"></i><span>Documentation</span>
         </router-link>
         <router-link
           v-if="isSuperAdmin"
           to="/dashboard/release-notes"
           class="nav-item"
-          :class="{ active: isActive('/dashboard/release-notes') }"
-          @click="close"
+          :class="{ active: isActive('release-notes-management') }"
+          :aria-current="isActive('release-notes-management') ? 'page' : undefined"
+          aria-label="Release notes"
+          @click="close(true)"
         >
-          <i class="pi pi-megaphone nav-icon"></i>
-          <span>Release Notes</span>
+          <i class="pi pi-megaphone" aria-hidden="true"></i><span>Release notes</span>
         </router-link>
-
-      </div>
-
-      <div v-if="isSuperAdmin" class="nav-group">
-        <span class="nav-group-label">External Tools</span>
         <a
+          v-if="isSuperAdmin"
           :href="`${backendUrl}/admin/seaweed-filer/`"
           target="_blank"
           rel="noopener noreferrer"
           class="nav-item"
-          @click="close"
+          aria-label="Seaweed Filer"
+          @click="close(true)"
         >
-          <i class="pi pi-external-link nav-icon"></i>
-          <span>Seaweed Filer</span>
+          <i class="pi pi-external-link" aria-hidden="true"></i><span>Seaweed Filer</span>
         </a>
-      </div>
+      </section>
     </nav>
-
-    <div class="sidebar-footer">
-      <div class="user-mini-profile">
+    <footer class="sidebar-footer">
+      <div class="account-context">
         <img
           v-if="userInfo.avatarUrl"
           :src="userInfo.avatarUrl"
-          :alt="userInfo.username"
-          class="user-avatar"
+          :alt="`${userInfo.username} avatar`"
         />
-        <span class="username">{{ userInfo.username }}</span>
+        <span
+          ><strong>{{ userInfo.username || "Discord user" }}</strong
+          ><small>{{ isSuperAdmin ? "Super administrator" : "Dashboard user" }}</small></span
+        >
+        <ThemeToggle />
       </div>
-      <button @click="handleLogout" class="logout-btn">
-        <i class="pi pi-sign-out"></i>
-        <span>Logout</span>
+      <button
+        type="button"
+        class="logout-button"
+        :disabled="logoutStatus === 'pending'"
+        @click="handleLogout"
+      >
+        <i class="pi pi-sign-out" aria-hidden="true"></i
+        ><span>{{ logoutStatus === "pending" ? "Signing out…" : "Log out" }}</span>
       </button>
-    </div>
+    </footer>
   </aside>
 </template>
 
 <style scoped>
 .sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background-color: var(--bg-surface);
-  border-right: 1px solid var(--border-primary);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
   position: fixed;
-  left: 0;
-  top: 0;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  display: flex;
+  width: 17.5rem;
+  flex-direction: column;
+  border-right: 1px solid var(--border-primary);
+  background: var(--bg-surface);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, var(--accent) 25%, transparent);
 }
-
 .sidebar-header {
   display: flex;
+  min-height: var(--control-size);
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.25rem 1rem;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border-primary);
 }
-
-.sidebar-header-content {
+.brand {
   display: flex;
+  min-height: var(--control-size);
   align-items: center;
-  gap: 0.625rem;
+  gap: var(--space-3);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.brand-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+}
+.brand span,
+.account-context span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.brand strong {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: 1.1;
+}
+.brand small,
+.account-context small {
+  color: var(--text-muted);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sidebar-collapse {
+  display: grid;
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
 }
 
-.sidebar-close-btn {
+.sidebar-close {
   display: none;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
+  width: var(--control-size);
+  height: var(--control-size);
+  place-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
-  padding: 0.25rem;
-  font-size: 1.25rem;
 }
-
-.sidebar-logo-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  object-fit: contain;
-}
-
-.sidebar-logo-text {
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-}
-
 .sidebar-nav {
   flex: 1;
-  padding: 0.5rem 1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
   overflow-y: auto;
+  padding: var(--space-4);
 }
-
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.nav-group + .nav-group {
+  margin-top: var(--space-6);
 }
-
-.nav-group-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.nav-group h2 {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-2);
   color: var(--text-muted);
-  padding: 0 0.75rem;
-  margin-bottom: 0.25rem;
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
-
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 8px;
+  gap: var(--space-3);
+  min-height: var(--control-size);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
   transition:
-    background-color 0.2s,
-    color 0.2s;
-  position: relative;
+    background var(--motion-fast),
+    color var(--motion-fast);
 }
-
-.nav-icon {
-  font-size: 1rem;
-  width: 1.25rem;
-  text-align: center;
-}
-
-.nav-game-logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
 .nav-item:hover {
-  background-color: var(--bg-surface-raised);
+  background: var(--bg-surface-raised);
   color: var(--text-primary);
 }
-
 .nav-item.active {
-  background-color: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent);
-  font-weight: 500;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
 }
-
-.game-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-left: auto;
-  flex-shrink: 0;
+.nav-item.game-item.active {
+  background: color-mix(in oklch, var(--game-color) 14%, transparent);
+  color: var(--text-primary);
 }
-
-.nav-item.game-nav-item.active[data-game="genshin"] {
-  background-color: rgba(255, 215, 0, 0.12);
-  color: #b8860b;
+.nav-item i {
+  width: 1rem;
+  text-align: center;
 }
-.dark .nav-item.game-nav-item.active[data-game="genshin"] {
-  color: #ffd700;
+.game-item {
+  --game-color: var(--accent);
 }
-
-.nav-item.game-nav-item.active[data-game="hsr"] {
-  background-color: rgba(0, 212, 255, 0.12);
-  color: #0077a8;
+.game-item img {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
 }
-.dark .nav-item.game-nav-item.active[data-game="hsr"] {
-  color: #00d4ff;
-}
-
-.nav-item.game-nav-item.active[data-game="zzz"] {
-  background-color: rgba(255, 107, 0, 0.12);
-  color: #c45200;
-}
-.dark .nav-item.game-nav-item.active[data-game="zzz"] {
-  color: #ff6b00;
-}
-
-.nav-item.game-nav-item.active[data-game="hi3"] {
-  background-color: rgba(255, 105, 180, 0.12);
-  color: #cc3388;
-}
-.dark .nav-item.game-nav-item.active[data-game="hi3"] {
-  color: #ff69b4;
-}
-
 .sidebar-footer {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: var(--space-4);
   border-top: 1px solid var(--border-primary);
+  background: var(--bg-surface-sunken);
 }
-
-.user-mini-profile {
-  display: flex;
+.account-context {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
-
-.user-avatar {
-  width: 2rem;
-  height: 2rem;
+.account-context > img {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border-secondary);
   border-radius: 50%;
   object-fit: cover;
 }
-
-.username {
-  font-weight: 600;
+.account-context strong {
+  overflow: hidden;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.logout-btn {
-  width: 100%;
+.logout-button {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.55rem;
-  background-color: var(--bg-surface-raised);
-  color: var(--text-primary);
-  border: 1px solid var(--border-secondary);
-  border-radius: 8px;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: 0.875rem;
-  font-weight: 500;
 }
 
-.logout-btn:hover {
-  background-color: var(--border-secondary);
+.sidebar--collapsed {
+  width: 4.5rem;
+  overflow-x: hidden;
 }
 
+.sidebar--collapsed .sidebar-header {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar--collapsed .sidebar-footer {
+  padding: var(--space-3) var(--space-2);
+}
+
+.sidebar--collapsed .brand {
+  width: var(--control-size);
+  justify-content: center;
+}
+
+.sidebar--collapsed .brand span,
+.sidebar--collapsed .nav-group h2,
+.sidebar--collapsed .nav-item > span,
+.sidebar--collapsed .account-context > span,
+.sidebar--collapsed .logout-button span {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-nav {
+  padding-inline: var(--space-2);
+}
+
+.sidebar--collapsed .nav-group + .nav-group {
+  margin-top: var(--space-3);
+}
+
+.sidebar--collapsed .nav-item {
+  width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
+  margin-inline: auto;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+
+.sidebar--collapsed .nav-item i {
+  width: auto;
+  font-size: var(--text-lg);
+}
+
+.sidebar--collapsed .nav-item.game-item img {
+  width: 2rem;
+  height: 2rem;
+}
+
+.sidebar--collapsed .account-context {
+  display: flex;
+  margin-bottom: var(--space-2);
+  justify-content: center;
+}
+
+.sidebar--collapsed .account-context > img {
+  display: none;
+}
+
+.sidebar--collapsed .logout-button {
+  width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
+  margin-inline: auto;
+  padding: 0;
+}
+.logout-button:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  z-index: 35;
+  border: 0;
+  background: color-mix(in srgb, var(--bg-surface-sunken) 72%, transparent);
+  cursor: pointer;
 }
-
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--motion-base);
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
-
 @media (max-width: 768px) {
   .sidebar {
-    z-index: 999;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    width: 280px;
+    width: min(19rem, calc(100vw - 2.5rem));
+    transform: translateX(-105%);
+    transition: transform var(--motion-base) var(--ease-enter);
   }
-
   .sidebar--open {
     transform: translateX(0);
   }
-
-  .sidebar-close-btn {
-    display: block;
+  .sidebar-close {
+    display: grid;
   }
-
-  .nav-item {
-    padding: 0.75rem;
+  .sidebar-collapse {
+    display: none;
   }
 }
 </style>
