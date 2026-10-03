@@ -5,9 +5,8 @@ import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
+import PageHeader from "../../ui/PageHeader.vue";
+import SurfaceCard from "../../ui/SurfaceCard.vue";
 
 const cookieActions = [
   { action: "Login to your game account", canDo: false },
@@ -35,25 +34,22 @@ const faqItems = [
   {
     question: "How are you using my HoYoLAB Cookies?",
     answer:
-      "We use the public API provided by HoYoLAB to access your information. These public API requires your HoYoLAB Cookies, alongside your HoYoLAB UID, as they require you to be logged in when accessing the data.",
+      "The service receives your HoYoLAB token and UID and uses them to make authenticated requests to HoYoLAB's public APIs for your game information. During registration or an update, it also receives your passphrase to encrypt the stored token; during authentication, it receives the passphrase to decrypt the token. This is not a zero-knowledge design.",
   },
 ];
 </script>
 
 <template>
   <div class="cookies">
-    <div class="cookies-hero">
-      <div class="cookies-hero-icon">
-        <i class="pi pi-shield"></i>
-      </div>
-      <div>
-        <h1 class="cookies-title">HoYoLAB Cookies</h1>
-        <p class="cookies-sub">Understanding how Mehrak uses your HoYoLAB cookies.</p>
-      </div>
-    </div>
+    <PageHeader
+      as="h3"
+      icon="pi pi-shield"
+      title="HoYoLAB Cookies"
+      subtitle="What Mehrak can access, how credentials are protected, and how to revoke them."
+    />
 
-    <section class="cookies-card">
-      <h2 class="cookies-card-title">Disclaimer</h2>
+    <SurfaceCard>
+      <h4 class="cookies-card-title">Disclaimer</h4>
       <p class="cookies-text">
         Mehrak does not force its users to provide their HoYoLAB Cookies without consent. While many
         features of Mehrak requires the use of HoYoLAB Cookies, it is on the user's choice to
@@ -65,13 +61,12 @@ const faqItems = [
       </p>
       <p class="cookies-text">
         By providing your HoYoLAB Cookies, you consent to our
-        <a href="#" @click.prevent="router.push('/privacy')" class="cookies-link">Privacy Policy</a
-        >.
+        <RouterLink to="/privacy" class="cookies-link">Privacy Policy</RouterLink>.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
-      <h2 class="cookies-card-title">What are cookies?</h2>
+    <SurfaceCard>
+      <h4 class="cookies-card-title">What are cookies?</h4>
       <p class="cookies-text">
         Cookies are traces of information left on your browser when you access online services. They
         generally contain information about your login session, your preferences, or other temporary
@@ -93,10 +88,10 @@ const faqItems = [
         in to HoYoLAB. Mehrak requires this cookie as it uses services provided by HoYoLAB for its
         services.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
-      <h2 class="cookies-card-title">What can HoYoLAB Cookies do?</h2>
+    <SurfaceCard>
+      <h4 class="cookies-card-title">What can HoYoLAB Cookies do?</h4>
       <p class="cookies-text">
         The HoYoLAB Cookies Mehrak requires contains your login session. These are the things that
         you can and cannot do with said HoYoLAB Cookies:
@@ -116,33 +111,38 @@ const faqItems = [
         In short, the cookies provided can only be used to access services provided by HoYoLAB, and
         cannot be used for other services provided by HoYoverse.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
-      <h2 class="cookies-card-title">How are my Cookies stored?</h2>
+    <SurfaceCard>
+      <h4 class="cookies-card-title">How are my Cookies stored?</h4>
       <p class="cookies-text">
         The official Mehrak bot runs on a Virtual Private Server (VPS) hosted by Hetzner. Several
         best practices has been done to ensure that the VPS instance is kept secure from
         unauthorised access.
       </p>
       <p class="cookies-text">
-        All your information are stored in a database hosted on the same VPS. Before being stored in
-        the database, your provided passphrase is used to generate a AES-256 key to encrypt your
-        cookie, ensuring that all cookies are securely stored with minimal risk of being cracked.
+        Profile information is stored in a database hosted by the service. During registration and
+        updates, the service receives your HoYoLAB token and passphrase, validates the token with
+        HoYoLAB, and encrypts the stored token with a passphrase-derived AES-256-GCM key. This is
+        protection for data at rest; it does not stop the service from accessing the token during a
+        request.
       </p>
       <p class="cookies-text">
-        After authenticating your passphrase for command execution, your cookies will be stored in a
-        password-protected Redis instance. This allows you to use multiple commands within the same
-        5 minutes without requiring to type in your passphrase again.
+        After you authenticate with your passphrase for command execution, the service decrypts the
+        stored token and may cache the decrypted value temporarily so multiple commands can run
+        without asking for the passphrase again. The service uses that credential to request data
+        from HoYoLAB.
       </p>
       <p class="cookies-text">
-        In the case of a data breach, your encrypted cookies might be obtained, but will be nearly
-        uncrackable if you follow the best practices when creating a passphrase.
+        Encryption at rest is only one security layer. It does not remove the risk of request-time
+        access or a compromised session, and no encryption claim should be read as a promise that
+        the service cannot access your credentials. Use a unique, strong passphrase and revoke or
+        remove the profile if you suspect exposure.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
-      <h2 class="cookies-card-title">Our commitment</h2>
+    <SurfaceCard>
+      <h4 class="cookies-card-title">Our commitment</h4>
       <p class="cookies-text">
         We, as the developer team, is committed to providing users with secure and convenient
         services. Should there be an identified security breach, we will make an announcement to all
@@ -163,10 +163,10 @@ const faqItems = [
           >Official Discord Server</a
         >.
       </p>
-    </section>
+    </SurfaceCard>
 
-    <section class="cookies-card">
-      <h2 class="cookies-card-title">Other Facts about HoYoLAB Cookies</h2>
+    <SurfaceCard>
+      <h4 class="cookies-card-title">Other Facts about HoYoLAB Cookies</h4>
       <Accordion value="" multiple expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
         <AccordionPanel v-for="(item, index) in faqItems" :key="index" :value="index">
           <AccordionHeader>{{ item.question }}</AccordionHeader>
@@ -175,7 +175,7 @@ const faqItems = [
           </AccordionContent>
         </AccordionPanel>
       </Accordion>
-    </section>
+    </SurfaceCard>
   </div>
 </template>
 
@@ -184,47 +184,6 @@ const faqItems = [
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.cookies-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.cookies-hero-icon {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: #fff;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.cookies-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.025em;
-}
-
-.cookies-sub {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.cookies-card {
-  background: var(--card-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
 }
 
 .cookies-card-title {
@@ -274,7 +233,7 @@ const faqItems = [
 }
 
 .cookies-table {
-  background: transparent !important;
+  background: var(--card-surface) !important;
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -314,7 +273,7 @@ const faqItems = [
 }
 
 .icon-no {
-  color: #ef4444;
+  color: var(--danger);
   font-size: 1rem;
 }
 

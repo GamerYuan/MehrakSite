@@ -2,110 +2,402 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Brand/accent */
-  --accent: #22c55e;
-  --accent-strong: #16a34a;
-  --accent-rgb: 34, 197, 94;
-  --accent-soft: #bbf7d0;
+  color-scheme: light;
 
-  /* Per-game brand colors — surfaced as CSS variables for safe Tailwind usage */
-  --game-genshin: #ffd700;
-  --game-hsr: #00d4ff;
-  --game-zzz: #ff6b00;
-  --game-hi3: #ff69b4;
+  /* Dendro-deck palette: emerald brand, cool green-tinted neutrals. */
+  --surface-0: oklch(100% 0 0);
+  --surface-50: oklch(98.2% 0.007 155);
+  --surface-100: oklch(96.5% 0.011 155);
+  --surface-200: oklch(93% 0.015 155);
+  --surface-300: oklch(87.5% 0.018 155);
+  --surface-400: oklch(72% 0.022 155);
+  --surface-500: oklch(57% 0.024 155);
+  --surface-600: oklch(45% 0.024 155);
+  --surface-700: oklch(35% 0.024 155);
+  --surface-800: oklch(26% 0.022 155);
+  --surface-900: oklch(18.5% 0.021 155);
+  --surface-950: oklch(13% 0.018 155);
 
-  /* Semantic tokens — light theme */
-  --bg-page: #f8f8fb;
-  --bg-surface: #ffffff;
-  --bg-surface-raised: #f4f4f5;
-  --bg-overlay: rgba(255, 255, 255, 0.85);
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #71717a;
-  --border-primary: #e4e4e7;
-  --border-secondary: #d4d4d8;
-  --code-bg: #f4f4f5;
-  --navbar-bg: rgba(255, 255, 255, 0.85);
-  --footer-bg: rgba(0, 0, 0, 0.05);
-  --card-surface: #ffffff;
-  --card-border: #e4e4e7;
-  --page-gradient: linear-gradient(to bottom, #fafafa, #f4f4f5);
+  /* Dendro emerald — Nahida leaf-green, slightly warm toward yellow-green. */
+  --brand-50: oklch(97.5% 0.028 148);
+  --brand-100: oklch(94% 0.055 148);
+  --brand-200: oklch(88% 0.09 148);
+  --brand-300: oklch(80.5% 0.12 148);
+  --brand-400: oklch(72% 0.135 148);
+  --brand-500: oklch(63.5% 0.14 148);
+  --brand-600: oklch(54% 0.125 148);
+  --brand-700: oklch(45% 0.105 148);
+  --brand-800: oklch(36% 0.082 148);
+  --brand-900: oklch(29% 0.062 148);
+  --brand-950: oklch(20% 0.045 148);
+  --accent: var(--brand-600);
+  --accent-strong: var(--brand-700);
+  --accent-rgb: 12, 138, 78;
+  --accent-soft: var(--brand-100);
+  --accent-contrast: var(--surface-0);
+
+  --success: oklch(50% 0.12 155);
+  --success-soft: oklch(94% 0.045 155);
+  --warn: oklch(57% 0.13 75);
+  --warn-soft: oklch(94% 0.05 75);
+  --danger: oklch(54% 0.18 25);
+  --danger-soft: oklch(95% 0.045 25);
+  --info: oklch(52% 0.13 235);
+  --info-soft: oklch(94% 0.04 235);
+  --brass: var(--warn);
+  --preview-genshin-base: oklch(58% 0.02 155);
+  --preview-genshin-detail: oklch(35% 0.025 150);
+  --preview-hi3-panel: oklch(43% 0.075 245 / 77%);
+  --preview-zzz-bg: oklch(62% 0.025 155);
+  --preview-zzz-panel: oklch(21% 0 0);
+
+  /* Release and cookie states stay semantic instead of owning another palette. */
+  --release-feature: var(--accent);
+  --release-feature-bg: var(--accent-soft);
+  --release-improvement: var(--info);
+  --release-improvement-bg: var(--info-soft);
+  --release-fix: var(--danger);
+  --release-fix-bg: var(--danger-soft);
+  --cookie-allowed: var(--success);
+  --cookie-allowed-bg: var(--success-soft);
+  --cookie-blocked: var(--danger);
+  --cookie-blocked-bg: var(--danger-soft);
+
+  --bg-page: var(--surface-100);
+  --bg-surface-base: var(--surface-0);
+  --bg-surface: var(--bg-surface-base);
+  --bg-surface-raised: var(--surface-50);
+  --bg-surface-sunken: var(--surface-200);
+  --bg-overlay: oklch(100% 0 0 / 94%);
+  --text-primary: var(--surface-950);
+  --text-secondary: var(--surface-700);
+  --text-muted: var(--surface-600);
+  --text-inverse: var(--surface-50);
+  --border-primary: var(--surface-300);
+  --border-secondary: var(--surface-500);
+  --divider: var(--border-primary);
+  --code-bg: var(--surface-200);
+  --navbar-bg: oklch(98.2% 0.007 155 / 94%);
+  --footer-bg: oklch(13% 0.018 155 / 5%);
+  --card-surface: var(--bg-surface);
+  --card-border: var(--border-primary);
+  --page-gradient: linear-gradient(
+    160deg,
+    var(--surface-50),
+    var(--surface-100) 54%,
+    var(--surface-200)
+  );
+  --selection-bg: var(--brand-200);
+  --selection-text: var(--brand-950);
+
+  /* Ambient Dendro glow — soft leaf light behind hero and key surfaces. */
+  --glow-dendro: radial-gradient(
+    ellipse 70% 55% at 70% 20%,
+    color-mix(in oklch, var(--brand-400) 18%, transparent),
+    transparent 70%
+  );
+  --glow-dendro-soft: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    color-mix(in oklch, var(--brand-300) 12%, transparent),
+    transparent 65%
+  );
+  --ring-dendro: color-mix(in oklch, var(--accent) 18%, transparent);
+  --ring-dendro-strong: color-mix(in oklch, var(--accent) 32%, transparent);
+
+  /* Type scale. */
+  --font-display: "Space Grotesk", Inter, "Segoe UI", sans-serif;
+  --font-body: Inter, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: clamp(2.75rem, 7vw, 5.75rem);
+  --leading-tight: 1.08;
+  --leading-snug: 1.3;
+  --leading-body: 1.6;
+
+  /* Spatial rhythm. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --control-size: 2.75rem;
+
+  /* Geometry: 6px controls, 10px cards/panels, 14px dialogs; pills are tags/filters only. */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px oklch(13% 0.018 155 / 8%);
+  --shadow-md: 0 12px 30px -20px oklch(13% 0.018 155 / 32%);
+  --shadow-lg: 0 28px 70px -36px oklch(13% 0.018 155 / 44%);
+  --shadow-dialog: 0 30px 90px -32px oklch(13% 0.018 155 / 55%);
+
+  --focus-color: var(--brand-600);
+  --focus-width: 3px;
+  --focus-offset: 3px;
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 420ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
-  /* Semantic tokens — dark theme */
-  --bg-page: #08080c;
-  --bg-surface: #0f0f13;
-  --bg-surface-raised: #18181b;
-  --bg-overlay: rgba(8, 8, 12, 0.85);
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --border-primary: rgba(255, 255, 255, 0.1);
-  --border-secondary: rgba(255, 255, 255, 0.15);
-  --code-bg: rgba(0, 0, 0, 0.4);
-  --navbar-bg: rgba(8, 8, 12, 0.85);
-  --footer-bg: rgba(0, 0, 0, 0.3);
-  --card-surface: rgba(255, 255, 255, 0.03);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --page-gradient: linear-gradient(to bottom, #0a0a0f, #111118);
+  color-scheme: dark;
+  --accent: var(--brand-400);
+  --accent-strong: var(--brand-300);
+  --accent-rgb: 74, 200, 128;
+  --accent-soft: var(--brand-950);
+  --accent-contrast: var(--surface-950);
+
+  --success: oklch(72% 0.14 155);
+  --success-soft: oklch(25% 0.055 155);
+  --warn: oklch(78% 0.14 75);
+  --warn-soft: oklch(27% 0.055 75);
+  --danger: oklch(72% 0.17 25);
+  --danger-soft: oklch(26% 0.06 25);
+  --info: oklch(75% 0.12 235);
+  --info-soft: oklch(25% 0.05 235);
+
+  --bg-page: oklch(13.5% 0.022 150);
+  --bg-surface-base: oklch(17.5% 0.025 150);
+  --bg-surface: var(--bg-surface-base);
+  --bg-surface-raised: oklch(21.5% 0.027 150);
+  --bg-surface-sunken: oklch(10.5% 0.02 150);
+  --bg-overlay: oklch(13.5% 0.022 150 / 94%);
+  --text-primary: oklch(94% 0.01 150);
+  --text-secondary: oklch(78% 0.016 150);
+  --text-muted: oklch(66% 0.02 150);
+  --text-inverse: var(--surface-950);
+  --border-primary: oklch(76% 0.025 150 / 16%);
+  --border-secondary: oklch(76% 0.025 150 / 28%);
+  --divider: var(--border-primary);
+  --code-bg: var(--bg-surface-sunken);
+  --navbar-bg: oklch(13.5% 0.022 150 / 90%);
+  --footer-bg: oklch(5% 0.01 150 / 28%);
+  --card-surface: var(--bg-surface);
+  --card-border: var(--border-primary);
+  --page-gradient: linear-gradient(
+    160deg,
+    var(--bg-surface),
+    var(--bg-page) 54%,
+    var(--bg-surface-sunken)
+  );
+  --selection-bg: var(--brand-700);
+  --selection-text: var(--surface-50);
+
+  --glow-dendro: radial-gradient(
+    ellipse 70% 55% at 70% 20%,
+    color-mix(in oklch, var(--brand-400) 14%, transparent),
+    transparent 70%
+  );
+  --glow-dendro-soft: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    color-mix(in oklch, var(--brand-500) 10%, transparent),
+    transparent 65%
+  );
+  --ring-dendro: color-mix(in oklch, var(--accent) 22%, transparent);
+  --ring-dendro-strong: color-mix(in oklch, var(--accent) 40%, transparent);
+
+  --shadow-sm: 0 1px 2px oklch(4% 0.01 150 / 32%);
+  --shadow-md: 0 14px 34px -20px oklch(4% 0.01 150 / 78%);
+  --shadow-lg: 0 30px 74px -34px oklch(4% 0.01 150 / 88%);
+  --shadow-dialog: 0 34px 100px -28px oklch(4% 0.01 150 / 94%);
+  --focus-color: var(--brand-300);
+}
+
+html {
+  min-width: 20rem;
+  min-height: 100%;
+  background: var(--bg-page);
+  scroll-behavior: smooth;
+  scrollbar-color: var(--border-secondary) var(--bg-page);
+  scrollbar-width: thin;
+}
+
+[id] {
+  scroll-margin-top: calc(4.75rem + var(--space-4));
 }
 
 body {
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
-  font-size: 14px;
+  min-width: 20rem;
+  min-height: 100vh;
+  margin: 0;
   background-color: var(--bg-page);
   color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard);
 }
 
-/* Shared reusable helpers */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:where(a, button, input, select, textarea, summary) {
+  font-size: max(var(--text-sm), 14px);
+}
+
+:where(button, input, select, textarea) {
+  min-height: var(--control-size);
+}
+
+h1,
+h2,
+h3,
+.page-title,
+.section-title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-text);
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+
+::-webkit-scrollbar {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border: 0.2rem solid var(--bg-page);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* PrimeVue stays functional while sharing the Dendro-deck rhythm and materials. */
+.p-component {
+  font-family: var(--font-body);
+  line-height: var(--leading-body);
+}
+
+.p-button,
+.p-inputtext,
+.p-select,
+.p-textarea {
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-standard);
+}
+
+.p-dialog-title,
+.p-card-title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+/* Shared reusable helpers. */
 .card-elevated {
   background: var(--card-surface) !important;
   border: 1px solid var(--card-border) !important;
-  border-radius: 0.875rem !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .dark .card-elevated {
-  box-shadow: none !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .page-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text-primary);
   margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-2xl);
+  font-weight: 600;
   letter-spacing: -0.025em;
+  line-height: var(--leading-snug);
 }
 
 .page-subtitle {
-  margin: 0.25rem 0 0;
+  margin: var(--space-1) 0 0;
   color: var(--text-secondary);
   font-size: 0.9375rem;
 }
 
 .section-title {
-  font-size: 1rem;
-  font-weight: 600;
+  margin: 0 0 var(--space-3);
   color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-snug);
 }
 
 .empty-state {
-  text-align: center;
-  padding: 2.5rem 1rem;
-  color: var(--text-muted);
+  padding: var(--space-10) var(--space-4);
   border: 1px dashed var(--border-secondary);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Decorative botanical rings — Dendro signature ornament. */
+.dendro-rings {
+  position: absolute;
+  width: 14rem;
+  height: 14rem;
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.dendro-rings::before,
+.dendro-rings::after {
+  position: absolute;
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  content: "";
+}
+
+.dendro-rings::before {
+  inset: 18%;
+}
+
+.dendro-rings::after {
+  inset: 36%;
+  border-color: var(--ring-dendro-strong);
 }
 
 @media (max-width: 768px) {
@@ -117,5 +409,20 @@ body {
 
   .p-dialog-content {
     overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

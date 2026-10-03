@@ -1,10 +1,11 @@
 import { renderPortrait } from "./renderPortrait.js";
+import { getCanvasColor } from "./color.js";
 
 export default {
   width: 750,
   height: 1400,
   background: "/portrait_bg/zzz.webp",
-  bgColor: "#778899",
+  bgColor: "var(--preview-zzz-bg)",
   assets: {},
   render(ctx, { canvas, background, portrait, x, y, w, h, flipX, fadeX, fadeWidth }) {
     const cw = canvas.width;
@@ -14,7 +15,7 @@ export default {
 
     renderPortrait(ctx, { portrait, x, y, w, h, flipX, fadeX, fadeWidth });
 
-    ctx.fillStyle = "rgb(25, 25, 25)";
+    ctx.fillStyle = getCanvasColor("--preview-zzz-panel");
     ctx.beginPath();
     ctx.moveTo(600, ch);
     ctx.lineTo(700, 0);

@@ -1,493 +1,582 @@
 <script setup>
-import AppFooter from "../components/AppFooter.vue";
-import AppNavbar from "../components/AppNavbar.vue";
-import Button from "primevue/button";
-import HeroShowcase from "../components/HeroShowcase.vue";
-import ShowcaseSection from "../components/ShowcaseSection.vue";
-import { useRouter } from "vue-router";
+import { computed, ref } from "vue";
+import { discordInviteUrl } from "../configs/publicLinks";
+import { gameConfigs } from "../configs/gameConfigs";
+import { homepageDocsRoute, homepageShowcases as showcases } from "../configs/homepageShowcases";
+import CommandPreview from "../components/ui/CommandPreview.vue";
+import ImageDialog from "../components/ui/ImageDialog.vue";
+import ShowcaseMedia from "../components/ui/ShowcaseMedia.vue";
 
-const router = useRouter();
+const games = Object.values(gameConfigs).filter((game) => game.routeKey);
 
-const heroImages = [
-  "/showcase/builds-1.webp",
-  "/showcase/endgame-3.webp",
-  "/showcase/endgame-2.webp",
+const steps = [
+  { title: "Choose a command", text: "Pick the card or record you want from the command list." },
+  { title: "Run it in Discord", text: "Choose the game account and options in the command form." },
+  { title: "Share the result", text: "MehrakBot posts a finished image back to the channel." },
 ];
 
-const showcases = [
-  {
-    title: "Character Builds",
-    description:
-      "Generate detailed character build cards with artifacts, weapons, talents, and stats across all supported games. Share and compare builds with your community instantly.",
-    images: [
-      "/showcase/builds-1.webp",
-      "/showcase/builds-2.webp",
-      "/showcase/builds-3.webp",
-      "/showcase/builds-4.webp",
-    ],
-    reversed: false,
+const expandedShowcase = ref(null);
+const dialogVisible = computed({
+  get: () => Boolean(expandedShowcase.value),
+  set: (visible) => {
+    if (!visible) expandedShowcase.value = null;
   },
-  {
-    title: "Character List Summary",
-    description:
-      "Get a comprehensive overview of your entire roster. View character levels, constellations, and key equipment at a glance.",
-    images: ["/showcase/list-1.webp", "/showcase/list-2.webp", "/showcase/list-3.webp"],
-    reversed: true,
-  },
-  {
-    title: "Endgame",
-    description:
-      "Track all your Endgame clear records. Analyze floor clears, star counts, and team compositions to optimize your runs.",
-    images: [
-      "/showcase/endgame-1.webp",
-      "/showcase/endgame-2.webp",
-      "/showcase/endgame-3.webp",
-      "/showcase/endgame-4.webp",
-      "/showcase/endgame-5.webp",
-    ],
-    reversed: false,
-  },
-];
+});
+
+const docsRoute = homepageDocsRoute;
 </script>
 
 <template>
-  <div class="landing">
-    <AppNavbar />
+  <article class="home">
+    <div class="hero-glow" aria-hidden="true"></div>
 
-    <section class="hero">
-      <div class="hero-bg">
-        <div class="gradient-orb orb-1"></div>
-        <div class="gradient-orb orb-2"></div>
-        <div class="gradient-orb orb-3"></div>
-        <div class="grid-overlay"></div>
+    <section class="hero" aria-labelledby="home-title">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Dendro command deck</p>
+        <h1 id="home-title">Turn game data into cards worth sharing.</h1>
+        <p class="hero-lede">
+          MehrakBot brings builds, rosters, and endgame records into Discord as clear visual
+          summaries for supported HoYoverse games.
+        </p>
+        <div class="hero-actions">
+          <a
+            :href="discordInviteUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="primary-action"
+          >
+            Invite MehrakBot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+          <RouterLink to="/docs?tab=commands" class="secondary-action">
+            Explore commands <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </RouterLink>
+        </div>
       </div>
 
-      <div class="hero-content">
-        <div class="hero-left">
-          <h1 class="hero-title">
-            <span class="title-line">Your Ultimate</span>
-            <span class="title-line accent">HoYoverse</span>
-            <span class="title-line">Companion</span>
-          </h1>
-
-          <p class="hero-description">
-            Seamlessly integrate Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero data
-            directly into your Discord server. View builds, endgame clear records, and more.
-          </p>
-
-          <div class="game-tags">
-            <span class="tag">
-              <img src="/genshin.webp" alt="Genshin" class="tag-icon" />
-              Genshin
-            </span>
-            <span class="tag-separator">•</span>
-            <span class="tag">
-              <img src="/hsr.webp" alt="Honkai: Star Rail" class="tag-icon" />
-              HSR
-            </span>
-            <span class="tag-separator">•</span>
-            <span class="tag">
-              <img src="/zzz.webp" alt="Zenless Zone Zero" class="tag-icon" />
-              ZZZ
-            </span>
-            <span class="tag-separator">•</span>
-            <span class="tag">
-              <img src="/hi3.webp" alt="Honkai Impact 3rd" class="tag-icon" />
-              HI3
-            </span>
-          </div>
-
-          <div class="hero-actions">
-            <Button
-              as="a"
-              label="Add to Discord"
-              icon="pi pi-discord"
-              href="https://discord.com/oauth2/authorize?client_id=1365154828430610532"
-              target="_blank"
-              rel="noopener noreferrer"
-              size="large"
-              class="discord-btn"
+      <div class="hero-stage">
+        <div class="dendro-rings hero-rings" aria-hidden="true"></div>
+        <CommandPreview
+          command="/genshin character characters:Nahida"
+          label="Example Discord command"
+        >
+          <picture class="hero-output">
+            <source
+              type="image/webp"
+              srcset="
+                /showcase/builds-1-480.webp   480w,
+                /showcase/builds-1-768.webp   768w,
+                /showcase/builds-1-1200.webp 1200w,
+                /showcase/builds-1-1600.webp 1600w
+              "
+              sizes="(max-width: 56rem) calc(100vw - 2rem), 46vw"
             />
-            <Button
-              label="View Docs"
-              icon="pi pi-book"
-              severity="secondary"
-              outlined
-              size="large"
-              @click="router.push('/docs')"
-              class="docs-btn"
+            <img
+              src="/showcase/builds-1-1200.webp"
+              width="3240"
+              height="1080"
+              alt="Generated Genshin Impact build card for Nahida with equipment and stats"
+              fetchpriority="high"
+              decoding="async"
             />
-          </div>
-        </div>
-
-        <div class="hero-right">
-          <HeroShowcase :images="heroImages" />
-        </div>
+          </picture>
+        </CommandPreview>
       </div>
     </section>
 
-    <section id="features" class="features-section">
-      <div class="section-header">
-        <h2 class="section-title">Features</h2>
-        <p class="section-subtitle">Everything you need for your HoYoverse gaming experience</p>
+    <section class="games" aria-labelledby="games-title">
+      <div class="section-heading">
+        <h2 id="games-title">Supported games</h2>
+        <p>MehrakBot works with these titles — same commands, same flow.</p>
+      </div>
+      <ul class="game-list">
+        <li v-for="game in games" :key="game.routeKey" :style="game.gameColorStyle">
+          <img :src="game.logo" alt="" width="32" height="32" />
+          <span>{{ game.label }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section id="features" class="showcases" aria-labelledby="features-title">
+      <div class="section-heading">
+        <h2 id="features-title">See what each command gives back.</h2>
+        <p>Open the full result or jump directly to the matching command documentation.</p>
+      </div>
+
+      <div class="showcase-list">
+        <article
+          v-for="(showcase, index) in showcases"
+          :id="showcase.id"
+          :key="showcase.id"
+          class="showcase-card"
+          :class="{ 'showcase-card--reverse': index % 2 }"
+        >
+          <ShowcaseMedia
+            :src="showcase.src"
+            :srcset="showcase.srcset"
+            sizes="(max-width: 56rem) calc(100vw - 2rem), 54vw"
+            :width="showcase.width"
+            :height="showcase.height"
+            :alt="showcase.alt"
+            :command="showcase.command"
+            :expand-label="`Expand ${showcase.title} image`"
+            @expand="expandedShowcase = showcase"
+          />
+
+          <div class="showcase-copy">
+            <h3>{{ showcase.title }}</h3>
+            <p>{{ showcase.description }}</p>
+            <div class="showcase-actions">
+              <RouterLink :to="docsRoute(showcase)" class="text-link">
+                Read command docs <i class="pi pi-arrow-right" aria-hidden="true"></i>
+              </RouterLink>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
 
-    <div class="showcases-wrapper">
-      <ShowcaseSection v-for="showcase in showcases" :key="showcase.title" v-bind="showcase" />
-    </div>
+    <ImageDialog
+      v-if="expandedShowcase"
+      :id="`showcase-dialog-${expandedShowcase.id}`"
+      v-model:visible="dialogVisible"
+      :title="expandedShowcase.title"
+      :description="expandedShowcase.description"
+      :src="expandedShowcase.original"
+      :alt="expandedShowcase.alt"
+    />
 
-    <section class="cta-section">
-      <div class="cta-content">
-        <h2 class="cta-title">Ready to get started?</h2>
-        <p class="cta-subtitle">Add MehrakBot to your server in seconds</p>
-        <Button
-          as="a"
-          label="Add to Discord"
-          icon="pi pi-discord"
-          href="https://discord.com/oauth2/authorize?client_id=1365154828430610532"
+    <section class="how-it-works" aria-labelledby="how-title">
+      <div class="section-heading">
+        <h2 id="how-title">From command to card without leaving Discord.</h2>
+      </div>
+      <ol class="step-list">
+        <li v-for="(step, index) in steps" :key="step.title">
+          <span class="step-number" aria-hidden="true">{{ index + 1 }}</span>
+          <strong>{{ step.title }}</strong>
+          <p>{{ step.text }}</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-title">
+      <div class="cta-glow" aria-hidden="true"></div>
+      <h2 id="cta-title">Make the next build check a command, not a screenshot hunt.</h2>
+      <p>Add MehrakBot, then choose a documented command for the result you need.</p>
+      <div class="cta-actions">
+        <a
+          :href="discordInviteUrl"
           target="_blank"
           rel="noopener noreferrer"
-          size="large"
-          class="cta-btn"
-        />
+          class="primary-action"
+        >
+          Invite MehrakBot <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+        </a>
+        <RouterLink to="/docs?tab=getting-started" class="secondary-action">
+          Start with the guide <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </RouterLink>
       </div>
     </section>
-
-    <AppFooter />
-  </div>
+  </article>
 </template>
 
 <style scoped>
-.landing {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--page-gradient);
-  overflow-x: hidden;
-}
-
-/* ── Hero ── */
-.hero {
+.home {
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8rem 2.5rem 4rem;
+  width: min(100% - 2rem, 76rem);
+  margin: 0 auto;
 }
 
-.hero-bg {
+.hero-glow {
   position: absolute;
-  inset: 0;
-  overflow: hidden;
+  top: -2rem;
+  right: -8%;
+  width: min(48rem, 90vw);
+  height: 28rem;
+  background: var(--glow-dendro);
   pointer-events: none;
+  z-index: 0;
 }
 
-.gradient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.35;
-}
-
-.orb-1 {
-  width: 600px;
-  height: 600px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  top: -200px;
-  right: -100px;
-  animation: float 20s ease-in-out infinite;
-}
-
-.orb-2 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #ffc107, #ff9800);
-  bottom: -150px;
-  left: -100px;
-  animation: float 25s ease-in-out infinite reverse;
-}
-
-.orb-3 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #e91e63, #9c27b0);
-  top: 50%;
-  left: 30%;
-  transform: translate(-50%, -50%);
-  animation: float 15s ease-in-out infinite;
-  opacity: 0.15;
-}
-
-.grid-overlay {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -30px) scale(1.05);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.95);
-  }
-}
-
-.hero-content {
+section {
   position: relative;
   z-index: 1;
+  padding: clamp(var(--space-12), 7vw, var(--space-20)) 0;
+}
+
+section + section {
+  border-top: 1px solid var(--divider);
+}
+
+.hero {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  min-height: min(calc(100svh - 4.75rem), 48rem);
+  box-sizing: border-box;
+  grid-template-columns: minmax(0, 0.9fr) minmax(24rem, 1.25fr);
   align-items: center;
-  max-width: 1200px;
-  width: 100%;
+  gap: clamp(var(--space-8), 5vw, var(--space-16));
 }
 
-/* ── Hero Left ── */
-.hero-left {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.hero-eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.hero-title {
+h1,
+h2,
+h3 {
   margin: 0;
-  line-height: 1.05;
-  font-size: clamp(2.8rem, 5vw, 4.2rem);
-  font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: var(--leading-tight);
 }
 
-.title-line {
-  display: block;
+h1 {
+  max-width: 13ch;
+  margin-top: var(--space-3);
+  font-size: clamp(2.6rem, 5.5vw, 4.75rem);
 }
 
-.accent {
-  color: var(--accent);
+h2 {
+  font-size: clamp(1.9rem, 3vw, var(--text-3xl));
 }
 
-.hero-description {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  max-width: 480px;
-  margin: 0;
-  line-height: 1.7;
+h3 {
+  font-size: var(--text-2xl);
 }
 
-.game-tags {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+.hero-lede {
+  max-width: 35rem;
+  margin: var(--space-5) 0 0;
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: var(--text-lg);
 }
 
-.tag-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.tag-separator {
-  color: var(--text-muted);
-  font-size: 0.7rem;
+.hero-actions,
+.cta-actions,
+.trust-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .hero-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
+  margin-top: var(--space-8);
 }
 
-:deep(.p-button.discord-btn) {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #000;
-  font-weight: 600;
-  padding: 0.9rem 2rem;
-}
-
-:deep(.p-button.discord-btn:hover) {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-}
-
-:deep(.p-button.discord-btn .p-button-icon) {
-  color: inherit;
-}
-
-:deep(.p-button.docs-btn) {
-  border-color: rgba(255, 255, 255, 0.15);
-  color: var(--text-secondary);
-  font-weight: 500;
-  padding: 0.9rem 2rem;
-}
-
-:deep(.p-button.docs-btn:hover) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-/* ── Hero Right / Showcase ── */
-.hero-right {
-  display: flex;
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  min-height: var(--control-size);
+  padding: 0 var(--space-5);
   align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard);
+}
+
+.primary-action {
+  border: 1px solid var(--accent-strong);
+  background: var(--accent-strong);
+  color: var(--accent-contrast);
+  box-shadow: 0 0 0 0 transparent;
+}
+
+.primary-action:hover {
+  background: var(--accent);
+  box-shadow: 0 8px 28px -10px color-mix(in oklch, var(--accent) 55%, transparent);
+}
+
+.secondary-action {
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.secondary-action:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.hero-stage {
+  position: relative;
+  min-width: 0;
+}
+
+.hero-rings {
+  top: -3.5rem;
+  right: -2rem;
+  width: 16rem;
+  height: 16rem;
+  opacity: 0.85;
+}
+
+.hero-output,
+.hero-output img {
+  display: block;
+  width: 100%;
+}
+
+.hero-output img {
+  height: auto;
+  border-radius: var(--radius-lg);
+}
+
+.section-heading {
+  max-width: 48rem;
+}
+
+.section-heading h2 {
+  margin-top: var(--space-3);
+}
+
+.section-heading p {
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+}
+
+.game-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.game-list li {
+  display: flex;
+  min-height: 4.5rem;
+  padding: var(--space-3) var(--space-4);
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--game-color) 14%, transparent);
+}
+
+.game-list img {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.game-list span {
+  font-weight: 650;
+}
+
+.showcase-list {
+  display: grid;
+  margin-top: var(--space-12);
+  gap: var(--space-16);
+}
+
+.showcase-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 0.65fr);
+  align-items: center;
+  gap: clamp(var(--space-6), 5vw, var(--space-12));
+}
+
+.showcase-card--reverse > :first-child {
+  order: 2;
+}
+
+.showcase-copy h3 {
+  margin-top: var(--space-3);
+}
+
+.showcase-copy p {
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+}
+
+.showcase-actions {
+  display: flex;
+  margin-top: var(--space-6);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+code {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.text-link {
+  display: inline-flex;
+  min-height: var(--control-size);
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent-strong);
+  font-weight: 650;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+.step-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  gap: var(--space-4);
+  list-style: none;
+}
+
+.step-list li {
+  padding: var(--space-6);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.step-number {
+  display: grid;
+  width: var(--control-size);
+  height: var(--control-size);
+  margin-bottom: var(--space-4);
+  place-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--accent) 8%, transparent);
+}
+
+.step-list strong {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+}
+
+.step-list p {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+}
+
+.cta {
+  overflow: hidden;
+  margin: var(--space-10) 0 var(--space-16);
+  padding: clamp(var(--space-10), 7vw, var(--space-16));
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface-raised);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.cta-glow {
+  position: absolute;
+  inset: 0;
+  background: var(--glow-dendro-soft);
+  pointer-events: none;
+}
+
+.cta h2,
+.cta p,
+.cta-actions {
+  position: relative;
+}
+
+.cta h2 {
+  max-width: 22ch;
+  margin: var(--space-3) auto 0;
+}
+
+.cta p {
+  max-width: 38rem;
+  margin: var(--space-4) auto var(--space-6);
+  color: var(--text-secondary);
+}
+
+.cta-actions {
   justify-content: center;
 }
 
-/* ── Features ── */
-.features-section {
-  padding: 6rem 2.5rem 0 2.5rem;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.015), transparent);
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
-.section-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem;
-  letter-spacing: -0.01em;
-}
-
-.section-subtitle {
-  color: var(--text-muted);
-  font-size: 1.05rem;
-  margin: 0;
-}
-
-/* ── CTA ── */
-.cta-section {
-  padding: 6rem 2.5rem;
-  text-align: center;
-}
-
-.cta-content {
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 3rem;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.03));
-  border: 1px solid rgba(var(--accent-rgb), 0.2);
-  border-radius: 20px;
-}
-
-.cta-title {
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem;
-}
-
-.cta-subtitle {
-  color: var(--text-muted);
-  margin: 0 0 2rem;
-  font-size: 1rem;
-}
-
-:deep(.p-button.cta-btn) {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #000;
-  font-weight: 600;
-  padding: 0.9rem 2rem;
-}
-
-:deep(.p-button.cta-btn:hover) {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-}
-
-:deep(.p-button.cta-btn .p-button-icon) {
-  color: inherit;
-}
-
-/* ── Showcases ── */
-.showcases-wrapper {
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(255, 255, 255, 0.01) 10%,
-    rgba(255, 255, 255, 0.01) 90%,
-    transparent
-  );
-}
-
-/* ── Responsive ── */
-@media (max-width: 960px) {
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    text-align: center;
+@media (max-width: 56rem) {
+  .hero,
+  .showcase-card {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .hero-left {
-    align-items: center;
-  }
-
-  .hero-description {
-    max-width: 540px;
-  }
-
-  .hero-actions {
-    justify-content: center;
-  }
-
-  .showcase-container {
-    max-width: 340px;
-  }
-}
-
-@media (max-width: 640px) {
   .hero {
-    padding: 7rem 1.5rem 3rem;
+    min-height: auto;
   }
 
-  .hero-actions {
-    flex-direction: column;
-    align-items: center;
+  .hero-rings {
+    top: -2rem;
+    right: 0;
+    width: 11rem;
+    height: 11rem;
+  }
+
+  .showcase-card--reverse > :first-child {
+    order: 0;
+  }
+
+  .showcase-card > .showcase-copy {
+    order: -1;
+  }
+}
+
+@media (max-width: 42rem) {
+  .home {
+    width: min(100% - 1.5rem, 76rem);
+  }
+
+  section {
+    padding: var(--space-12) 0;
+  }
+
+  h1 {
+    font-size: clamp(2.35rem, 13vw, 3.5rem);
+  }
+
+  .hero-actions,
+  .cta-actions {
+    display: grid;
+  }
+
+  .primary-action,
+  .secondary-action {
     width: 100%;
+    box-sizing: border-box;
   }
 
-  .discord-btn :deep(.p-button),
-  .docs-btn :deep(.p-button) {
-    width: 100%;
-    max-width: 280px;
-    justify-content: center;
+  .showcase-list {
+    gap: var(--space-12);
   }
 
-  .showcase-container {
-    max-width: 280px;
+  .cta {
+    padding: var(--space-10) var(--space-5);
   }
 
-  .features-section,
-  .cta-section {
-    padding: 4rem 1.5rem;
+  .hero-glow {
+    right: -20%;
+    width: 120%;
   }
 }
 </style>

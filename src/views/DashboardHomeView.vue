@@ -1,16 +1,15 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import Button from "primevue/button";
-import Card from "primevue/card";
-import Column from "primevue/column";
-import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Password from "primevue/password";
 import ProgressSpinner from "primevue/progressspinner";
-import Tag from "primevue/tag";
-import { gameLabels } from "../configs/gameMeta";
+import EmptyState from "../components/ui/EmptyState.vue";
+import PageHeader from "../components/ui/PageHeader.vue";
+import StatusPill from "../components/ui/StatusPill.vue";
+import SurfaceCard from "../components/ui/SurfaceCard.vue";
+import { gameLabels, gameMeta, permissionLabels } from "../configs/gameMeta";
 import { useAuth } from "../composables/useAuth";
 import { useProfileManagement } from "../composables/useProfileManagement";
 
@@ -18,12 +17,20 @@ const { user, loading, error } = useAuth();
 const {
   profiles,
   loading: profilesLoading,
+  addLoading,
+  editLoading,
   showAddModal,
   showEditModal,
   selectedProfile,
   addForm,
   editForm,
   fetchProfiles,
+  closeAddModal,
+  closeEditModal,
+  handleAddModalVisibility,
+  handleEditModalVisibility,
+  handleAddModalHide,
+  handleEditModalHide,
   openAddModal,
   handleAdd,
   openEditModal,
@@ -32,655 +39,666 @@ const {
   confirmDeleteAll,
 } = useProfileManagement();
 
-const isMobile = ref(false);
-
-const toTitleCase = (str) => {
-  if (!str) return "";
-  return str.replace(
-    /\w\S*/g,
-    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
-  );
-};
-
-const checkViewport = () => {
-  isMobile.value = window.innerWidth <= 768;
-};
-
-onMounted(() => {
-  fetchProfiles();
-  checkViewport();
-  window.addEventListener("resize", checkViewport);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("resize", checkViewport);
-});
+const formatPermission = (permission) => permissionLabels[permission] || permission;
+const hoyolabProfileUrl = (profile) =>
+  `https://www.hoyolab.com/accountCenter/postList?id=${encodeURIComponent(profile.ltUid)}`;
+const games = Object.values(gameMeta).filter(
+  (game) => game.routeKey && game.capabilities?.commands,
+);
+const incompleteProfiles = computed(() =>
+  profiles.value.filter((profile) => !Object.keys(profile.gameUids || {}).length),
+);
+const readyProfiles = computed(() => profiles.value.length - incompleteProfiles.value.length);
+onMounted(fetchProfiles);
 </script>
 
 <template>
-  <div class="dashboard-container">
-    <div v-if="loading" class="state-box">Loading user data...</div>
-    <Message v-else-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+  <div class="dashboard-page">
+    <PageHeader
+      as="h1"
+      eyebrow="Dashboard"
+      title="Your dashboard"
+      subtitle="Manage the HoYoLAB profiles used to generate game cards."
+    />
 
-    <div v-else-if="user" class="space-y-6">
-      <header class="dashboard-header">
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Manage your MehrakBot profiles and game commands.</p>
-      </header>
+    <div v-if="loading" class="state-panel" role="status">
+      <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
+      <span>Loading account...</span>
+    </div>
+    <Message v-else-if="error" severity="error" :closable="false">{{ error }}</Message>
 
-      <Card class="dashboard-card profile-panel">
-        <template #content>
-          <div class="profile-identity">
-            <img
-              v-if="user.avatarUrl"
-              :src="user.avatarUrl"
-              :alt="user.username"
-              class="profile-avatar"
-            />
-            <div class="profile-details">
-              <div class="profile-name">{{ user.username }}</div>
-              <div class="profile-id">Discord ID: {{ user.discordUserId }}</div>
-            </div>
-          </div>
-
-          <div class="profile-badges">
-            <Tag v-if="user.isRootUser" icon="pi pi-star-fill" value="Root" severity="warn" />
-            <Tag
-              v-if="user.isSuperAdmin"
-              icon="pi pi-shield"
-              value="Super Admin"
-              severity="success"
-            />
-            <Tag
-              v-for="perm in user.gameWritePermissions || []"
-              :key="perm"
-              icon="pi pi-pen-to-square"
-              :value="toTitleCase(perm)"
-              severity="info"
-            />
-          </div>
-        </template>
-      </Card>
-
-      <Card class="dashboard-card profiles-panel">
-        <template #content>
-          <div class="profiles-header">
-            <div>
-              <h3 class="card-title">Manage Profiles</h3>
-              <p class="card-subtitle">Profiles link your HoYoLAB account to generated images.</p>
-            </div>
-            <div class="profiles-actions">
-              <Button label="Add Profile" icon="pi pi-plus" size="small" @click="openAddModal" />
-              <Button
-                v-if="profiles.length"
-                label="Delete All"
-                icon="pi pi-trash"
-                size="small"
-                severity="danger"
-                outlined
-                @click="confirmDeleteAll"
-              />
-            </div>
-          </div>
-
-          <div v-if="profilesLoading" class="profiles-loading">
-            <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
-          </div>
-
-          <div v-else-if="!profiles.length" class="empty-state">
-            <i class="pi pi-user-plus empty-icon"></i>
-            <p>No profiles yet. Add one to get started.</p>
-            <a href="/#/docs" target="_blank" rel="noopener noreferrer" class="docs-link"
-              >Read the docs</a
-            >
-          </div>
-
-          <DataTable
-            v-else-if="!isMobile"
-            :value="profiles"
-            size="small"
-            stripedRows
-            responsiveLayout="scroll"
-            class="profiles-table"
+    <template v-else-if="user">
+      <SurfaceCard
+        v-if="user.isRootUser || user.isSuperAdmin || user.gameWritePermissions?.length"
+        class="access-strip"
+        aria-labelledby="access-title"
+      >
+        <div>
+          <h2 id="access-title">Permissions</h2>
+          <p class="discord-id">Discord ID: {{ user.discordUserId }}</p>
+        </div>
+        <div class="access-tags">
+          <StatusPill v-if="user.isRootUser" icon="pi pi-star-fill" tone="warn">Root</StatusPill>
+          <StatusPill v-if="user.isSuperAdmin" icon="pi pi-shield" tone="success">
+            Super admin
+          </StatusPill>
+          <StatusPill
+            v-for="permission in user.gameWritePermissions || []"
+            :key="permission"
+            icon="pi pi-key"
+            tone="info"
           >
-            <Column header="Profile" style="width: 6rem">
-              <template #body="{ data }">
-                <Tag :value="`#${data.profileId}`" severity="secondary" />
-              </template>
-            </Column>
-            <Column field="ltUid" header="HoYoLAB UID" style="width: 11rem">
-              <template #body="{ data }">
-                <span class="mono-text">{{ data.ltUid }}</span>
-              </template>
-            </Column>
-            <Column header="Game UIDs">
-              <template #body="{ data }">
-                <div v-if="!Object.keys(data.gameUids || {}).length" class="muted-text">—</div>
-                <div v-else class="game-uids-stack">
-                  <div v-for="(regions, game) in data.gameUids" :key="game" class="game-uid-block">
-                    <div class="game-uid-header">
-                      <span class="game-uid-name">{{ gameLabels[game] || game }}</span>
-                      <Tag
-                        v-if="data.lastUsedRegions?.[game]"
-                        :value="`Last Used: ${data.lastUsedRegions[game]}`"
-                        severity="secondary"
-                        class="last-used-tag"
-                      />
-                    </div>
-                    <div class="uid-rows">
-                      <div v-for="(uid, region) in regions" :key="region" class="uid-row">
-                        <span class="uid-region">{{ region }}</span>
-                        <span class="uid-value">{{ uid }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Column>
-            <Column header="" style="width: 7rem">
-              <template #body="{ data }">
-                <div class="row-actions">
-                  <Button
-                    icon="pi pi-pencil"
-                    size="small"
-                    text
-                    rounded
-                    @click="openEditModal(data)"
-                  />
-                  <Button
-                    icon="pi pi-trash"
-                    size="small"
-                    text
-                    rounded
-                    severity="danger"
-                    @click="confirmDelete(data)"
-                  />
-                </div>
-              </template>
-            </Column>
-          </DataTable>
+            {{ formatPermission(permission) }}
+          </StatusPill>
+        </div>
+      </SurfaceCard>
 
-          <div v-else class="profile-cards">
-            <Card v-for="profile in profiles" :key="profile.profileId" class="profile-card-mobile">
-              <template #content>
-                <div class="profile-card-top">
-                  <div class="profile-card-meta">
-                    <Tag :value="`#${profile.profileId}`" severity="secondary" />
-                    <span class="mono-text">{{ profile.ltUid }}</span>
-                  </div>
-                  <div class="row-actions">
-                    <Button
-                      icon="pi pi-pencil"
-                      size="small"
-                      text
-                      rounded
-                      @click="openEditModal(profile)"
-                    />
-                    <Button
-                      icon="pi pi-trash"
-                      size="small"
-                      text
-                      rounded
-                      severity="danger"
-                      @click="confirmDelete(profile)"
-                    />
-                  </div>
-                </div>
-                <div class="profile-card-uids">
-                  <div v-if="!Object.keys(profile.gameUids || {}).length" class="muted-text">
-                    No game UIDs
-                  </div>
-                  <div
-                    v-for="(regions, game) in profile.gameUids"
-                    :key="game"
-                    class="game-uid-block"
-                  >
-                    <div class="game-uid-header">
-                      <span class="game-uid-name">{{ gameLabels[game] || game }}</span>
-                      <Tag
-                        v-if="profile.lastUsedRegions?.[game]"
-                        :value="profile.lastUsedRegions[game]"
-                        severity="secondary"
-                        class="last-used-tag"
-                      />
-                    </div>
-                    <div class="uid-rows">
-                      <div v-for="(uid, region) in regions" :key="region" class="uid-row">
-                        <span class="uid-region">{{ region }}</span>
-                        <span class="uid-value">{{ uid }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Card>
+      <section class="overview-grid" aria-label="Dashboard overview">
+        <SurfaceCard class="overview-card games-overview">
+          <div class="overview-heading">
+            <div>
+              <span class="surface-kicker">Games</span>
+              <h2>Generate a card</h2>
+            </div>
+            <RouterLink to="/docs?tab=commands">Command reference</RouterLink>
           </div>
-        </template>
-      </Card>
+          <div class="game-links">
+            <RouterLink
+              v-for="game in games"
+              :key="game.routeKey"
+              :to="{ name: 'game', params: { game: game.routeKey } }"
+              :style="game.gameColorStyle"
+            >
+              <img :src="game.logo" alt="" width="32" height="32" />
+              <span>{{ game.label }}</span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </RouterLink>
+          </div>
+        </SurfaceCard>
 
-      <Dialog v-model:visible="showAddModal" header="Add Profile" modal :style="{ width: '28rem' }">
-        <form @submit.prevent="handleAdd" class="profile-form">
-          <div class="field">
-            <label for="addLtUid">HoYoLAB UID</label>
-            <InputText
-              id="addLtUid"
-              v-model="addForm.ltUid"
-              type="text"
-              inputmode="numeric"
-              pattern="\d+"
-              title="Numeric ID"
-              placeholder="e.g. 123456789"
-              required
-              class="w-full"
+        <SurfaceCard class="overview-card readiness-card">
+          <span class="surface-kicker">Profile readiness</span>
+          <h2>{{ profilesLoading ? "Checking profiles" : `${readyProfiles} ready` }}</h2>
+          <p v-if="profilesLoading">Loading the profile registry…</p>
+          <p v-else-if="!profiles.length">
+            Register a HoYoLAB profile to unlock account-linked cards.
+          </p>
+          <p v-else-if="incompleteProfiles.length">
+            {{ incompleteProfiles.length }}
+            {{ incompleteProfiles.length === 1 ? "profile needs" : "profiles need" }} a game UID.
+          </p>
+          <p v-else>Every registered profile has at least one game UID.</p>
+          <button type="button" class="readiness-action" @click="openAddModal">
+            {{ profiles.length ? "Add another profile" : "Add a profile" }}
+          </button>
+        </SurfaceCard>
+      </section>
+
+      <section class="registry" aria-labelledby="profiles-title">
+        <div class="section-header">
+          <div>
+            <h2 id="profiles-title">HoYoLAB profiles</h2>
+            <p>
+              Credentials remain concealed and are only submitted when you create or update a
+              profile.
+            </p>
+          </div>
+          <div class="section-actions">
+            <Button label="Add profile" icon="pi pi-plus" size="small" @click="openAddModal" />
+            <Button
+              v-if="profiles.length"
+              label="Delete all"
+              icon="pi pi-trash"
+              size="small"
+              severity="danger"
+              outlined
+              @click="confirmDeleteAll"
             />
           </div>
+        </div>
+
+        <div v-if="profilesLoading" class="state-panel" role="status">
+          <ProgressSpinner style="width: 2rem; height: 2rem" strokeWidth="4" />
+          <span>Loading profiles...</span>
+        </div>
+
+        <EmptyState
+          v-else-if="!profiles.length"
+          icon="pi pi-user-plus"
+          title="No profiles registered"
+          description="Add a HoYoLAB profile before generating account-linked cards."
+        >
+          <a href="/docs" target="_blank" rel="noopener noreferrer"
+            >Open profile guide <i class="pi pi-external-link" aria-hidden="true"></i
+          ></a>
+        </EmptyState>
+
+        <div v-else class="profile-grid">
+          <SurfaceCard
+            v-for="profile in profiles"
+            :key="profile.profileId"
+            as="article"
+            class="profile-card"
+          >
+            <header>
+              <div>
+                <span class="profile-number"
+                  >PROFILE {{ String(profile.profileId).padStart(2, "0") }}</span
+                >
+                <h3>{{ profile.ltUid }}</h3>
+              </div>
+              <div class="row-actions">
+                <a
+                  class="profile-link"
+                  :href="hoyolabProfileUrl(profile)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in HoYoLAB <i class="pi pi-external-link" aria-hidden="true"></i>
+                </a>
+                <Button
+                  icon="pi pi-pencil"
+                  size="small"
+                  text
+                  rounded
+                  aria-label="Edit profile"
+                  @click="openEditModal(profile)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  size="small"
+                  text
+                  rounded
+                  severity="danger"
+                  aria-label="Delete profile"
+                  @click="confirmDelete(profile)"
+                />
+              </div>
+            </header>
+
+            <div v-if="!Object.keys(profile.gameUids || {}).length" class="no-uids">
+              No game UIDs recorded
+            </div>
+            <div v-else class="game-records">
+              <section v-for="(regions, game) in profile.gameUids" :key="game" class="game-record">
+                <div class="game-record-title">
+                  <strong>{{ gameLabels[game] || game }}</strong>
+                  <StatusPill v-if="profile.lastUsedRegions?.[game]"
+                    >Last used: {{ profile.lastUsedRegions[game] }}</StatusPill
+                  >
+                </div>
+                <dl>
+                  <div v-for="(uid, region) in regions" :key="region">
+                    <dt>{{ region }}</dt>
+                    <dd>{{ uid }}</dd>
+                  </div>
+                </dl>
+              </section>
+            </div>
+          </SurfaceCard>
+        </div>
+      </section>
+
+      <Dialog
+        :visible="showAddModal"
+        @update:visible="handleAddModalVisibility"
+        @hide="handleAddModalHide"
+        header="Register HoYoLAB profile"
+        modal
+        :style="{ width: '30rem' }"
+      >
+        <form class="profile-form" @submit.prevent="handleAdd">
+          <p class="form-note">Sensitive values are never shown again after submission.</p>
           <div class="field">
-            <label for="addLToken">LToken</label>
-            <InputText id="addLToken" v-model="addForm.lToken" required class="w-full" />
+            <label for="addCookieString">HoYoLAB cookie string</label>
+            <Password
+              inputId="addCookieString"
+              v-model="addForm.cookieString"
+              toggleMask
+              :feedback="false"
+              :inputProps="{ autocomplete: 'off', 'aria-describedby': 'addCookieHelp' }"
+              required
+              fluid
+              inputClass="w-full"
+            />
+            <p id="addCookieHelp" class="form-note">
+              Sign in to HoYoLAB, open Developer Tools → Network, then reload the tab. Select a
+              request to hoyolab.com and copy the full Cookie value from its request headers (shown
+              under Cookies in some browsers). Paste the value only, without the Cookie: label—not
+              an individual cookie or a response Set-Cookie header. Keep this string private.
+            </p>
           </div>
           <div class="field">
             <label for="addPassphrase">Passphrase</label>
             <Password
-              id="addPassphrase"
-              toggleMask
+              inputId="addPassphrase"
               v-model="addForm.passphrase"
+              toggleMask
               :feedback="false"
-              :maxlength="64"
+              :inputProps="{
+                minlength: 12,
+                maxlength: 64,
+                autocomplete: 'new-password',
+                'aria-describedby': 'addPassphraseHelp',
+              }"
               required
-              class="w-full"
+              fluid
               inputClass="w-full"
             />
           </div>
+          <p id="addPassphraseHelp" class="form-note">Use a passphrase of 12–64 characters.</p>
           <div class="form-actions">
-            <a href="/#/docs" target="_blank" class="docs-link">Need help? Read the docs</a>
-            <div class="flex gap-2">
+            <a
+              href="/docs?tab=getting-started#adding-a-profile"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Credential help</a
+            >
+            <div>
               <Button
                 type="button"
                 label="Cancel"
                 severity="secondary"
                 outlined
-                @click="showAddModal = false"
-              />
-              <Button type="submit" label="Add" :loading="profilesLoading" />
+                @click="closeAddModal"
+              /><Button type="submit" label="Register profile" :loading="addLoading" />
             </div>
           </div>
         </form>
       </Dialog>
 
       <Dialog
-        v-model:visible="showEditModal"
-        header="Edit Profile"
+        :visible="showEditModal"
+        @update:visible="handleEditModalVisibility"
+        @hide="handleEditModalHide"
+        header="Rotate profile credentials"
         modal
-        :style="{ width: '28rem' }"
+        :style="{ width: '30rem' }"
       >
-        <form @submit.prevent="handleEdit" class="profile-form">
+        <form class="profile-form" @submit.prevent="handleEdit">
+          <p class="form-note">
+            Both sensitive values are replaced together. Existing values remain concealed.
+          </p>
           <div class="field">
             <label>HoYoLAB UID</label>
-            <div class="mono-text readonly-field">{{ selectedProfile?.ltUid }}</div>
+            <div class="readonly-field">{{ selectedProfile?.ltUid }}</div>
           </div>
           <div class="field">
             <label for="editLToken">New LToken</label>
-            <InputText id="editLToken" v-model="editForm.lToken" required class="w-full" />
-          </div>
-          <div class="field">
-            <label for="editPassphrase">New Passphrase</label>
             <Password
-              id="editPassphrase"
-              v-model="editForm.passphrase"
+              id="editLToken"
+              v-model="editForm.lToken"
+              toggleMask
               :feedback="false"
-              :maxlength="64"
               required
-              class="w-full"
+              fluid
               inputClass="w-full"
             />
           </div>
-          <div class="form-actions">
+          <div class="field">
+            <label for="editPassphrase">New passphrase</label>
+            <Password
+              id="editPassphrase"
+              v-model="editForm.passphrase"
+              toggleMask
+              :feedback="false"
+              :maxlength="64"
+              required
+              fluid
+              inputClass="w-full"
+            />
+          </div>
+          <div class="form-actions end">
             <Button
               type="button"
               label="Cancel"
               severity="secondary"
               outlined
-              @click="showEditModal = false"
-            />
-            <Button type="submit" label="Save" :loading="profilesLoading" />
+              @click="closeEditModal"
+            /><Button type="submit" label="Save credentials" :loading="editLoading" />
           </div>
         </form>
       </Dialog>
-    </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.dashboard-container {
-  max-width: 80rem;
+.dashboard-page {
+  max-width: 86rem;
   margin: 0 auto;
 }
-
-.space-y-6 > * + * {
-  margin-top: 1.5rem;
+.dashboard-page > :deep(.page-header) {
+  margin-bottom: var(--space-8);
 }
-
-.state-box {
-  text-align: center;
-  padding: 4rem 2rem;
+.state-panel {
+  display: flex;
+  min-height: 12rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border: 1px dashed var(--border-secondary);
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
 }
-
-.dashboard-header {
-  margin-bottom: 0.5rem;
+.access-strip {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.7fr) 1.3fr;
+  gap: var(--space-8);
+  align-items: center;
 }
-
-.page-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text-primary);
+.access-strip h2,
+.section-header h2 {
   margin: 0;
-  letter-spacing: -0.025em;
-}
-
-.page-subtitle {
-  margin: 0.25rem 0 0;
-  color: var(--text-secondary);
-  font-size: 0.9375rem;
-}
-
-.dashboard-card {
-  background: var(--card-surface) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 0.875rem !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
-}
-
-.dark .dashboard-card {
-  box-shadow: none !important;
-}
-
-.profile-panel :deep(.p-card-content) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 1.5rem;
-  gap: 1rem;
-}
-
-.profile-identity {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.profile-avatar {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--border-primary);
-}
-
-.profile-details {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.profile-name {
-  font-size: 1.25rem;
-  font-weight: 600;
   color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 500;
 }
-
-.profile-id {
-  font-size: 0.8125rem;
+.discord-id {
+  margin: var(--space-2) 0 0;
   color: var(--text-muted);
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  margin-top: 0.125rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
 }
-
-.profile-badges {
+.access-tags {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  margin-top: var(--space-6);
+  gap: var(--space-4);
 }
 
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
+.overview-card h2 {
+  margin: var(--space-2) 0 0;
   color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
+  font-size: var(--text-xl);
 }
 
-.card-subtitle {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.profiles-panel :deep(.p-card-content) {
-  padding: 1.25rem;
-}
-
-.profiles-header {
+.overview-heading {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
 }
 
-@media (min-width: 640px) {
-  .profiles-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
+.overview-heading > a {
+  display: inline-flex;
+  min-height: var(--control-size);
+  align-items: center;
+  color: var(--accent-strong);
+  font-weight: 650;
 }
 
-.profiles-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
+.game-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--space-5);
+  gap: var(--space-2);
 }
 
-.profiles-loading {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2.5rem 1rem;
-  color: var(--text-muted);
-  border: 1px dashed var(--border-secondary);
-  border-radius: 0.75rem;
-}
-
-.empty-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-  display: block;
-  color: var(--text-secondary);
-}
-
-.docs-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--p-primary-color);
+.game-links a {
+  display: grid;
+  min-height: 4rem;
+  padding: var(--space-3);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--border-primary);
+  background: color-mix(in oklch, var(--game-color) 14%, transparent);
+  color: var(--text-primary);
+  font-weight: 650;
   text-decoration: none;
 }
 
-.docs-link:hover {
-  text-decoration: underline;
+.game-links img {
+  border-radius: var(--radius-sm);
 }
 
-.mono-text {
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 0.8125rem;
-  color: var(--text-primary);
-}
-
-.muted-text {
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-}
-
-.profiles-table :deep(th) {
-  background: var(--bg-surface-raised) !important;
-  color: var(--text-secondary) !important;
-  font-weight: 600 !important;
-  font-size: 0.75rem !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.03em !important;
-}
-
-.game-uids-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.game-uid-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.game-uid-block + .game-uid-block {
-  border-top: 1px solid var(--border-primary);
-  padding-top: 0.75rem;
-}
-
-.game-uid-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.game-uid-name {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.last-used-tag {
-  font-size: 0.6875rem !important;
-}
-
-.uid-rows {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
-.uid-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.625rem;
-  background: var(--bg-surface-raised);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-}
-
-.uid-region {
+.readiness-card p {
+  min-height: 3rem;
+  margin: var(--space-3) 0 0;
   color: var(--text-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.6875rem;
-  letter-spacing: 0.02em;
-  line-height: 1;
 }
 
-.uid-value {
-  font-family: ui-monospace, SFMono-Regular, monospace;
+.readiness-action {
+  min-height: var(--control-size);
+  margin-top: var(--space-4);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
   color: var(--text-primary);
-  line-height: 1;
+  font-weight: 650;
+  cursor: pointer;
 }
 
+.registry {
+  margin-top: var(--space-8);
+}
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-5);
+}
+.section-header p:last-child {
+  max-width: 42rem;
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+}
+.section-actions,
+.section-actions :deep(.p-button),
+.form-actions > div {
+  display: flex;
+  gap: var(--space-2);
+}
+.registry :deep(.empty-state-panel) a,
+.form-actions a {
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+.registry :deep(.empty-state-panel) a {
+  display: inline-flex;
+  min-height: var(--control-size);
+  align-items: center;
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+  gap: var(--space-4);
+}
+.profile-card {
+  position: relative;
+  overflow: hidden;
+}
+.profile-card::after {
+  content: "";
+  position: absolute;
+  right: -2rem;
+  bottom: -3rem;
+  width: 8rem;
+  height: 8rem;
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.profile-card::before {
+  content: "";
+  position: absolute;
+  right: -0.8rem;
+  bottom: -1.8rem;
+  width: 5rem;
+  height: 5rem;
+  border: 1px solid var(--ring-dendro);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.profile-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+}
+.profile-number {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+}
+.profile-link {
+  display: inline-flex;
+  min-height: var(--control-size);
+  padding: 0 var(--space-3);
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  color: var(--accent-strong);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  text-decoration: none;
+}
+.profile-card h3 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+}
 .row-actions {
   display: flex;
-  gap: 0.25rem;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: var(--space-2);
 }
-
-.profile-cards {
+.game-records {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
 }
-
-.profile-card-mobile {
-  background: var(--card-surface) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 0.75rem !important;
-}
-
-.profile-card-mobile :deep(.p-card-content) {
-  padding: 1rem;
-}
-
-.profile-card-top {
+.game-record-title {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-2);
+  color: var(--text-primary);
 }
-
-.profile-card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
+.game-record dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
 }
-
-.profile-card-uids {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.profile-card-uids .game-uid-block + .game-uid-block {
-  border-top: 1px solid var(--border-primary);
-  padding-top: 0.75rem;
-}
-
-.profile-form .field {
-  margin-bottom: 1.25rem;
-}
-
-.profile-form label {
-  display: block;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.375rem;
-}
-
-.readonly-field {
-  padding: 0.5rem 0.75rem;
-  background: var(--bg-page);
+.game-record dl div {
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border-primary);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-raised);
 }
-
+.game-record dt {
+  color: var(--text-muted);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.game-record dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.no-uids {
+  padding: var(--space-6) 0 var(--space-2);
+  color: var(--text-muted);
+  font-style: italic;
+}
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.form-note {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.field label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.readonly-field {
+  padding: var(--space-3);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-sunken);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
 .form-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-primary);
+}
+.form-actions.end {
+  justify-content: flex-end;
+}
+.muted-text {
+  color: var(--text-muted);
+}
+@media (max-width: 64rem) {
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
-@media (min-width: 640px) {
+@media (max-width: 700px) {
+  .section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .access-strip {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .access-tags {
+    justify-content: flex-start;
+  }
+  .game-links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .section-actions,
+  .section-actions :deep(.p-button) {
+    width: 100%;
+  }
   .form-actions {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .form-actions > div {
+    justify-content: flex-end;
   }
 }
 </style>

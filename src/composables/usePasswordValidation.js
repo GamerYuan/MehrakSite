@@ -21,9 +21,7 @@ export function usePasswordValidation({ requireCurrentPassword = false } = {}) {
     return r.length && r.uppercase && r.lowercase && r.number && r.symbol;
   });
 
-  const passwordsMatch = computed(() => 
-    newPassword.value === confirmPassword.value
-  );
+  const passwordsMatch = computed(() => newPassword.value === confirmPassword.value);
 
   const isValid = computed(() => {
     const baseValid = isPasswordValid.value && passwordsMatch.value;

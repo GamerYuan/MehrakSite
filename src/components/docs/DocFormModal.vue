@@ -7,13 +7,15 @@ import Divider from "primevue/divider";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
-import { gameOptions } from "../../configs/gameMeta";
+import Message from "primevue/message";
+import { canManageGame, gameOptions } from "../../configs/gameMeta";
 
 const props = defineProps({
   visible: Boolean,
   doc: Object,
   isEditing: Boolean,
   userInfo: Object,
+  saving: Boolean,
 });
 
 const emit = defineEmits(["update:visible", "save"]);
@@ -42,6 +44,15 @@ const paramTypeOptions = [
   { label: "server", value: "server" },
 ];
 
+const authorizedGameOptions = computed(() =>
+  gameOptions.filter((option) => canManageGame(props.userInfo, option.value)),
+);
+const canSubmit = computed(
+  () =>
+    authorizedGameOptions.value.length > 0 &&
+    authorizedGameOptions.value.some((option) => option.value === form.value.game),
+);
+
 const resetForm = () => {
   form.value = {
     name: "",
@@ -68,6 +79,7 @@ watch(
         };
       } else {
         resetForm();
+        form.value.game = authorizedGameOptions.value[0]?.value || "";
       }
     }
   },
@@ -99,9 +111,8 @@ const removeExample = (index) => {
 };
 
 const handleSubmit = () => {
-  if (!form.value.name.trim() || !form.value.description.trim()) {
-    return;
-  }
+  if (props.saving || !canSubmit.value) return;
+  if (!form.value.name.trim() || !form.value.description.trim()) return;
   emit("save", { ...form.value });
 };
 
@@ -109,10 +120,7 @@ const handleClose = () => {
   emit("update:visible", false);
 };
 
-const canEditGame = computed(() => {
-  if (props.userInfo?.isSuperAdmin) return true;
-  return false;
-});
+const canEditGame = computed(() => canSubmit.value);
 </script>
 
 <template>
@@ -126,13 +134,18 @@ const canEditGame = computed(() => {
     <form @submit.prevent="handleSubmit" class="flex flex-col">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Command Name</label>
-          <InputText v-model="form.name" placeholder="e.g., build" required />
+          <label for="doc-command-name" class="font-semibold text-[var(--text-primary)]"
+            >Command Name</label
+          >
+          <InputText id="doc-command-name" v-model="form.name" placeholder="e.g., build" required />
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Description</label>
+          <label for="doc-description" class="font-semibold text-[var(--text-primary)]"
+            >Description</label
+          >
           <Textarea
+            id="doc-description"
             v-model="form.description"
             placeholder="Brief description of what this command does"
             rows="3"
@@ -141,10 +154,15 @@ const canEditGame = computed(() => {
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Game</label>
+          <label for="doc-game" class="font-semibold text-[var(--text-primary)]">Game</label>
+          <Message v-if="!authorizedGameOptions.length" severity="warn" :closable="false">
+            You do not have permission to manage documentation for any game.
+          </Message>
           <Select
+            v-else
+            inputId="doc-game"
             v-model="form.game"
-            :options="gameOptions"
+            :options="authorizedGameOptions"
             optionLabel="label"
             optionValue="value"
             :disabled="isEditing && !canEditGame"
@@ -154,22 +172,28 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Parameters</label>
+          <span id="doc-parameters-label" class="font-semibold text-[var(--text-primary)]"
+            >Parameters</span
+          >
           <div
             class="flex gap-2 items-start flex-wrap p-3 bg-[var(--bg-surface-raised)] rounded-md border border-[var(--border-primary)]"
           >
             <div class="flex flex-col gap-2 flex-1 min-w-0">
               <div class="flex gap-2 items-center flex-wrap w-full">
                 <InputText
+                  id="doc-parameter-name"
                   v-model="newParam.name"
                   placeholder="Parameter name"
+                  aria-label="Parameter name"
                   class="flex-1 min-w-0"
                 />
                 <Select
+                  inputId="doc-parameter-type"
                   v-model="newParam.type"
                   :options="paramTypeOptions"
                   optionLabel="label"
                   optionValue="value"
+                  aria-label="Parameter type"
                 />
                 <div class="flex items-center gap-2 px-2">
                   <Checkbox v-model="newParam.required" binary inputId="param-required" />
@@ -178,7 +202,13 @@ const canEditGame = computed(() => {
                   >
                 </div>
               </div>
-              <InputText v-model="newParam.description" placeholder="Description" class="w-full" />
+              <InputText
+                id="doc-parameter-description"
+                v-model="newParam.description"
+                placeholder="Description"
+                aria-label="Parameter description"
+                class="w-full"
+              />
             </div>
             <Button
               type="button"
@@ -187,6 +217,7 @@ const canEditGame = computed(() => {
               @click="addParameter"
               :disabled="!newParam.name.trim()"
               class="shrink-0"
+              aria-label="Add parameter"
             />
           </div>
           <div v-if="form.parameters.length" class="flex flex-col gap-2 mt-2">
@@ -199,12 +230,12 @@ const canEditGame = computed(() => {
                 param.name
               }}</span>
               <span
-                class="text-xs px-1.5 py-0.5 bg-[rgba(var(--accent-rgb),0.15)] text-[var(--accent)] rounded font-mono"
+                class="text-xs px-1.5 py-0.5 bg-[var(--accent-soft)] text-[var(--accent)] rounded font-mono"
                 >{{ param.type }}</span
               >
               <span
                 v-if="param.required"
-                class="text-[0.65rem] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded uppercase font-semibold"
+                class="text-[0.65rem] px-1.5 py-0.5 bg-[var(--warn-soft)] text-[var(--warn)] rounded uppercase font-semibold"
                 >Required</span
               >
               <span v-if="param.description" class="flex-1 text-[var(--text-muted)] text-sm">{{
@@ -217,6 +248,7 @@ const canEditGame = computed(() => {
                 text
                 size="small"
                 @click="removeParameter(index)"
+                :aria-label="`Remove parameter ${param.name}`"
               />
             </div>
           </div>
@@ -225,9 +257,10 @@ const canEditGame = computed(() => {
         <Divider />
 
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-[var(--text-primary)]">Examples</label>
+          <label for="doc-example" class="font-semibold text-[var(--text-primary)]">Examples</label>
           <div class="flex gap-2 items-center">
             <InputText
+              id="doc-example"
               v-model="newExample"
               placeholder="Example command usage"
               class="flex-1"
@@ -239,6 +272,7 @@ const canEditGame = computed(() => {
               size="small"
               @click="addExample"
               :disabled="!newExample.trim()"
+              aria-label="Add example"
             />
           </div>
           <div v-if="form.examples.length" class="flex flex-col gap-2 mt-2">
@@ -255,6 +289,7 @@ const canEditGame = computed(() => {
                 text
                 size="small"
                 @click="removeExample(index)"
+                :aria-label="`Remove example ${index + 1}`"
               />
             </div>
           </div>
@@ -262,11 +297,18 @@ const canEditGame = computed(() => {
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
-        <Button type="button" label="Cancel" severity="secondary" @click="handleClose" />
+        <Button
+          type="button"
+          label="Cancel"
+          severity="secondary"
+          :disabled="saving"
+          @click="handleClose"
+        />
         <Button
           type="submit"
-          :label="isEditing ? 'Update' : 'Create'"
-          :disabled="!form.name.trim() || !form.description.trim()"
+          :label="saving ? 'Saving…' : isEditing ? 'Update' : 'Create'"
+          :loading="saving"
+          :disabled="saving || !canSubmit || !form.name.trim() || !form.description.trim()"
         />
       </div>
     </form>
