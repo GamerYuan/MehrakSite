@@ -129,8 +129,12 @@ const activeJourney = computed(() => journeys[props.journey] || journeys.server)
       <p>Run the profile command in Discord and follow the authentication form:</p>
       <pre><code>/profile add</code></pre>
       <ul>
-        <li>Provide the full HoYoLAB request cookie string after reviewing the resources above.</li>
-        <li>The backend extracts the account UID and token; you do not enter them separately.</li>
+        <li>
+          Copy the HoYoLAB <code>ltoken_v2</code> and <code>ltuid_v2</code> values separately.
+        </li>
+        <li>
+          Use <code>ltuid_v2</code> as your HoYoLAB UID and <code>ltoken_v2</code> as your token.
+        </li>
         <li>Create a 12–64 character passphrase for the documented encryption workflow.</li>
       </ul>
 
@@ -143,57 +147,89 @@ const activeJourney = computed(() => journeys[props.journey] || journeys.server)
             in the same browser where you will copy the cookie. Do not use a private window.
           </p>
 
-          <section class="browser-guide" aria-labelledby="network-cookie-title">
-            <h3 id="network-cookie-title">Copy cookies from a network request</h3>
+          <section class="browser-guide" aria-labelledby="chromium-cookie-title">
+            <h3 id="chromium-cookie-title">
+              Chrome, Edge, Brave, Opera, and other Chromium browsers
+            </h3>
             <ol>
               <li>Open HoYoLAB and sign in.</li>
               <li>
-                Open Developer Tools using <kbd>F12</kbd> or your browser's developer tools menu.
+                Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd> to open Developer Tools.
               </li>
-              <li>Select the <strong>Network</strong> tab, then reload the HoYoLAB tab.</li>
+              <li>Select the <strong>Application</strong> tab.</li>
               <li>
-                Select a request to <strong>hoyolab.com</strong> or
-                <strong>www.hoyolab.com</strong>. Check the request URL to avoid selecting a request
-                to another site.
-              </li>
-              <li>
-                In <strong>Headers → Request Headers</strong>, find <strong>Cookie</strong>. Some
-                browsers also show the request cookies under <strong>Cookies</strong>. Copy the full
-                header value: the complete <code>name=value; name=value; …</code> string, not just
-                one cookie's value. If a Cookies panel shows a table, use Request Headers to copy
-                the full string.
+                In the left sidebar, open <strong>Storage → Cookies</strong>, then choose
+                <strong>https://www.hoyolab.com</strong>.
               </li>
               <li>
-                Paste the full value into the <strong>HoYoLAB cookie string</strong> field in the
-                dashboard add-profile form, or the <strong>HoYoLAB Cookies</strong> field in
-                Discord. Do not include the <code>Cookie:</code> label or copy a response
-                <strong>Set-Cookie</strong> header.
+                Find <code>ltoken_v2</code> and copy only its <strong>Value</strong> as your token.
               </li>
               <li>
-                Create a passphrase of <strong>12–64 characters</strong>, then submit the form.
+                Find <code>ltuid_v2</code> and copy only its <strong>Value</strong> as your HoYoLAB
+                UID.
               </li>
             </ol>
             <figure>
               <img
-                src="/docs/getting-started/cookies.webp"
-                width="2074"
-                height="648"
+                src="/docs/getting-started/cookies-chromium-devtools.webp"
+                width="2053"
+                height="621"
                 loading="lazy"
                 decoding="async"
-                alt="Developer Tools Network tab with a HoYoLAB request selected and its Cookie request header visible; cookie values are obscured"
+                alt="Chromium Developer Tools Application tab showing the HoYoLAB cookies table and ltoken_v2 value"
               />
               <figcaption>
-                Select a HoYoLAB request in Network, open Headers, and copy the entire value beside
-                <strong>Cookie</strong>, including all wrapped lines. Copy the value only, not the
-                Cookie: label. Cookie values are obscured in this example for privacy.
+                Find <code>ltoken_v2</code> and <code>ltuid_v2</code> under Application → Storage →
+                Cookies.
+              </figcaption>
+            </figure>
+          </section>
+
+          <section class="browser-guide" aria-labelledby="firefox-cookie-title">
+            <h3 id="firefox-cookie-title">Firefox</h3>
+            <ol>
+              <li>Open HoYoLAB and sign in.</li>
+              <li>
+                Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd> to open Developer Tools.
+              </li>
+              <li>Select the <strong>Storage</strong> tab.</li>
+              <li>
+                In the left sidebar, open <strong>Cookies</strong>, then choose
+                <strong>https://www.hoyolab.com</strong>.
+              </li>
+              <li>
+                Find <code>ltoken_v2</code> and copy only its <strong>Value</strong> as your token.
+              </li>
+              <li>
+                Find <code>ltuid_v2</code> and copy only its <strong>Value</strong> as your HoYoLAB
+                UID.
+              </li>
+            </ol>
+            <figure>
+              <img
+                src="/docs/getting-started/cookies-firefox-devtools.webp"
+                width="2317"
+                height="558"
+                loading="lazy"
+                decoding="async"
+                alt="Firefox Developer Tools Storage tab showing the HoYoLAB cookies table and ltoken_v2 value"
+              />
+              <figcaption>
+                Find <code>ltoken_v2</code> and <code>ltuid_v2</code> under Storage → Cookies.
               </figcaption>
             </figure>
           </section>
 
           <p>
-            Keep the cookie string private: do not share it in chat, screenshots, or support
-            messages. If the request has no Cookie header, confirm that you are signed in, reload
-            with Network open, and select another HoYoLAB request.
+            Enter <code>ltuid_v2</code> into the <strong>HoYoLAB UID</strong> field and
+            <code>ltoken_v2</code> into the <strong>LToken</strong> field when adding a dashboard
+            profile. When editing, the UID stays read-only; provide a new token and passphrase.
+            Create a passphrase of <strong>12–64 characters</strong>, then submit the form.
+          </p>
+          <p>
+            Keep both cookie values private: do not share them in chat, screenshots, or support
+            messages. If either cookie is missing, confirm that you are signed in and reload
+            HoYoLAB.
             <RouterLink :to="cookieDetailsPath">Read the cookie details reference</RouterLink>
             for the security context before continuing.
           </p>

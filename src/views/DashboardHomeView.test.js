@@ -90,7 +90,7 @@ vi.mock("primevue/dialog", async () => {
   };
 });
 
-vi.mock("primevue/inputtext", () => ({ default: testState.emptyComponent }));
+// Use the real InputText to verify UID binding and native validation attributes.
 vi.mock("primevue/message", () => ({ default: testState.emptyComponent }));
 vi.mock("primevue/progressspinner", () => ({ default: testState.emptyComponent }));
 vi.mock("../components/ui/EmptyState.vue", () => ({ default: testState.emptyComponent }));
@@ -124,43 +124,54 @@ describe("DashboardHomeView credential dialog wiring", () => {
     state.openAddModal();
     await flush();
 
-    const cookieInput = host.querySelector("#addCookieString");
+    const uidInput = host.querySelector("#addLtUid");
+    const tokenInput = host.querySelector("#addLToken");
     const passphraseInput = host.querySelector("#addPassphrase");
-    expect(cookieInput.type).toBe("password");
-    expect(cookieInput.required).toBe(true);
-    expect(cookieInput.autocomplete).toBe("off");
-    expect(cookieInput.getAttribute("aria-describedby")).toBe("addCookieHelp");
-    expect(host.querySelector("#addLtUid")).toBeNull();
-    expect(host.querySelector("#addLToken")).toBeNull();
+    expect(uidInput.required).toBe(true);
+    expect(uidInput.inputMode).toBe("numeric");
+    expect(uidInput.pattern).toBe(String.raw`\d+`);
+    expect(tokenInput.type).toBe("password");
+    expect(tokenInput.required).toBe(true);
+    expect(tokenInput.autocomplete).toBe("off");
+    expect(tokenInput.getAttribute("aria-describedby")).toBe("addTokenHelp");
+    expect(host.querySelector("#addCookieString")).toBeNull();
     expect(passphraseInput.minLength).toBe(12);
     expect(passphraseInput.maxLength).toBe(64);
     expect(passphraseInput.required).toBe(true);
-    expect(host.querySelector('label[for="addCookieString"]')).not.toBeNull();
+    expect(host.querySelector('label[for="addLtUid"]')).not.toBeNull();
+    expect(host.querySelector('label[for="addLToken"]')).not.toBeNull();
     expect(
       host.querySelector('a[href="/docs?tab=getting-started#adding-a-profile"]'),
     ).not.toBeNull();
-    cookieInput.value = "ltoken_v2=example; ltuid_v2=123";
-    cookieInput.dispatchEvent(new globalThis.Event("input", { bubbles: true }));
+    uidInput.value = "123";
+    uidInput.dispatchEvent(new globalThis.Event("input", { bubbles: true }));
+    tokenInput.value = "example-token";
+    tokenInput.dispatchEvent(new globalThis.Event("input", { bubbles: true }));
     await flush();
-    expect(state.addForm.cookieString).toBe(cookieInput.value);
+    expect(state.addForm.ltUid).toBe("123");
+    expect(state.addForm.lToken).toBe("example-token");
 
     state.addForm = {
-      cookieString: "ltoken_v2=cancel-token; ltuid_v2=123",
+      ltUid: "123",
+      lToken: "cancel-token",
       passphrase: "cancel-secret",
     };
     await flush();
     host.querySelector('[data-button-label="Cancel"]').click();
-    expect(state.addForm).toEqual({ cookieString: "", passphrase: "" });
+    expect(state.addForm).toEqual({ ltUid: "", lToken: "", passphrase: "" });
 
     state.openAddModal();
-    state.addForm = { cookieString: "ltoken_v2=x-token; ltuid_v2=123", passphrase: "x-secret" };
+    state.addForm = { ltUid: "123", lToken: "x-token", passphrase: "x-secret" };
     await flush();
     host.querySelector("[data-dialog-x]").click();
-    expect(state.addForm).toEqual({ cookieString: "", passphrase: "" });
+    expect(state.addForm).toEqual({ ltUid: "", lToken: "", passphrase: "" });
 
     state.openEditModal({ profileId: 3, ltUid: 3 });
     state.editForm = { lToken: "escape-token", passphrase: "escape-secret" };
     await flush();
+    expect(host.querySelector(".readonly-field").textContent).toBe("3");
+    expect(host.querySelector("#addLtUid")).toBeNull();
+    expect(state.editForm).toEqual({ lToken: "escape-token", passphrase: "escape-secret" });
     host.querySelector("[data-dialog-escape]").click();
     expect(state.editForm).toEqual({ lToken: "", passphrase: "" });
     expect(state.selectedProfile).toBeNull();

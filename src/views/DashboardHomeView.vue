@@ -2,6 +2,7 @@
 import { computed, onMounted } from "vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Password from "primevue/password";
 import ProgressSpinner from "primevue/progressspinner";
@@ -250,22 +251,39 @@ onMounted(fetchProfiles);
         <form class="profile-form" @submit.prevent="handleAdd">
           <p class="form-note">Sensitive values are never shown again after submission.</p>
           <div class="field">
-            <label for="addCookieString">HoYoLAB cookie string</label>
+            <label for="addLtUid">HoYoLAB UID</label>
+            <InputText
+              id="addLtUid"
+              v-model="addForm.ltUid"
+              inputmode="numeric"
+              pattern="\d+"
+              title="Numeric ID"
+              placeholder="123456789"
+              autocomplete="off"
+              aria-describedby="addUidHelp"
+              required
+              fluid
+            />
+            <p id="addUidHelp" class="form-note">
+              Copy the value of <code>ltuid_v2</code> from your HoYoLAB cookies, not your in-game
+              UID.
+            </p>
+          </div>
+          <div class="field">
+            <label for="addLToken">LToken</label>
             <Password
-              inputId="addCookieString"
-              v-model="addForm.cookieString"
+              inputId="addLToken"
+              v-model="addForm.lToken"
               toggleMask
               :feedback="false"
-              :inputProps="{ autocomplete: 'off', 'aria-describedby': 'addCookieHelp' }"
+              :inputProps="{ autocomplete: 'off', 'aria-describedby': 'addTokenHelp' }"
               required
               fluid
               inputClass="w-full"
             />
-            <p id="addCookieHelp" class="form-note">
-              Sign in to HoYoLAB, open Developer Tools → Network, then reload the tab. Select a
-              request to hoyolab.com and copy the full Cookie value from its request headers (shown
-              under Cookies in some browsers). Paste the value only, without the Cookie: label—not
-              an individual cookie or a response Set-Cookie header. Keep this string private.
+            <p id="addTokenHelp" class="form-note">
+              Copy only the value of <code>ltoken_v2</code> from Developer Tools → Application
+              (Storage in Firefox) → Cookies → HoYoLAB. Keep this token private.
             </p>
           </div>
           <div class="field">
