@@ -7,6 +7,7 @@ export function useCommandExecution(config, activeTab, onSuccess) {
   const loading = ref({});
   const errorMsg = ref({});
   const resultImages = ref({});
+  const resultStates = ref({});
 
   const showAuthModal = ref(false);
   const authProfileId = ref(0);
@@ -47,6 +48,7 @@ export function useCommandExecution(config, activeTab, onSuccess) {
     loading.value[currentTab] = true;
     errorMsg.value[currentTab] = "";
     resultImages.value[currentTab] = "";
+    resultStates.value[currentTab] = null;
 
     try {
       const endpoint = `${config.endpoint}/${currentTab}`;
@@ -89,6 +91,7 @@ export function useCommandExecution(config, activeTab, onSuccess) {
         const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
         resultImages.value[currentTab] = `${backendUrl}/attachments/${data.storageFileName}`;
       }
+      if (data.state) resultStates.value[currentTab] = data.state;
       await onSuccess?.();
     } catch (error) {
       if (handleApiError(error)) return;
@@ -142,6 +145,7 @@ export function useCommandExecution(config, activeTab, onSuccess) {
     loading,
     error: errorMsg,
     resultImages,
+    resultStates,
     showAuthModal,
     authProfileId,
     authPassphrase,

@@ -23,7 +23,28 @@ const gameLogo = computed(() => gv.config.logo);
 
 const clearResult = () => {
   gv.resultImages[gv.activeTab] = null;
+  gv.resultStates[gv.activeTab] = null;
 };
+
+const resultStateInfo = computed(() => {
+  const state = gv.resultStates[gv.activeTab];
+  if (!state || state === "Complete") return null;
+
+  if (state === "NotUnlocked") {
+    return {
+      icon: "pi pi-lock",
+      title: "Not unlocked for this profile",
+      detail:
+        "Play the required in-game content to unlock this mode, then generate the card again.",
+    };
+  }
+
+  return {
+    icon: "pi pi-inbox",
+    title: "No records found",
+    detail: "The command completed, but this profile has no records for this mode yet.",
+  };
+});
 </script>
 
 <template>
@@ -133,6 +154,17 @@ const clearResult = () => {
                 <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
                 <strong>Generation failed</strong>
                 <span>{{ gv.error[gv.activeTab] }}</span>
+              </div>
+
+              <div
+                v-else-if="resultStateInfo"
+                class="preview-state"
+                role="status"
+                aria-live="polite"
+              >
+                <i :class="resultStateInfo.icon" aria-hidden="true"></i>
+                <strong>{{ resultStateInfo.title }}</strong>
+                <span>{{ resultStateInfo.detail }}</span>
               </div>
 
               <Image

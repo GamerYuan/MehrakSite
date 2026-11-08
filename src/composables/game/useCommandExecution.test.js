@@ -80,6 +80,32 @@ describe("useCommandExecution", () => {
     },
   );
 
+  it.each([
+    ["Complete", "arcana.jpg"],
+    ["Empty", null],
+    ["NotUnlocked", null],
+  ])("records the Lunar Arcana %s state", async (state, storageFileName) => {
+    api.apiFetch.mockResolvedValue(response({ state, storageFileName }));
+    const execution = useCommandExecution(gameConfigs.genshin, ref("arcana"));
+    execution.profileId.value = 3;
+    execution.server.value = "Asia";
+
+    await execution.executeCommand();
+
+    expect(api.apiFetch).toHaveBeenCalledWith("/genshin/arcana", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profileId: 3, server: "Asia" }),
+    });
+    expect(execution.resultStates.value.arcana).toBe(state);
+    expect(execution.resultImages.value.arcana).toBe(
+      storageFileName
+        ? `${import.meta.env.VITE_APP_BACKEND_URL}/attachments/${storageFileName}`
+        : "",
+    );
+    expect(execution.error.value.arcana).toBe("");
+  });
+
   it("retries ZZZ character list after profile authentication", async () => {
     api.apiFetch
       .mockResolvedValueOnce(response({ code: "AUTH_REQUIRED" }, { ok: false, status: 403 }))

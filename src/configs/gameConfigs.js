@@ -36,6 +36,7 @@ const rawGameConfigs = {
       },
       { id: "theater", name: "Imaginarium Theater" },
       { id: "stygian", name: "Stygian Onslaught" },
+      { id: "arcana", name: "Lunar Arcana" },
       { id: "charlist", name: "Character List" },
     ],
     characterPlaceholder: "e.g. Nahida",
