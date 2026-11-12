@@ -72,6 +72,15 @@ describe("router beforeEnter game validator", () => {
     ).toBe(false);
   });
 
+  it("restricts asset cleanup to superadmins", () => {
+    const route = router.resolve("/dashboard/asset-cleanup");
+    expect(route.name).toBe("asset-cleanup");
+    expect(route.meta.requireSuperAdmin).toBe(true);
+    expect(canAccessRoute(route, null)).toBe(false);
+    expect(canAccessRoute(route, { gameWritePermissions: ["Genshin"] })).toBe(false);
+    expect(canAccessRoute(route, { isSuperAdmin: true })).toBe(true);
+  });
+
   it("registers stable nested management URLs", () => {
     expect(router.resolve("/dashboard/genshin/manage").name).toBe("game-management");
     expect(router.resolve("/dashboard/genshin/manage/aliases").name).toBe("game-alias-management");
