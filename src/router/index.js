@@ -152,6 +152,12 @@ const router = createRouter({
           meta: { requireAnyPermission: true },
         },
         {
+          path: "asset-cleanup",
+          name: "asset-cleanup",
+          component: () => import("../views/AssetCleanupView.vue"),
+          meta: { requireSuperAdmin: true },
+        },
+        {
           path: "release-notes",
           name: "release-notes-management",
           component: () => import("../views/ReleaseNotesManagementView.vue"),
