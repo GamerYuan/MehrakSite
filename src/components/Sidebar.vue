@@ -163,6 +163,17 @@ onUnmounted(() => mediaQuery?.removeEventListener("change", updateMobile));
         </router-link>
         <router-link
           v-if="isSuperAdmin"
+          to="/dashboard/asset-cleanup"
+          class="nav-item"
+          :class="{ active: isActive('asset-cleanup') }"
+          :aria-current="isActive('asset-cleanup') ? 'page' : undefined"
+          aria-label="Asset cleanup"
+          @click="close(true)"
+        >
+          <i class="pi pi-trash" aria-hidden="true"></i><span>Asset cleanup</span>
+        </router-link>
+        <router-link
+          v-if="isSuperAdmin"
           to="/dashboard/release-notes"
           class="nav-item"
           :class="{ active: isActive('release-notes-management') }"
