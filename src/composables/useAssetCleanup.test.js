@@ -3,22 +3,22 @@ import { useAssetCleanup } from "./useAssetCleanup";
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }));
 vi.mock("./useApi", () => ({ useApi: () => ({ apiFetch }) }));
-const previewResult = (suffix = "_bg.png") => ({
+const previewResult = (prefix = "genshin/") => ({
   dryRun: true,
-  suffix,
+  prefix,
   matchedCount: 1,
   deletedCount: 0,
   failedCount: 0,
   backupLocation: null,
-  keys: [{ key: `genshin/a${suffix}`, status: "matched" }],
+  keys: [{ key: `${prefix}example_bg.png`, status: "matched" }],
 });
 const respond = (data, ok = true, status = 200) => ({ ok, status, json: async () => data });
 const ready = async () => {
   const state = useAssetCleanup();
-  state.suffix.value = "_bg.png";
+  state.prefix.value = "genshin/";
   apiFetch.mockResolvedValueOnce(respond(previewResult()));
   await state.preview();
-  state.confirmation.value = state.suffix.value;
+  state.confirmation.value = state.prefix.value;
   state.operationallyVerified.value = true;
   return state;
 };
@@ -28,25 +28,25 @@ beforeEach(() => vi.resetAllMocks());
 describe("asset cleanup safety", () => {
   it("preserves literal whitespace and sends an explicit dry run", async () => {
     const state = useAssetCleanup();
-    state.suffix.value = " _BG.* ";
-    apiFetch.mockResolvedValue(respond(previewResult(state.suffix.value)));
+    state.prefix.value = " Genshin/.* ";
+    apiFetch.mockResolvedValue(respond(previewResult(state.prefix.value)));
     await state.preview();
     expect(apiFetch).toHaveBeenCalledWith(
-      "/assets/cleanup-by-suffix",
+      "/assets/cleanup-by-prefix",
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ suffix: " _BG.* ", dryRun: true }),
+        body: JSON.stringify({ prefix: " Genshin/.* ", dryRun: true }),
         skipAuthRedirect: true,
       }),
     );
   });
 
   it.each(["", "   ", "\t.png", "x\u007f", "a".repeat(1025), "😀".repeat(513)])(
-    "rejects invalid suffix without contacting storage",
-    async (suffix) => {
+    "rejects invalid prefix without contacting storage",
+    async (prefix) => {
       const state = useAssetCleanup();
-      state.suffix.value = suffix;
+      state.prefix.value = prefix;
       await state.preview();
       expect(state.validation.value).not.toBe("");
       expect(apiFetch).not.toHaveBeenCalled();
@@ -55,15 +55,15 @@ describe("asset cleanup safety", () => {
 
   it("requires a matching preview, exact confirmation and operational acknowledgement", async () => {
     const state = await ready();
-    state.confirmation.value = "_BG.png";
+    state.confirmation.value = "Genshin/";
     await state.execute();
-    state.confirmation.value = "_bg.png";
+    state.confirmation.value = "genshin/";
     state.operationallyVerified.value = false;
     await state.execute();
     expect(apiFetch).toHaveBeenCalledTimes(1);
-    state.suffix.value = "new.png";
+    state.prefix.value = "hsr/";
     expect(state.result.value).toBeNull();
-    state.suffix.value = "_bg.png";
+    state.prefix.value = "genshin/";
     expect(state.canExecute.value).toBe(false);
   });
 
@@ -79,12 +79,16 @@ describe("asset cleanup safety", () => {
     const execution = state.execute();
     await state.execute();
     expect(apiFetch).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(apiFetch.mock.calls[1][1].body).dryRun).toBe(false);
+    expect(apiFetch.mock.calls[1][0]).toBe("/assets/cleanup-by-prefix");
+    expect(JSON.parse(apiFetch.mock.calls[1][1].body)).toEqual({
+      prefix: "genshin/",
+      dryRun: false,
+    });
     const failed = {
       ...previewResult(),
       dryRun: false,
       failedCount: 1,
-      keys: [{ key: "a_bg.png", status: "failed", errorCode: "source_modified" }],
+      keys: [{ key: "genshin/example_bg.png", status: "failed", errorCode: "source_modified" }],
     };
     finish(respond(failed));
     await execution;
@@ -105,12 +109,12 @@ describe("asset cleanup safety", () => {
 
   it("renders framework validation errors and configuration failure codes", async () => {
     const state = useAssetCleanup();
-    state.suffix.value = ".png";
+    state.prefix.value = "genshin/";
     apiFetch.mockResolvedValueOnce(
-      respond({ errors: { suffix: ["Invalid suffix."] } }, false, 400),
+      respond({ errors: { prefix: ["Invalid prefix."] } }, false, 400),
     );
     await state.preview();
-    expect(state.error.value).toContain("Invalid suffix.");
+    expect(state.error.value).toContain("Invalid prefix.");
     apiFetch.mockResolvedValueOnce(
       respond({ code: "listing_failed", error: "Listing failed." }, false, 502),
     );
@@ -119,10 +123,25 @@ describe("asset cleanup safety", () => {
     expect(state.canExecute.value).toBe(false);
   });
 
+  it("rejects a preview for a different prefix before enabling deletion", async () => {
+    const state = useAssetCleanup();
+    state.prefix.value = "genshin/";
+    apiFetch.mockResolvedValueOnce(respond(previewResult("hsr/")));
+    await state.preview();
+    expect(state.error.value).toContain("invalid cleanup result");
+    expect(state.result.value).toBeNull();
+    state.confirmation.value = "genshin/";
+    state.operationallyVerified.value = true;
+    await state.execute();
+    expect(apiFetch).toHaveBeenCalledTimes(1);
+  });
+
   it("disallows execution with zero matches", async () => {
     const state = useAssetCleanup();
-    state.suffix.value = ".png";
-    apiFetch.mockResolvedValue(respond({ ...previewResult(".png"), matchedCount: 0, keys: [] }));
+    state.prefix.value = "genshin/";
+    apiFetch.mockResolvedValue(
+      respond({ ...previewResult("genshin/"), matchedCount: 0, keys: [] }),
+    );
     await state.preview();
     expect(state.canExecute.value).toBe(false);
   });

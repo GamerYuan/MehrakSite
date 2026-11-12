@@ -3,7 +3,7 @@ import { useApi } from "./useApi";
 
 export function useAssetCleanup() {
   const { apiFetch } = useApi();
-  const suffix = ref("");
+  const prefix = ref("");
   const result = ref(null);
   const pending = ref(false);
   const executing = ref(false);
@@ -11,10 +11,10 @@ export function useAssetCleanup() {
   const confirmation = ref("");
   const operationallyVerified = ref(false);
   const validation = computed(() => {
-    if (!suffix.value.trim()) return "Enter a non-whitespace suffix.";
-    if (suffix.value.length > 1024) return "Use at most 1024 UTF-16 code units.";
+    if (!prefix.value.trim()) return "Enter a non-whitespace prefix.";
+    if (prefix.value.length > 1024) return "Use at most 1024 UTF-16 code units.";
     if (
-      [...suffix.value].some((character) => {
+      [...prefix.value].some((character) => {
         const code = character.charCodeAt(0);
         return code <= 31 || (code >= 127 && code <= 159);
       })
@@ -28,11 +28,11 @@ export function useAssetCleanup() {
       !pending.value &&
       !validation.value &&
       result.value?.dryRun === true &&
-      result.value.suffix === suffix.value &&
+      result.value.prefix === prefix.value &&
       result.value.matchedCount > 0,
   );
   watch(
-    suffix,
+    prefix,
     () => {
       result.value = null;
       confirmation.value = "";
@@ -46,10 +46,10 @@ export function useAssetCleanup() {
     if (pending.value || validation.value) return;
     if (
       !dryRun &&
-      (!canExecute.value || confirmation.value !== suffix.value || !operationallyVerified.value)
+      (!canExecute.value || confirmation.value !== prefix.value || !operationallyVerified.value)
     )
       return;
-    const requestedSuffix = suffix.value;
+    const requestedPrefix = prefix.value;
     pending.value = true;
     executing.value = !dryRun;
     result.value = null;
@@ -57,10 +57,10 @@ export function useAssetCleanup() {
     confirmation.value = "";
     operationallyVerified.value = false;
     try {
-      const response = await apiFetch("/assets/cleanup-by-suffix", {
+      const response = await apiFetch("/assets/cleanup-by-prefix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ suffix: requestedSuffix, dryRun }),
+        body: JSON.stringify({ prefix: requestedPrefix, dryRun }),
         skipAuthRedirect: true,
       });
       const data = await response.json().catch(() => null);
@@ -83,12 +83,12 @@ export function useAssetCleanup() {
       }
       if (
         data?.dryRun !== dryRun ||
-        data?.suffix !== requestedSuffix ||
+        data?.prefix !== requestedPrefix ||
         !Array.isArray(data?.keys)
       ) {
         throw new Error("The server returned an invalid cleanup result.");
       }
-      if (suffix.value === requestedSuffix) result.value = data;
+      if (prefix.value === requestedPrefix) result.value = data;
     } catch (caughtError) {
       error.value = `${caughtError.message}${dryRun ? "" : " Execution may have partially completed. Do not blindly retry; inspect storage and backups, then preview again. No rollback is guaranteed."}`;
     } finally {
@@ -97,7 +97,7 @@ export function useAssetCleanup() {
     }
   };
   return {
-    suffix,
+    prefix,
     result,
     pending,
     executing,

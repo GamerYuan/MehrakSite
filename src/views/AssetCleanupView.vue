@@ -14,7 +14,7 @@ import StatusPill from "../components/ui/StatusPill.vue";
 import { useAssetCleanup } from "../composables/useAssetCleanup";
 
 const {
-  suffix,
+  prefix,
   result,
   pending,
   executing,
@@ -28,7 +28,7 @@ const {
 } = useAssetCleanup();
 const showConfirmation = ref(false);
 const confirmed = computed(
-  () => canExecute.value && confirmation.value === suffix.value && operationallyVerified.value,
+  () => canExecute.value && confirmation.value === prefix.value && operationallyVerified.value,
 );
 const openConfirmation = () => {
   confirmation.value = "";
@@ -54,7 +54,7 @@ onUnmounted(() => globalThis.removeEventListener("beforeunload", preventUnload))
   <AdminPageShell
     eyebrow="Administration / Storage"
     title="Asset cleanup"
-    description="Preview, back up, and delete asset objects by literal suffix."
+    description="Preview, back up, and delete asset objects by literal prefix."
     icon="pi pi-trash"
   >
     <div class="cleanup-workspace">
@@ -65,23 +65,23 @@ onUnmounted(() => globalThis.removeEventListener("beforeunload", preventUnload))
       </Message>
       <SurfaceCard>
         <form class="cleanup-form" @submit.prevent="preview">
-          <label for="cleanup-suffix">Full object-key suffix</label>
+          <label for="cleanup-prefix">Full object-key prefix</label>
           <InputText
-            id="cleanup-suffix"
-            v-model="suffix"
-            placeholder="_bg.png"
+            id="cleanup-prefix"
+            v-model="prefix"
+            placeholder="genshin/"
             :disabled="pending"
             autocomplete="off"
             :spellcheck="false"
-            aria-describedby="suffix-help suffix-validation"
+            aria-describedby="prefix-help prefix-validation"
             fluid
           />
-          <p id="suffix-help">
+          <p id="prefix-help">
             Literal and case-sensitive, not a wildcard or regular expression. Spaces are preserved.
-            For example, <code>_bg.png</code> matches <code>genshin/example_bg.png</code>, but not
-            <code>example_BG.png</code>.
+            For example, <code>genshin/</code> matches <code>genshin/example_bg.png</code>, but not
+            <code>Genshin/example_bg.png</code> or <code>hsr/example_bg.png</code>.
           </p>
-          <p id="suffix-validation" v-if="suffix && validation">{{ validation }}</p>
+          <p id="prefix-validation" v-if="prefix && validation">{{ validation }}</p>
           <div class="actions">
             <Button
               type="submit"
@@ -112,7 +112,7 @@ onUnmounted(() => globalThis.removeEventListener("beforeunload", preventUnload))
           {{ result.dryRun ? "Preview results" : "Execution results" }}
         </h2>
         <p>
-          Suffix: <code class="literal">{{ result.suffix }}</code>
+          Prefix: <code class="literal">{{ result.prefix }}</code>
         </p>
         <div class="summary" aria-live="polite">
           <StatusPill>{{ result.matchedCount }} matched</StatusPill>
@@ -184,7 +184,7 @@ onUnmounted(() => globalThis.removeEventListener("beforeunload", preventUnload))
     >
       <div class="cleanup-form">
         <p>
-          Delete current asset keys ending with <code class="literal">{{ suffix }}</code
+          Delete current asset keys starting with <code class="literal">{{ prefix }}</code
           >? The preview found {{ result?.matchedCount }} matches; execution may find a different
           set.
         </p>
@@ -199,7 +199,7 @@ onUnmounted(() => globalThis.removeEventListener("beforeunload", preventUnload))
             before relying on this deletion.</label
           >
         </div>
-        <label for="cleanup-confirm">Re-enter the exact suffix to confirm (including spaces)</label>
+        <label for="cleanup-confirm">Re-enter the exact prefix to confirm (including spaces)</label>
         <InputText
           id="cleanup-confirm"
           v-model="confirmation"
